@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-[#fdf6ec]">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mariland Pro - CRM Comercial para Terapeutas TAP</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#991b1b',
+              darkred: '#7f1d1d',
+              lightred: '#b91c1c',
+              bg: '#fdf6ec',
+              cardbg: '#ffffff',
+              border: '#f5e6cc',
+              brown: '#451a03',
+              gold: '#e7c9a9',
+              yellowbg: '#fefce8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Alpine.js CDN -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    [x-cloak] { display: none !important; }
+    body { font-family: 'Inter', sans-serif; color: #451a03; }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #fdf6ec; }
+    ::-webkit-scrollbar-thumb { background: #e7c9a9; border-radius: 4px; }
+  </style>
+</head>
+
+<body class="h-full bg-[#fdf6ec] text-[#451a03] antialiased selection:bg-[#991b1b]/20" x-data="marilandApp()" x-init="initApp()" x-cloak>
+
+  <!-- ========================================== -->
+  <!-- 1. SPLASH SCREEN (1.5s) -->
+  <!-- ========================================== -->
+  <div x-show="currentScreen === 'splash'" x-transition:leave="transition ease-in duration-300 transform" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#991b1b] text-[#fdf6ec]">
+    <div class="flex flex-col items-center space-y-4">
+      <div class="w-24 h-24 rounded-full bg-[#fdf6ec] text-[#991b1b] flex items-center justify-center font-black text-5xl shadow-2xl tracking-tighter border-4 border-[#e7c9a9]">
+        M
+      </div>
+      <h1 class="text-3xl font-extrabold tracking-wider text-[#fdf6ec]">MARILAND PRO</h1>
+      <p class="text-[#e7c9a9] text-sm font-medium tracking-wide">CRM comercial de alta performance</p>
+      <div class="pt-6">
+        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-[#fdf6ec]"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. TELA DE LOGIN FAKE -->
+  <!-- ========================================== -->
+  <div x-show="currentScreen === 'login'" class="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#fdf6ec] to-[#fefce8]">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+      <div class="flex justify-center">
+        <div class="w-16 h-16 rounded-full bg-[#991b1b] text-[#fdf6ec] flex items-center justify-center font-black text-3xl shadow-lg border-2 border-[#e7c9a9]">
+          M
+        </div>
+      </div>
+      <h2 class="mt-4 text-center text-3xl font-extrabold text-[#451a03]">Mariland Pro</h2>
+      <p class="mt-1 text-center text-sm text-[#7c2d12]">Acesse sua conta para gerenciar seu funil comercial</p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div class="bg-white py-8 px-6 shadow-xl rounded-2xl border border-[#f5e6cc]">
+        <form class="space-y-6" @submit.prevent="doLogin()">
+          <div>
+            <label class="block text-sm font-semibold text-[#451a03]">E-mail</label>
+            <div class="mt-1">
+              <input type="email" x-model="loginForm.email" required class="w-full px-4 py-3 rounded-xl border border-[#e7c9a9] focus:outline-none focus:ring-2 focus:ring-[#991b1b] text-sm">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-[#451a03]">Senha</label>
+            <div class="mt-1">
+              <input type="password" x-model="loginForm.password" required class="w-full px-4 py-3 rounded-xl border border-[#e7c9a9] focus:outline-none focus:ring-2 focus:ring-[#991b1b] text-sm">
+            </div>
+          </div>
+
+          <div>
+            <button type="submit" :disabled="isLoggingIn" class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-[#991b1b] hover:bg-[#7f1d1d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#991b1b] transition-all">
+              <span x-show="!isLoggingIn">Entrar no Mariland Pro</span>
+              <span x-show="isLoggingIn" class="flex items-center space-x-2">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Acessando...</span>
+              </span>
+            </button>
+          </div>
+        </form>
+
+        <div class="mt-6 text-center">
+          <p class="text-xs text-[#7c2d12]/70">Ambiente de Produção Local • Custo Zero • Backup Local</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- APP CONTAINER PRINCIPAL (DASHBOARD / KANBAN / QUIZ / CONFIG) -->
+  <!-- ========================================== -->
+  <div x-show="currentScreen === 'app'" class="min-h-screen flex flex-col bg-[#fdf6ec]">
+
+    <!-- HEADER SUPERIOR -->
+    <header class="bg-[#991b1b] text-[#fdf6ec] shadow-lg sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-[#fdf6ec] text-[#991b1b] flex items-center justify-center font-black text-xl border-2 border-[#e7c9a9]">
+            M
+          </div>
+          <div>
+            <h1 class="text-lg font-bold leading-tight">Mariland Pro</h1>
+            <p class="text-xs text-[#e7c9a9]" x-text="getGreeting() + ', ' + (user.name || 'Mariland')"></p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button @click="openNewLeadModal()" class="bg-[#e7c9a9] hover:bg-white text-[#451a03] font-bold text-xs px-3 py-2 rounded-xl shadow transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-plus text-[#991b1b]"></i>
+            <span class="hidden sm:inline">Novo Lead</span>
+          </button>
+          <button @click="logout()" title="Sair" class="text-[#e7c9a9] hover:text-white p-2 text-sm transition">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- TABS DE NAVEGAÇÃO SUPERIOR -->
+      <div class="bg-[#7f1d1d] border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 flex space-x-2 overflow-x-auto py-2">
+          <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-[#fdf6ec] text-[#991b1b] font-bold shadow' : 'text-[#e7c9a9] hover:text-white font-medium'" class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition flex items-center space-x-2">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard</span>
+          </button>
+
+          <button @click="currentTab = 'kanban'" :class="currentTab === 'kanban' ? 'bg-[#fdf6ec] text-[#991b1b] font-bold shadow' : 'text-[#e7c9a9] hover:text-white font-medium'" class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition flex items-center space-x-2">
+            <i class="fa-solid fa-table-columns"></i>
+            <span>Funil Kanban</span>
+            <span class="bg-[#991b1b] text-white text-[10px] px-1.5 py-0.5 rounded-full" x-text="leads.length"></span>
+          </button>
+
+          <button @click="currentTab = 'quiz'" :class="currentTab === 'quiz' ? 'bg-[#fdf6ec] text-[#991b1b] font-bold shadow' : 'text-[#e7c9a9] hover:text-white font-medium'" class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition flex items-center space-x-2">
+            <i class="fa-solid fa-link"></i>
+            <span>Link / Teste</span>
+          </button>
+
+          <button @click="currentTab = 'config'" :class="currentTab === 'config' ? 'bg-[#fdf6ec] text-[#991b1b] font-bold shadow' : 'text-[#e7c9a9] hover:text-white font-medium'" class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition flex items-center space-x-2">
+            <i class="fa-solid fa-gear"></i>
+            <span>Configurações</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- NOTIFICAÇÃO TOAST TEMPORÁRIA -->
+    <div x-show="toast.show" x-transition class="fixed bottom-4 right-4 z-50 bg-[#451a03] text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold flex items-center space-x-3 border border-[#e7c9a9]">
+      <i class="fa-solid fa-circle-check text-green-400 text-lg"></i>
+      <span x-text="toast.message"></span>
+    </div>
+
+    <!-- CONTEÚDO DAS TABS -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-24">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: DASHBOARD -->
+      <!-- ========================================== -->
+      <div x-show="currentTab === 'dashboard'" class="space-y-6">
+
+        <!-- SAUDAÇÃO & RESUMO DO DIA -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#f5e6cc] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-[#451a03]" x-text="getGreeting() + ', ' + config.nomeExibicao + '! 👋'"></h2>
+            <p class="text-sm text-[#7c2d12] mt-1">Aqui está o desempenho do seu funil comercial este mês.</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <button @click="openNewLeadModal()" class="bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow transition flex items-center space-x-2">
+              <i class="fa-solid fa-plus text-[#fdf6ec]"></i>
+              <span>Novo Lead</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 CARDS MÉTRICOS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- CARD 1: PROSPECÇÕES FALTAM HOJE -->
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#f5e6cc] relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#7c2d12]">Prospecções Hoje</span>
+              <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-bullseye"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="text-3xl font-black text-[#451a03]" x-text="metrics.prospeccoesHoje"></div>
+              <p class="text-xs text-[#7c2d12] mt-1" x-text="'Meta: ' + config.metaProspeccao + '/mês (' + metrics.diasUteisRestantes + ' dias úteis restantes)'"></p>
+            </div>
+          </div>
+
+          <!-- CARD 2: FATURADO NO MÊS -->
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#f5e6cc] relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#7c2d12]">Faturado no Mês</span>
+              <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-sack-dollar"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="text-3xl font-black text-emerald-700" x-text="formatCurrency(metrics.faturadoMes)"></div>
+              <p class="text-xs text-[#7c2d12] mt-1" x-text="'Meta base: ' + formatCurrency(config.metaFaturamento)"></p>
+            </div>
+          </div>
+
+          <!-- CARD 3: A RECEBER (MÊS) -->
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#f5e6cc] relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#7c2d12]">A Receber (Mês)</span>
+              <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-clock"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="text-3xl font-black text-blue-700" x-text="formatCurrency(metrics.aReceberMes)"></div>
+              <p class="text-xs text-[#7c2d12] mt-1" x-text="metrics.totalParcelasPendentesMes + ' parcelas pendentes este mês'"></p>
+            </div>
+          </div>
+
+          <!-- CARD 4: TAXA DE CONVERSÃO -->
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#f5e6cc] relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#7c2d12]">Taxa de Conversão</span>
+              <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-chart-line"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="text-3xl font-black text-purple-700" x-text="metrics.taxaConversao + '%'"></div>
+              <p class="text-xs text-[#7c2d12] mt-1" x-text="metrics.totalVendidos + ' vendas de ' + leads.length + ' leads'"></p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- CARDS METAS ESPECIAIS (DESAFIO +50% E DISNEY +100%) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-6 rounded-2xl shadow-md relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Meta Desafio (+50%)</span>
+                <h3 class="text-2xl font-black mt-2" x-text="formatCurrency(config.metaFaturamento * 1.5)"></h3>
+                <p class="text-xs text-amber-100 mt-1">Superação comercial de alta performance</p>
+              </div>
+              <i class="fa-solid fa-fire text-5xl opacity-30"></i>
+            </div>
+            <div class="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
+              <div class="bg-white h-full transition-all" :style="'width: ' + Math.min(100, (metrics.faturadoMes / (config.metaFaturamento * 1.5)) * 100) + '%'"></div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white p-6 rounded-2xl shadow-md relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Meta Disney (+100%)</span>
+                <h3 class="text-2xl font-black mt-2" x-text="formatCurrency(config.metaFaturamento * 2.0)"></h3>
+                <p class="text-xs text-purple-100 mt-1">Nível de faturamento extraordinário</p>
+              </div>
+              <i class="fa-solid fa-wand-magic-sparkles text-5xl opacity-30"></i>
+            </div>
+            <div class="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
+              <div class="bg-white h-full transition-all" :style="'width: ' + Math.min(100, (metrics.faturadoMes / (config.metaFaturamento * 2.0)) * 100) + '%'"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- LISTAS DE COBRANÇAS & SESSÕES DE HOJE -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- LISTA COBRAR HOJE -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#f5e6cc] space-y-4">
+            <div class="flex items-center justify-between border-b border-[#f5e6cc] pb-3">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-money-bill-wave text-[#991b1b]"></i>
+                <h3 class="font-bold text-lg text-[#451a03]">Cobrar Hoje 💰</h3>
+              </div>
+              <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded-full" x-text="cobranchasHoje.length + ' pendentes'"></span>
+            </div>
+
+            <template x-if="cobranchasHoje.length === 0">
+              <div class="text-center py-8 text-[#7c2d12]/60">
+                <i class="fa-solid fa-circle-check text-3xl text-emerald-500 mb-2"></i>
+                <p class="text-sm font-medium">Nenhuma parcela vencendo hoje!</p>
+              </div>
+            </template>
+
+            <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
+              <template x-for="item in cobranchasHoje" :key="item.lead.id + '-' + item.parcela.numero">
+                <div class="p-4 rounded-xl border border-[#f5e6cc] bg-[#fdf6ec]/50 flex items-center justify-between">
+                  <div>
+                    <h4 class="font-bold text-sm text-[#451a03]" x-text="item.lead.nome"></h4>
+                    <p class="text-xs text-[#7c2d12]" x-text="'Parcela ' + item.parcela.numero + ' • ' + formatCurrency(item.parcela.valor)"></p>
+                  </div>
+
+                  <div class="flex items-center space-x-2">
+                    <button @click="toggleParcelaPago(item.lead.id, item.parcela.numero)" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-lg transition">
+                      Marcar Pago
+                    </button>
+                    <a :href="getWaCobranchaLink(item.lead, item.parcela)" target="_blank" class="text-xs bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-2 rounded-lg transition flex items-center space-x-1">
+                      <i class="fa-brands fa-whatsapp"></i>
+                      <span>Cobrar</span>
+                    </a>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- LISTA SESSÕES HOJE -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#f5e6cc] space-y-4">
+            <div class="flex items-center justify-between border-b border-[#f5e6cc] pb-3">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-calendar-check text-[#991b1b]"></i>
+                <h3 class="font-bold text-lg text-[#451a03]">Sessões / Agendados 📅</h3>
+              </div>
+              <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full" x-text="sessoesHoje.length + ' leads'"></span>
+            </div>
+
+            <template x-if="sessoesHoje.length === 0">
+              <div class="text-center py-8 text-[#7c2d12]/60">
+                <i class="fa-solid fa-calendar-minus text-3xl text-amber-500 mb-2"></i>
+                <p class="text-sm font-medium">Nenhum lead com status Agendado.</p>
+              </div>
+            </template>
+
+            <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
+              <template x-for="lead in sessoesHoje" :key="lead.id">
+                <div class="p-4 rounded-xl border border-[#f5e6cc] bg-[#fdf6ec]/50 flex items-center justify-between">
+                  <div>
+                    <h4 class="font-bold text-sm text-[#451a03]" x-text="lead.nome"></h4>
+                    <p class="text-xs text-[#7c2d12]" x-text="lead.produtoNome || 'Sessão de Avaliação TAP'"></p>
+                  </div>
+
+                  <div class="flex items-center space-x-2">
+                    <button @click="openLeadModal(lead)" class="text-xs bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold px-3 py-2 rounded-lg transition">
+                      Ver Detalhes
+                    </button>
+                    <a :href="getWaDirectLink(lead.whatsapp, 'Oi ' + lead.nome + ', tudo pronto para nossa sessão?')" target="_blank" class="text-xs bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-2 rounded-lg transition">
+                      <i class="fa-brands fa-whatsapp"></i>
+                    </a>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: FUNIL KANBAN -->
+      <!-- ========================================== -->
+      <div x-show="currentTab === 'kanban'" class="space-y-6">
+
+        <!-- CABEÇALHO DO KANBAN -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-[#451a03]">Funil Comercial TAP</h2>
+            <p class="text-xs text-[#7c2d12]">Acompanhe o avanço dos seus leads de prospecção até a venda.</p>
+          </div>
+          <button @click="openNewLeadModal()" class="bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow transition flex items-center space-x-2 self-start sm:self-auto">
+            <i class="fa-solid fa-plus"></i>
+            <span>+ Criar Novo Lead</span>
+          </button>
+        </div>
+
+        <!-- GRID 4 COLUNAS KANBAN -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+
+          <!-- COLUNA 1: NOVO -->
+          <div class="bg-[#fefce8] p-4 rounded-2xl border border-[#f5e6cc] space-y-3 min-h-[500px]">
+            <div class="flex items-center justify-between pb-2 border-b border-[#e7c9a9]/50">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                <h3 class="font-extrabold text-sm uppercase text-[#451a03]">1. Novo</h3>
+              </div>
+              <span class="bg-blue-100 text-blue-800 text-xs font-black px-2 py-0.5 rounded-full" x-text="getLeadsByStatus('novo').length"></span>
+            </div>
+
+            <template x-for="lead in getLeadsByStatus('novo')" :key="lead.id">
+              <div @click="openLeadModal(lead)" class="bg-white p-4 rounded-xl border border-[#f5e6cc] shadow-sm hover:shadow-md transition cursor-pointer space-y-2">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-bold text-sm text-[#451a03]" x-text="lead.nome"></h4>
+                  <a :href="getWaDirectLink(lead.whatsapp)" @click.stop target="_blank" class="text-green-600 hover:text-green-700 text-sm">
+                    <i class="fa-brands fa-whatsapp"></i>
+                  </a>
+                </div>
+
+                <div class="text-xs text-[#7c2d12] bg-[#fdf6ec] p-2 rounded-lg">
+                  <i class="fa-solid fa-brain text-amber-600 mr-1"></i>
+                  <span x-text="getTravasSummary(lead.testAnswers)"></span>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-[#f5e6cc] text-[11px] text-[#7c2d12]/70">
+                  <span x-text="formatDate(lead.createdAt)"></span>
+                  <div class="flex items-center space-x-1" @click.stop>
+                    <button @click="moveStatus(lead, 'agendado')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-2 py-1 rounded font-bold transition">
+                      Agendar &gt;
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- COLUNA 2: AGENDADO -->
+          <div class="bg-[#fefce8] p-4 rounded-2xl border border-[#f5e6cc] space-y-3 min-h-[500px]">
+            <div class="flex items-center justify-between pb-2 border-b border-[#e7c9a9]/50">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                <h3 class="font-extrabold text-sm uppercase text-[#451a03]">2. Agendado</h3>
+              </div>
+              <span class="bg-amber-100 text-amber-800 text-xs font-black px-2 py-0.5 rounded-full" x-text="getLeadsByStatus('agendado').length"></span>
+            </div>
+
+            <template x-for="lead in getLeadsByStatus('agendado')" :key="lead.id">
+              <div @click="openLeadModal(lead)" class="bg-white p-4 rounded-xl border border-[#f5e6cc] shadow-sm hover:shadow-md transition cursor-pointer space-y-2">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-bold text-sm text-[#451a03]" x-text="lead.nome"></h4>
+                  <a :href="getWaDirectLink(lead.whatsapp)" @click.stop target="_blank" class="text-green-600 hover:text-green-700 text-sm">
+                    <i class="fa-brands fa-whatsapp"></i>
+                  </a>
+                </div>
+
+                <div class="text-xs text-amber-800 bg-amber-50 p-2 rounded-lg">
+                  <i class="fa-solid fa-calendar text-amber-600 mr-1"></i>
+                  <span>Aguardando sessão de avaliação</span>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-[#f5e6cc] text-[11px]">
+                  <button @click.stop="moveStatus(lead, 'novo')" class="text-gray-500 hover:text-gray-700 font-bold">&lt; Voltar</button>
+                  <button @click.stop="moveStatus(lead, 'vendido')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded font-bold transition">
+                    Vender &gt;
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- COLUNA 3: VENDIDO -->
+          <div class="bg-[#fefce8] p-4 rounded-2xl border border-[#f5e6cc] space-y-3 min-h-[500px]">
+            <div class="flex items-center justify-between pb-2 border-b border-[#e7c9a9]/50">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                <h3 class="font-extrabold text-sm uppercase text-[#451a03]">3. Vendido</h3>
+              </div>
+              <span class="bg-emerald-100 text-emerald-800 text-xs font-black px-2 py-0.5 rounded-full" x-text="getLeadsByStatus('vendido').length"></span>
+            </div>
+
+            <template x-for="lead in getLeadsByStatus('vendido')" :key="lead.id">
+              <div @click="openLeadModal(lead)" class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm hover:shadow-md transition cursor-pointer space-y-2">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-bold text-sm text-[#451a03]" x-text="lead.nome"></h4>
+                  <span class="text-xs font-black text-emerald-700" x-text="formatCurrency(lead.produtoValor || 0)"></span>
+                </div>
+
+                <div class="text-xs text-[#7c2d12] bg-[#fdf6ec] p-2 rounded-lg space-y-1">
+                  <div class="font-semibold text-emerald-800 truncate" x-text="lead.produtoNome || 'Sem produto atribuído'"></div>
+                  <div class="flex justify-between items-center text-[11px]">
+                    <span x-text="'Sessões: ' + lead.sessoesFeitas + '/' + (lead.sessoesTotal || 0)"></span>
+                    <span x-text="getParcelasPagoSummary(lead)"></span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-[#f5e6cc] text-[11px]">
+                  <button @click.stop="moveStatus(lead, 'agendado')" class="text-gray-500 hover:text-gray-700 font-bold">&lt; Agendado</button>
+                  <a :href="getWaDirectLink(lead.whatsapp)" @click.stop target="_blank" class="text-green-600 font-bold">
+                    <i class="fa-brands fa-whatsapp"></i> Whats
+                  </a>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- COLUNA 4: PERDIDO -->
+          <div class="bg-[#fefce8] p-4 rounded-2xl border border-[#f5e6cc] space-y-3 min-h-[500px]">
+            <div class="flex items-center justify-between pb-2 border-b border-[#e7c9a9]/50">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                <h3 class="font-extrabold text-sm uppercase text-[#451a03]">4. Perdido</h3>
+              </div>
+              <span class="bg-red-100 text-red-800 text-xs font-black px-2 py-0.5 rounded-full" x-text="getLeadsByStatus('perdido').length"></span>
+            </div>
+
+            <template x-for="lead in getLeadsByStatus('perdido')" :key="lead.id">
+              <div @click="openLeadModal(lead)" class="bg-white p-4 rounded-xl border border-red-200 shadow-sm hover:shadow-md transition cursor-pointer space-y-2 opacity-75">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-bold text-sm text-[#451a03]" x-text="lead.nome"></h4>
+                  <span class="text-xs text-red-600 font-bold">Perdido</span>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-[#f5e6cc] text-[11px]">
+                  <button @click.stop="moveStatus(lead, 'novo')" class="text-blue-600 font-bold hover:underline">Reativar &gt;</button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: ISCA DIGITAL & QUIZ -->
+      <!-- ========================================== -->
+      <div x-show="currentTab === 'quiz'" class="space-y-6 max-w-4xl mx-auto">
+
+        <!-- GERADOR DE LINK PERSONALIZADO -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#f5e6cc] space-y-4">
+          <div class="flex items-center space-x-2 border-b border-[#f5e6cc] pb-3">
+            <i class="fa-solid fa-link text-[#991b1b] text-xl"></i>
+            <div>
+              <h3 class="font-bold text-lg text-[#451a03]">Gerador de Link de Prospecção</h3>
+              <p class="text-xs text-[#7c2d12]">Gere o link da isca digital "Teste de Travas" para enviar ao seu lead.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Nome do Lead</label>
+              <input type="text" x-model="quizLeadName" placeholder="Ex: Joana Silva" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9] text-sm focus:outline-none focus:ring-2 focus:ring-[#991b1b]">
+            </div>
+            <div class="flex items-end">
+              <button @click="generateQuizLink()" class="w-full bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold py-2.5 px-4 rounded-xl text-sm transition">
+                Gerar Link
+              </button>
+            </div>
+          </div>
+
+          <template x-if="generatedQuizUrl">
+            <div class="p-4 rounded-xl bg-[#fdf6ec] border border-[#e7c9a9] flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div class="truncate w-full sm:w-auto font-mono text-xs text-[#991b1b] font-bold" x-text="generatedQuizUrl"></div>
+              <button @click="copyToClipboard(generatedQuizUrl)" class="bg-[#e7c9a9] hover:bg-white text-[#451a03] font-bold text-xs px-4 py-2 rounded-lg transition whitespace-nowrap flex items-center space-x-1">
+                <i class="fa-solid fa-copy"></i>
+                <span>Copiar Link</span>
+              </button>
+            </div>
+          </template>
+        </div>
+
+        <!-- SIMULADOR DO QUIZ DIGITAL "TESTE DE TRAVAS" -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#f5e6cc] space-y-6">
+          <div class="flex items-center justify-between border-b border-[#f5e6cc] pb-4">
+            <div>
+              <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Isca Digital</span>
+              <h3 class="text-xl font-extrabold text-[#451a03] mt-1">Teste de Travas Emocionais (Simulador)</h3>
+            </div>
+            <div class="text-right">
+              <span class="text-xs text-[#7c2d12] font-semibold">Terapeuta TAP</span>
+              <div class="font-bold text-sm text-[#991b1b]" x-text="config.nomeExibicao"></div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Nome do Respondente</label>
+              <input type="text" x-model="simulatedQuiz.name" placeholder="Digite seu nome..." class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9] text-sm focus:outline-none focus:ring-2 focus:ring-[#991b1b]">
+            </div>
+
+            <!-- LISTA DE 5 PERGUNTAS -->
+            <div class="space-y-4 pt-2">
+              <template x-for="(pergunta, idx) in quizQuestions" :key="idx">
+                <div class="p-4 rounded-xl bg-[#fdf6ec]/60 border border-[#f5e6cc] space-y-2">
+                  <p class="font-bold text-sm text-[#451a03]" x-text="(idx + 1) + '. ' + pergunta"></p>
+                  <div class="flex space-x-3">
+                    <label class="flex items-center space-x-1.5 text-xs font-semibold cursor-pointer">
+                      <input type="radio" :name="'q' + idx" value="Sim" x-model="simulatedQuiz.answers[idx]" class="text-[#991b1b] focus:ring-[#991b1b]">
+                      <span>Sim</span>
+                    </label>
+                    <label class="flex items-center space-x-1.5 text-xs font-semibold cursor-pointer">
+                      <input type="radio" :name="'q' + idx" value="Não" x-model="simulatedQuiz.answers[idx]" class="text-[#991b1b] focus:ring-[#991b1b]">
+                      <span>Não</span>
+                    </label>
+                    <label class="flex items-center space-x-1.5 text-xs font-semibold cursor-pointer">
+                      <input type="radio" :name="'q' + idx" value="Às vezes" x-model="simulatedQuiz.answers[idx]" class="text-[#991b1b] focus:ring-[#991b1b]">
+                      <span>Às vezes</span>
+                    </label>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <button @click="submitSimulatedQuiz()" class="w-full bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold py-3.5 px-4 rounded-xl text-base shadow-md transition">
+              Finalizar Teste e Gerar Lead
+            </button>
+          </div>
+
+          <!-- RESULTADO DO QUIZ (APÓS SUBMIT) -->
+          <template x-if="quizResult">
+            <div class="p-6 rounded-2xl bg-amber-50 border-2 border-amber-300 text-center space-y-4">
+              <div class="w-12 h-12 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-2xl mx-auto">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <h4 class="text-2xl font-black text-[#451a03]" x-text="quizResult.travasCount + ' travas identificadas!'"></h4>
+              <p class="text-sm text-[#7c2d12]">
+                Lead registrado com sucesso na sua coluna <strong>NOVO</strong> no Kanban!
+              </p>
+              <div class="pt-2">
+                <a :href="getWaDirectLink(config.whatsapp, 'Olá Mariland! Acabei de responder o Teste de Travas e identifiquei ' + quizResult.travasCount + ' travas.')" target="_blank" class="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition">
+                  <i class="fa-brands fa-whatsapp text-xl"></i>
+                  <span>Chamar no WhatsApp da Terapeuta</span>
+                </a>
+              </div>
+            </div>
+          </template>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: CONFIGURAÇÕES & BACKUP JSON -->
+      <!-- ========================================== -->
+      <div x-show="currentTab === 'config'" class="space-y-6 max-w-4xl mx-auto">
+
+        <!-- PERFIL & METAS -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#f5e6cc] space-y-6">
+          <div class="flex items-center justify-between border-b border-[#f5e6cc] pb-3">
+            <h3 class="font-bold text-lg text-[#451a03]">Perfil & Metas Comerciais</h3>
+            <button @click="saveConfig()" class="bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow">
+              Salvar Alterações
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Nome de Exibição</label>
+              <input type="text" x-model="config.nomeExibicao" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9] text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Slug Personalizado</label>
+              <input type="text" x-model="config.slug" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9] text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">WhatsApp (DDD + Número)</label>
+              <input type="text" x-model="config.whatsapp" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9] text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Dias Úteis / Semana (1-7)</label>
+              <input type="number" min="1" max="7" x-model.number="config.diasSemana" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9] text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Meta Prospecções / Mês</label>
+              <input type="number" x-model.number="config.metaProspeccao" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9] text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Meta Faturamento Base (R$)</label>
+              <input type="number" x-model.number="config.metaFaturamento" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9] text-sm">
+            </div>
+          </div>
+        </div>
+
+        <!-- GESTÃO DE PRODUTOS -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#f5e6cc] space-y-4">
+          <div class="flex items-center justify-between border-b border-[#f5e6cc] pb-3">
+            <h3 class="font-bold text-lg text-[#451a03]">Produtos & Protocolos TAP</h3>
+            <button @click="openProductModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
+              + Adicionar Produto
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            <template x-for="prod in produtos" :key="prod.id">
+              <div class="p-4 rounded-xl border border-[#f5e6cc] bg-[#fdf6ec]/40 flex items-center justify-between">
+                <div>
+                  <h4 class="font-bold text-sm text-[#451a03]" x-text="prod.nome"></h4>
+                  <p class="text-xs text-[#7c2d12]" x-text="formatCurrency(prod.valor) + ' • ' + prod.sessoes + ' sessões'"></p>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button @click="openProductModal(prod)" class="text-xs text-blue-600 hover:underline font-bold">Editar</button>
+                  <button @click="deleteProduct(prod.id)" class="text-xs text-red-600 hover:underline font-bold">Excluir</button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- BACKUP DE DADOS & SEGURANÇA -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#f5e6cc] space-y-4">
+          <h3 class="font-bold text-lg text-[#451a03]">Gestão de Dados & Backup</h3>
+
+          <!-- AVISO EM DESTAQUE DA ESPECIFICAÇÃO -->
+          <div class="p-4 rounded-xl bg-amber-50 border border-amber-300 flex items-start space-x-3 text-amber-900">
+            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl mt-0.5"></i>
+            <p class="text-xs font-semibold leading-relaxed">
+              <strong>Aviso Importante:</strong> Faça backup semanal! O `localStorage` armazena os dados com custo zero direto no seu navegador. Se você trocar de celular ou limpar os dados de navegação, pode restaurar tudo facilmente usando o arquivo JSON de backup.
+            </p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
+            <button @click="exportBackupJSON()" class="w-full sm:w-auto bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold py-3 px-6 rounded-xl text-sm transition flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-download"></i>
+              <span>Exportar Backup JSON</span>
+            </button>
+
+            <label class="w-full sm:w-auto bg-amber-700 hover:bg-amber-800 text-white font-bold py-3 px-6 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer">
+              <i class="fa-solid fa-upload"></i>
+              <span>Importar Backup JSON</span>
+              <input type="file" accept=".json" @change="importBackupJSON($event)" class="hidden">
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- MODAL DETALHES DO LEAD -->
+    <!-- ========================================== -->
+    <div x-show="activeLeadModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div @click.away="activeLeadModal = false" class="bg-white max-w-2xl w-full rounded-2xl shadow-2xl border border-[#f5e6cc] overflow-hidden space-y-6 max-h-[90vh] flex flex-col">
+        
+        <!-- HEADER MODAL -->
+        <div class="bg-[#991b1b] text-white p-5 flex items-center justify-between">
+          <div>
+            <h3 class="font-extrabold text-lg" x-text="selectedLead ? selectedLead.nome : ''"></h3>
+            <p class="text-xs text-[#e7c9a9]" x-text="'Cadastrado em: ' + (selectedLead ? formatDate(selectedLead.createdAt) : '')"></p>
+          </div>
+          <button @click="activeLeadModal = false" class="text-white hover:text-amber-200 text-xl font-bold">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- CORPO MODAL -->
+        <div class="p-6 space-y-6 overflow-y-auto flex-1 text-sm">
+
+          <!-- STATUS & EDICAO DE DADOS -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Nome do Cliente</label>
+              <input type="text" x-model="selectedLead.nome" class="mt-1 w-full px-3 py-2 rounded-xl border border-[#e7c9a9]">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">WhatsApp</label>
+              <input type="text" x-model="selectedLead.whatsapp" class="mt-1 w-full px-3 py-2 rounded-xl border border-[#e7c9a9]">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Status no Funil</label>
+              <select x-model="selectedLead.status" class="mt-1 w-full px-3 py-2 rounded-xl border border-[#e7c9a9]">
+                <option value="novo">Novo</option>
+                <option value="agendado">Agendado</option>
+                <option value="vendido">Vendido</option>
+                <option value="perdido">Perdido</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#451a03] uppercase">Atribuir Produto / Protocolo</label>
+              <select @change="assignProductToSelectedLead($event.target.value)" class="mt-1 w-full px-3 py-2 rounded-xl border border-[#e7c9a9]">
+                <option value="">-- Selecione o Produto --</option>
+                <template x-for="p in produtos" :key="p.id">
+                  <option :value="p.id" :selected="selectedLead.productId === p.id" x-text="p.nome + ' (' + formatCurrency(p.valor) + ')'"></option>
+                </template>
+              </select>
+            </div>
+          </div>
+
+          <!-- RESUMO DO TESTE DE TRAVAS -->
+          <div class="p-4 rounded-xl bg-[#fdf6ec] border border-[#f5e6cc] space-y-2">
+            <h4 class="font-bold text-xs uppercase text-[#7c2d12]">Respostas do Teste de Travas</h4>
+            <div class="space-y-1 text-xs">
+              <template x-for="(pergunta, idx) in quizQuestions" :key="idx">
+                <div class="flex justify-between py-1 border-b border-[#e7c9a9]/30">
+                  <span class="text-[#451a03]" x-text="(idx + 1) + '. ' + pergunta"></span>
+                  <span class="font-bold text-[#991b1b]" x-text="selectedLead.testAnswers ? (selectedLead.testAnswers['q' + idx] || 'Não respondido') : 'N/A'"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- PARCELAS FINANCEIRAS (SE VENDIDO OU COM PRODUTO) -->
+          <template x-if="selectedLead.parcelas && selectedLead.parcelas.length > 0">
+            <div class="space-y-3 p-4 rounded-xl border border-[#f5e6cc] bg-emerald-50/50">
+              <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
+                <h4 class="font-bold text-xs uppercase text-emerald-900">Parcelas Financeiras (3x Automático)</h4>
+                <span class="text-xs font-extrabold text-emerald-700" x-text="'Total: ' + formatCurrency(selectedLead.produtoValor)"></span>
+              </div>
+
+              <div class="space-y-2">
+                <template x-for="parc in selectedLead.parcelas" :key="parc.numero">
+                  <div class="flex items-center justify-between p-2 rounded-lg bg-white border border-emerald-200 text-xs">
+                    <div>
+                      <span class="font-bold" x-text="'Parcela ' + parc.numero + '/3'"></span>
+                      <span class="text-gray-500 ml-2" x-text="'Vencimento: ' + formatDate(parc.vencimento)"></span>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                      <span class="font-black text-emerald-800" x-text="formatCurrency(parc.valor)"></span>
+                      <button @click="toggleParcelaPago(selectedLead.id, parc.numero)" :class="parc.pago ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-900 border border-amber-300'" class="px-2.5 py-1 rounded font-bold transition">
+                        <span x-text="parc.pago ? 'Pago ✓' : 'Pendente'"></span>
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- CONTADOR DE SESSÕES EXECUTADAS -->
+          <template x-if="selectedLead.sessoesTotal > 0">
+            <div class="p-4 rounded-xl border border-[#f5e6cc] bg-white flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-xs uppercase text-[#7c2d12]">Controle de Sessões TAP</h4>
+                <div class="text-xl font-black text-[#451a03] mt-1" x-text="selectedLead.sessoesFeitas + ' / ' + selectedLead.sessoesTotal + ' sessões feitas'"></div>
+              </div>
+
+              <button @click="incrementSessaoFeita(selectedLead)" :disabled="selectedLead.sessoesFeitas >= selectedLead.sessoesTotal" class="bg-[#991b1b] hover:bg-[#7f1d1d] disabled:opacity-50 text-white font-bold px-4 py-2.5 rounded-xl transition text-xs">
+                +1 Sessão Realizada
+              </button>
+            </div>
+          </template>
+
+        </div>
+
+        <!-- FOOTER MODAL -->
+        <div class="p-4 bg-[#fdf6ec] border-t border-[#f5e6cc] flex items-center justify-between">
+          <button @click="deleteLead(selectedLead.id)" class="text-red-600 hover:text-red-800 font-bold text-xs flex items-center space-x-1">
+            <i class="fa-solid fa-trash"></i>
+            <span>Excluir Lead</span>
+          </button>
+
+          <div class="flex items-center space-x-2">
+            <a :href="getWaDirectLink(selectedLead.whatsapp)" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>WhatsApp</span>
+            </a>
+            <button @click="saveLeadChanges()" class="bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold px-5 py-2 rounded-xl text-xs transition">
+              Salvar Alterações
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL NOVO LEAD MANUALLY -->
+    <!-- ========================================== -->
+    <div x-show="showNewLeadModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div @click.away="showNewLeadModal = false" class="bg-white max-w-md w-full rounded-2xl shadow-2xl border border-[#f5e6cc] p-6 space-y-4">
+        <h3 class="font-extrabold text-lg text-[#451a03]">Cadastrar Novo Lead</h3>
+
+        <div class="space-y-3 text-sm">
+          <div>
+            <label class="block text-xs font-bold text-[#451a03] uppercase">Nome Completo</label>
+            <input type="text" x-model="newLeadForm.nome" placeholder="Ex: Maria Oliveira" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#451a03] uppercase">WhatsApp (DDD + Número)</label>
+            <input type="text" x-model="newLeadForm.whatsapp" placeholder="Ex: 11999998888" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#451a03] uppercase">Status Inicial</label>
+            <select x-model="newLeadForm.status" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9]">
+              <option value="novo">Novo</option>
+              <option value="agendado">Agendado</option>
+              <option value="vendido">Vendido</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-4 border-t border-[#f5e6cc]">
+          <button @click="showNewLeadModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-800">Cancelar</button>
+          <button @click="createNewLeadManual()" class="bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+            Cadastrar Lead
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL PRODUTO (CRIAR / EDITAR) -->
+    <!-- ========================================== -->
+    <div x-show="showProductModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div @click.away="showProductModal = false" class="bg-white max-w-md w-full rounded-2xl shadow-2xl border border-[#f5e6cc] p-6 space-y-4">
+        <h3 class="font-extrabold text-lg text-[#451a03]" x-text="editingProduct.id ? 'Editar Produto' : 'Novo Produto'"></h3>
+
+        <div class="space-y-3 text-sm">
+          <div>
+            <label class="block text-xs font-bold text-[#451a03] uppercase">Nome do Protocolo / Produto</label>
+            <input type="text" x-model="editingProduct.nome" placeholder="Ex: TAP 12 Sessões" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#451a03] uppercase">Valor Total (R$)</label>
+            <input type="number" x-model.number="editingProduct.valor" placeholder="1500" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#451a03] uppercase">Quantidade de Sessões</label>
+            <input type="number" x-model.number="editingProduct.sessoes" placeholder="8" class="mt-1 w-full px-4 py-2.5 rounded-xl border border-[#e7c9a9]">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-4 border-t border-[#f5e6cc]">
+          <button @click="showProductModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-800">Cancelar</button>
+          <button @click="saveProduct()" class="bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+            Salvar Produto
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT & LÓGICA DE NEGÓCIO DA APLICAÇÃO -->
+  <!-- ========================================== -->
+  <script>
+    function marilandApp() {
+      return {
+        currentScreen: 'splash',
+        currentTab: 'dashboard',
+        isLoggingIn: false,
+
+        // 1. DADOS DE LOGIN & USUÁRIO
+        user: { name: 'Mariland Rodrigues', email: 'mariland@marilandpro.com', loggedIn: false },
+        loginForm: { email: 'mariland@marilandpro.com', password: 'mariland123' },
+
+        // 2. CONFIGURAÇÕES COMERCIAIS
+        config: {
+          nomeExibicao: 'Mariland Rodrigues',
+          slug: 'mariland-rodrigues',
+          whatsapp: '5511999999999',
+          diasSemana: 5,
+          metaProspeccao: 100,
+          metaFaturamento: 15000,
+          conversaoSessao: 70,
+          conversaoVenda: 40
+        },
+
+        // 3. PRODUTOS & PROTOCOLOS
+        produtos: [
+          { id: 'p1', nome: 'TAP Essencial - 4 sessões', valor: 1200, sessoes: 4, temSessao: true },
+          { id: 'p2', nome: 'TAP Transformação - 8 sessões', valor: 2400, sessoes: 8, temSessao: true },
+          { id: 'p3', nome: 'Mentoria Mariland PRO', valor: 3500, sessoes: 6, temSessao: true }
+        ],
+
+        // 4. LEADS NO FUNIL
+        leads: [],
+
+        // PERGUNTAS HARCODED DO QUIZ ISCA DIGITAL
+        quizQuestions: [
+          "Você procrastina tarefas importantes no seu dia a dia?",
+          "Sente medo ou culpa na hora de cobrar pelo seu trabalho?",
+          "Tem dificuldade de dizer não e acaba se sobrecarregando?",
+          "Se sabota quando está quase conseguindo algo grande?",
+          "Carrega culpa excessiva mesmo sem ter feito nada de errado?"
+        ],
+
+        // ESTADOS TEMPORÁRIOS DE MODAIS & FORMULÁRIOS
+        activeLeadModal: false,
+        selectedLead: null,
+        showNewLeadModal: false,
+        newLeadForm: { nome: '', whatsapp: '', status: 'novo' },
+        showProductModal: false,
+        editingProduct: { id: null, nome: '', valor: 1500, sessoes: 8, temSessao: true },
+        quizLeadName: '',
+        generatedQuizUrl: '',
+        simulatedQuiz: { name: '', answers: ['', '', '', '', ''] },
+        quizResult: null,
+
+        // TOAST NOTIFICATION
+        toast: { show: false, message: '' },
+
+        // INITIALIZATION PROCEDURE
+        initApp() {
+          this.loadLocalStorageData();
+
+          // SPLASH TIMEOUT 1.5s
+          setTimeout(() => {
+            if (this.user.loggedIn) {
+              this.currentScreen = 'app';
+            } else {
+              this.currentScreen = 'login';
+            }
+          }, 1500);
+        },
+
+        // LOAD 4 KEYS FROM LOCALSTORAGE
+        loadLocalStorageData() {
+          try {
+            const storedUser = localStorage.getItem('marilandpro_user');
+            if (storedUser) this.user = JSON.parse(storedUser);
+
+            const storedConfig = localStorage.getItem('marilandpro_config');
+            if (storedConfig) this.config = JSON.parse(storedConfig);
+
+            const storedProdutos = localStorage.getItem('marilandpro_produtos');
+            if (storedProdutos) this.produtos = JSON.parse(storedProdutos);
+
+            const storedLeads = localStorage.getItem('marilandpro_leads');
+            if (storedLeads) {
+              this.leads = JSON.parse(storedLeads);
+            } else {
+              // INITIAL DEMO LEADS IF FIRST TIME EVER
+              this.leads = [
+                {
+                  id: 'lead-101',
+                  nome: 'Joana Silva',
+                  whatsapp: '5511988887777',
+                  status: 'novo',
+                  testAnswers: { q0: 'Sim', q1: 'Sim', q2: 'Às vezes', q3: 'Não', q4: 'Sim' },
+                  createdAt: new Date().toISOString(),
+                  productId: '',
+                  produtoNome: '',
+                  produtoValor: 0,
+                  sessoesTotal: 0,
+                  sessoesFeitas: 0,
+                  parcelas: []
+                },
+                {
+                  id: 'lead-102',
+                  nome: 'Patrícia Lima',
+                  whatsapp: '5511977776666',
+                  status: 'agendado',
+                  testAnswers: { q0: 'Sim', q1: 'Sim', q2: 'Sim', q3: 'Sim', q4: 'Não' },
+                  createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+                  productId: '',
+                  produtoNome: '',
+                  produtoValor: 0,
+                  sessoesTotal: 0,
+                  sessoesFeitas: 0,
+                  parcelas: []
+                },
+                {
+                  id: 'lead-103',
+                  nome: 'Camila Santos',
+                  whatsapp: '5511966665555',
+                  status: 'vendido',
+                  testAnswers: { q0: 'Sim', q1: 'Sim', q2: 'Sim', q3: 'Às vezes', q4: 'Sim' },
+                  createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+                  productId: 'p2',
+                  produtoNome: 'TAP Transformação - 8 sessões',
+                  produtoValor: 2400,
+                  sessoesTotal: 8,
+                  sessoesFeitas: 2,
+                  parcelas: [
+                    { numero: 1, valor: 800, vencimento: new Date().toISOString().split('T')[0], pago: false },
+                    { numero: 2, valor: 800, vencimento: new Date(Date.now() + 86400000 * 30).toISOString().split('T')[0], pago: false },
+                    { numero: 3, valor: 800, vencimento: new Date(Date.now() + 86400000 * 60).toISOString().split('T')[0], pago: false }
+                  ]
+                }
+              ];
+              this.saveLeads();
+            }
+          } catch (e) {
+            console.error('Erro ao ler localStorage', e);
+          }
+        },
+
+        // PERSISTENCE SAVE HELPERS
+        saveUser() { localStorage.setItem('marilandpro_user', JSON.stringify(this.user)); },
+        saveConfig() { 
+          localStorage.setItem('marilandpro_config', JSON.stringify(this.config)); 
+          this.showToast('Configurações salvas!');
+        },
+        saveProdutos() { localStorage.setItem('marilandpro_produtos', JSON.stringify(this.produtos)); },
+        saveLeads() { localStorage.setItem('marilandpro_leads', JSON.stringify(this.leads)); },
+
+        // LOGIN PROCEDURES
+        doLogin() {
+          this.isLoggingIn = true;
+          setTimeout(() => {
+            this.user.loggedIn = true;
+            this.saveUser();
+            this.isLoggingIn = false;
+            this.currentScreen = 'app';
+            this.showToast('Bem-vinda de volta!');
+          }, 600);
+        },
+        logout() {
+          this.user.loggedIn = false;
+          this.saveUser();
+          this.currentScreen = 'login';
+        },
+
+        // DYNAMIC GREETING BY TIME OF DAY
+        getGreeting() {
+          const hour = new Date().getHours();
+          if (hour < 12) return 'Bom dia';
+          if (hour < 18) return 'Boa tarde';
+          return 'Boa noite';
+        },
+
+        // DASHBOARD COMPUTED METRICS
+        get metrics() {
+          const now = new Date();
+          const currentMonth = now.getMonth();
+          const currentYear = now.getFullYear();
+
+          // 1. Leads criados este mês
+          const leadsNoMes = this.leads.filter(l => {
+            const d = new Date(l.createdAt);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          }).length;
+
+          // 2. Dias úteis restantes
+          const diasUteisRestantes = this.calculateRemainingBusinessDays(this.config.diasSemana || 5);
+
+          // 3. Prospecções que faltam hoje
+          const prospeccoesHoje = Math.max(0, Math.ceil((this.config.metaProspeccao - leadsNoMes) / diasUteisRestantes));
+
+          // 4. Faturado no mês (soma parcelas pagas no mês atual)
+          let faturadoMes = 0;
+          // 5. A receber no mês (soma parcelas pendentes com vencimento neste mês)
+          let aReceberMes = 0;
+          let totalParcelasPendentesMes = 0;
+
+          this.leads.forEach(l => {
+            if (l.parcelas && l.parcelas.length > 0) {
+              l.parcelas.forEach(p => {
+                const venc = new Date(p.vencimento + 'T00:00:00');
+                const isThisMonth = venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
+
+                if (p.pago && isThisMonth) {
+                  faturadoMes += p.valor;
+                } else if (!p.pago && isThisMonth) {
+                  aReceberMes += p.valor;
+                  totalParcelasPendentesMes++;
+                }
+              });
+            }
+          });
+
+          // 6. Taxa de conversão
+          const totalVendidos = this.leads.filter(l => l.status === 'vendido').length;
+          const taxaConversao = this.leads.length > 0 ? ((totalVendidos / this.leads.length) * 100).toFixed(0) : 0;
+
+          return {
+            prospeccoesHoje,
+            diasUteisRestantes,
+            faturadoMes,
+            aReceberMes,
+            totalParcelasPendentesMes,
+            taxaConversao,
+            totalVendidos
+          };
+        },
+
+        // LISTA PARCELAS VENCENDO HOJE
+        get cobranchasHoje() {
+          const todayStr = new Date().toISOString().split('T')[0];
+          const result = [];
+
+          this.leads.forEach(lead => {
+            if (lead.parcelas && lead.parcelas.length > 0) {
+              lead.parcelas.forEach(parc => {
+                if (!parc.pago && parc.vencimento === todayStr) {
+                  result.push({ lead, parcela: parc });
+                }
+              });
+            }
+          });
+          return result;
+        },
+
+        // LISTA SESSÕES DE HOJE (LEADS AGENDADOS)
+        get sessoesHoje() {
+          return this.leads.filter(l => l.status === 'agendado');
+        },
+
+        // CÁLCULO DE DIAS ÚTEIS RESTANTES NO MÊS
+        calculateRemainingBusinessDays(workDaysPerWeek) {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = today.getMonth();
+          const lastDay = new Date(year, month + 1, 0).getDate();
+          let remaining = 0;
+
+          for (let day = today.getDate(); day <= lastDay; day++) {
+            const d = new Date(year, month, day);
+            const dayOfWeek = d.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+            if (workDaysPerWeek >= 7) {
+              remaining++;
+            } else if (workDaysPerWeek === 6 && dayOfWeek >= 1 && dayOfWeek <= 6) {
+              remaining++;
+            } else if (dayOfWeek >= 1 && dayOfWeek <= workDaysPerWeek) {
+              remaining++;
+            }
+          }
+          return Math.max(1, remaining);
+        },
+
+        // KANBAN STATUS FILTER
+        getLeadsByStatus(status) {
+          return this.leads.filter(l => l.status === status);
+        },
+
+        // MOVE STATUS LEADS
+        moveStatus(lead, newStatus) {
+          lead.status = newStatus;
+          this.saveLeads();
+          this.showToast(`Lead ${lead.nome} movido para ${newStatus.toUpperCase()}`);
+        },
+
+        // ATRIBUIR PRODUTO & GERAR 3 PARCELAS (D+30, D+60, D+90)
+        assignProductToSelectedLead(productId) {
+          if (!productId || !this.selectedLead) return;
+          const prod = this.produtos.find(p => p.id === productId);
+          if (!prod) return;
+
+          this.selectedLead.productId = prod.id;
+          this.selectedLead.produtoNome = prod.nome;
+          this.selectedLead.produtoValor = prod.valor;
+          this.selectedLead.sessoesTotal = prod.sessoes;
+          if (this.selectedLead.sessoesFeitas === undefined) this.selectedLead.sessoesFeitas = 0;
+          this.selectedLead.status = 'vendido';
+
+          // GERAR 3 PARCELAS AUTOMÁTICAS
+          const p1 = Math.floor(prod.valor / 3);
+          const p2 = Math.floor(prod.valor / 3);
+          const p3 = prod.valor - (p1 + p2); // ARREDONDAMENTO NA 3ª PARCELA
+
+          const today = new Date();
+          const d1 = new Date(today.getTime() + 86400000 * 30).toISOString().split('T')[0];
+          const d2 = new Date(today.getTime() + 86400000 * 60).toISOString().split('T')[0];
+          const d3 = new Date(today.getTime() + 86400000 * 90).toISOString().split('T')[0];
+
+          this.selectedLead.parcelas = [
+            { numero: 1, valor: p1, vencimento: d1, pago: false },
+            { numero: 2, valor: p2, vencimento: d2, pago: false },
+            { numero: 3, valor: p3, vencimento: d3, pago: false }
+          ];
+
+          this.saveLeads();
+          this.showToast('Produto atribuído e 3 parcelas geradas!');
+        },
+
+        // TOGGLE STATUS PARCELA PAGO
+        toggleParcelaPago(leadId, parcelaNumero) {
+          const lead = this.leads.find(l => l.id === leadId);
+          if (!lead || !lead.parcelas) return;
+          const parc = lead.parcelas.find(p => p.numero === parcelaNumero);
+          if (parc) {
+            parc.pago = !parc.pago;
+            this.saveLeads();
+            this.showToast(`Parcela ${parcelaNumero} ${parc.pago ? 'marcada como PAGA ✓' : 'marcada PENDENTE'}`);
+          }
+        },
+
+        // INCREMENTAR SESSÃO REALIZADA
+        incrementSessaoFeita(lead) {
+          if (!lead) return;
+          if (lead.sessoesFeitas < lead.sessoesTotal) {
+            lead.sessoesFeitas++;
+            this.saveLeads();
+            this.showToast(`Sessão realizada (${lead.sessoesFeitas}/${lead.sessoesTotal})`);
+          }
+        },
+
+        // NOVO LEAD MANUALLY
+        openNewLeadModal() {
+          this.newLeadForm = { nome: '', whatsapp: '', status: 'novo' };
+          this.showNewLeadModal = true;
+        },
+        createNewLeadManual() {
+          if (!this.newLeadForm.nome) return;
+          const newLead = {
+            id: 'lead-' + Date.now(),
+            nome: this.newLeadForm.nome,
+            whatsapp: this.newLeadForm.whatsapp || '',
+            status: this.newLeadForm.status || 'novo',
+            testAnswers: {},
+            createdAt: new Date().toISOString(),
+            productId: '',
+            produtoNome: '',
+            produtoValor: 0,
+            sessoesTotal: 0,
+            sessoesFeitas: 0,
+            parcelas: []
+          };
+          this.leads.unshift(newLead);
+          this.saveLeads();
+          this.showNewLeadModal = false;
+          this.showToast('Novo lead cadastrado!');
+        },
+
+        // VER DETALHES DO LEAD NO MODAL
+        openLeadModal(lead) {
+          this.selectedLead = lead;
+          this.activeLeadModal = true;
+        },
+        saveLeadChanges() {
+          this.saveLeads();
+          this.activeLeadModal = false;
+          this.showToast('Alterações do lead salvas!');
+        },
+        deleteLead(leadId) {
+          if (confirm('Tem certeza que deseja excluir este lead?')) {
+            this.leads = this.leads.filter(l => l.id !== leadId);
+            this.saveLeads();
+            this.activeLeadModal = false;
+            this.showToast('Lead excluído');
+          }
+        },
+
+        // PRODUTO MODAL FUNCTIONS
+        openProductModal(prod = null) {
+          if (prod) {
+            this.editingProduct = { ...prod };
+          } else {
+            this.editingProduct = { id: null, nome: '', valor: 1500, sessoes: 8, temSessao: true };
+          }
+          this.showProductModal = true;
+        },
+        saveProduct() {
+          if (!this.editingProduct.nome) return;
+          if (this.editingProduct.id) {
+            const idx = this.produtos.findIndex(p => p.id === this.editingProduct.id);
+            if (idx !== -1) this.produtos[idx] = { ...this.editingProduct };
+          } else {
+            this.editingProduct.id = 'p-' + Date.now();
+            this.produtos.push({ ...this.editingProduct });
+          }
+          this.saveProdutos();
+          this.showProductModal = false;
+          this.showToast('Produto salvo!');
+        },
+        deleteProduct(prodId) {
+          if (confirm('Deseja remover este produto?')) {
+            this.produtos = this.produtos.filter(p => p.id !== prodId);
+            this.saveProdutos();
+            this.showToast('Produto removido');
+          }
+        },
+
+        // QUIZ ISCA DIGITAL FUNCTIONS
+        generateQuizLink() {
+          if (!this.quizLeadName) return;
+          const slug = this.config.slug || 'mariland-rodrigues';
+          this.generatedQuizUrl = `marilandpro.com/t/${slug}?c=${encodeURIComponent(this.quizLeadName)}`;
+        },
+        submitSimulatedQuiz() {
+          if (!this.simulatedQuiz.name) {
+            alert('Por favor, informe o nome do respondente.');
+            return;
+          }
+          // CONTAR TRAVAS (RESPOSTAS SIM OU ÀS VEZES)
+          const travasCount = this.simulatedQuiz.answers.filter(a => a === 'Sim' || a === 'Às vezes').length;
+
+          const testObj = {};
+          this.simulatedQuiz.answers.forEach((ans, i) => { testObj['q' + i] = ans || 'Não'; });
+
+          const newLead = {
+            id: 'lead-' + Date.now(),
+            nome: this.simulatedQuiz.name,
+            whatsapp: '',
+            status: 'novo',
+            testAnswers: testObj,
+            createdAt: new Date().toISOString(),
+            productId: '',
+            produtoNome: '',
+            produtoValor: 0,
+            sessoesTotal: 0,
+            sessoesFeitas: 0,
+            parcelas: []
+          };
+
+          this.leads.unshift(newLead);
+          this.saveLeads();
+          this.quizResult = { travasCount };
+          this.showToast('Teste concluído e Lead cadastrado!');
+        },
+
+        // EXPORTAR & IMPORTAR BACKUP JSON
+        exportBackupJSON() {
+          const backupData = {
+            config: this.config,
+            produtos: this.produtos,
+            leads: this.leads,
+            exportedAt: new Date().toISOString()
+          };
+          const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `marilandpro-backup-${new Date().toISOString().split('T')[0]}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          this.showToast('Backup JSON exportado com sucesso!');
+        },
+        importBackupJSON(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              if (data.config) { this.config = data.config; this.saveConfig(); }
+              if (data.produtos) { this.produtos = data.produtos; this.saveProdutos(); }
+              if (data.leads) { this.leads = data.leads; this.saveLeads(); }
+              this.showToast('Backup restaurado com sucesso!');
+            } catch (err) {
+              alert('Arquivo JSON inválido.');
+            }
+          };
+          reader.readAsText(file);
+        },
+
+        // WHATSAPP URL FORMATTER (wa.me)
+        getWaDirectLink(phone, message = '') {
+          let cleanPhone = (phone || '').replace(/\D/g, '');
+          if (cleanPhone && !cleanPhone.startsWith('55')) {
+            cleanPhone = '55' + cleanPhone;
+          }
+          if (!cleanPhone) cleanPhone = this.config.whatsapp.replace(/\D/g, '');
+          const encoded = encodeURIComponent(message);
+          return `https://wa.me/${cleanPhone}${encoded ? '?text=' + encoded : ''}`;
+        },
+        getWaCobranchaLink(lead, parcela) {
+          const msg = `Oi ${lead.nome}, sua parcela de R$ ${parcela.valor} vence hoje 💰`;
+          return this.getWaDirectLink(lead.whatsapp, msg);
+        },
+
+        // HELPERS DE FORMATAÇÃO
+        formatCurrency(val) {
+          return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        },
+        formatDate(isoStr) {
+          if (!isoStr) return '';
+          const d = new Date(isoStr);
+          return d.toLocaleDateString('pt-BR');
+        },
+        getTravasSummary(testAnswers) {
+          if (!testAnswers) return 'Sem dados de travas';
+          const count = Object.values(testAnswers).filter(a => a === 'Sim' || a === 'Às vezes').length;
+          return `${count} travas emocionais identificadas`;
+        },
+        getParcelasPagoSummary(lead) {
+          if (!lead.parcelas || lead.parcelas.length === 0) return '';
+          const pagas = lead.parcelas.filter(p => p.pago).length;
+          return `Parcelas: ${pagas}/${lead.parcelas.length} pagas`;
+        },
+        copyToClipboard(text) {
+          navigator.clipboard.writeText(text).then(() => {
+            this.showToast('Link copiado!');
+          });
+        },
+        showToast(msg) {
+          this.toast.message = msg;
+          this.toast.show = true;
+          setTimeout(() => { this.toast.show = false; }, 3000);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
