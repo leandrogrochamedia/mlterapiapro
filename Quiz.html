@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionário Terapêutico - Jornada do Paciente - MEGA POWER</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Cormorant+Garamond:wght@600;700&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box} body{font-family:Inter,sans-serif;background:#fdf8f6;color:#2d1211;min-height:100vh}
+.page{max-width:760px;margin:0 auto;padding:0 16px 40px}
+.hero{text-align:center;padding:36px 16px 24px;background:linear-gradient(180deg,#fff 0%,#fdf8f6 100%)}
+.avatar-wrap{position:relative;display:inline-block} .avatar{width:148px;height:148px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 12px 32px rgba(74,44,42,0.18)} .glow{position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(60% 60% at 50% 30%, rgba(196,181,253,0.35) 0%, transparent 70%);z-index:-1}
+.nome{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:#1f4d47;letter-spacing:.5px;margin-top:16px} .nicho{font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#7c3aed;margin-top:6px} .quiz-nome{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:#2d1211;margin-top:28px} .quiz-sub{font-family:'Crimson Pro',serif;font-style:italic;font-size:18px;color:#7c2d12;margin-top:8px}
+.card{background:#fff;border:2px solid rgba(231,201,169,0.35);border-radius:20px;box-shadow:0 12px 32px rgba(74,44,42,0.08);padding:24px;margin-top:20px}
+.input{width:100%;padding:14px 16px;border-radius:12px;border:2px solid #f5e6cc;background:#fff;font-size:15px;margin-top:8px;outline:none} .input:focus{border-color:#a78bfa;box-shadow:0 0 0 4px rgba(167,139,250,0.15)}
+label{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#7c2d12} .btn{width:100%;padding:16px;border-radius:14px;background:linear-gradient(180deg,#7c3aed 0%,#6d28d9 100%);border:none;color:#fff;font-weight:900;font-size:16px;cursor:pointer;margin-top:16px;box-shadow:0 8px 20px rgba(124,58,237,0.25)}
+.termo-wrap{background:#fff;border:2px solid rgba(231,201,169,0.3);border-radius:18px;padding:20px;margin-top:16px;transition:.2s} .termo-wrap.ativo{border-color:#a78bfa;box-shadow:0 8px 24px rgba(167,139,250,0.18)} .termo-pergunta{font-family:'Crimson Pro',serif;font-size:19px;line-height:1.5;color:#2d1211;font-weight:400}
+.score-badge{background:#f5f3ff;border:1.5px solid rgba(167,139,250,0.25);padding:6px 12px;border-radius:20px;font-weight:900;font-size:14px;color:#6d28d9;min-width:56px;text-align:center}
+.slider-acolhedor{width:100%;-webkit-appearance:none;height:8px;border-radius:10px;background:linear-gradient(90deg,#c4b5fd 0%,#f9a8d4 50%,#fde68a 100%);margin-top:16px} .slider-acolhedor::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid #7c3aed;box-shadow:0 4px 12px rgba(124,58,237,0.3);cursor:pointer}
+.slider-labels{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;font-weight:700;color:#8a6a68;letter-spacing:.3px}
+.bloco-titulo{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#7c3aed;margin-top:32px;margin-bottom:4px}
+.progress-wrap{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid rgba(231,201,169,0.3);border-radius:14px;padding:14px 16px;position:sticky;top:0;z-index:10;margin-top:20px} .progress-bar{flex:1;height:8px;background:#f5e6cc;border-radius:10px;overflow:hidden} .progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed 0%,#f9a8d4 100%);transition:.3s}
+.instrucao-doce{background:linear-gradient(135deg, rgba(196,181,253,0.12) 0%, rgba(249,168,212,0.1) 100%);border:2px solid rgba(196,181,253,0.18);border-radius:16px;padding:20px;text-align:center;font-family:'Crimson Pro',serif;font-style:italic;font-size:17px;color:#5a2a28;line-height:1.6;margin-top:20px}
+.badge-tenant{display:inline-flex;align-items:center;gap:6px;background:#f5f3ff;border:1.5px solid rgba(124,58,237,0.15);padding:6px 12px;border-radius:20px;font-size:11px;font-weight:800;color:#6d28d9;margin-top:12px}
+
+
+/* ===== quiz-header-v1 ===== */
+.titulo-teste{
+  font-family:'Cormorant Garamond',serif;
+  font-size:38px;
+  font-weight:700;
+  color:#1f4d47;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  text-align:center;
+  margin-bottom:6px;
+  line-height:1.1;
+}
+.subtitulo-teste{
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:17px;
+  color:#7c3aed;
+  text-align:center;
+  margin-bottom:28px;
+  font-weight:500;
+}
+.card-terapeuta{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  background:#fff;
+  border:1.5px solid rgba(231,201,169,0.5);
+  border-radius:22px;
+  padding:16px 20px;
+  box-shadow:0 12px 32px rgba(74,44,42,0.08), 0 2px 6px rgba(74,44,42,0.04);
+  max-width:420px;
+  margin:0 auto;
+}
+.avatar-terapeuta{
+  width:72px;height:72px;min-width:72px;
+  border-radius:50%;object-fit:cover;
+  border:3px solid #fff;
+  box-shadow:0 6px 18px rgba(74,44,42,0.15);
+  background:linear-gradient(135deg,#c4b5fd 0%,#f9a8d4 100%);
+  display:block;
+}
+.info-terapeuta{flex:1;min-width:0;text-align:left}
+.nome-terapeuta{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:700;
+  color:#1f4d47;line-height:1.2;
+  word-break:break-word;margin-bottom:6px;
+}
+.fone-terapeuta{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:700;color:#16a34a;
+  text-decoration:none;padding:5px 10px;border-radius:20px;
+  background:#f0fdf4;border:1px solid #bbf7d0;transition:.2s;
+}
+.fone-terapeuta:hover{background:#16a34a;color:#fff;border-color:#16a34a;transform:translateY(-1px)}
+.fone-terapeuta .ico-fone{width:14px;height:14px}
+.erro-404-wrap{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:#fdf8f6;
+}
+.erro-404-card{
+  text-align:center;max-width:400px;background:#fff;
+  border:1.5px solid #f5e6cc;border-radius:24px;
+  padding:40px 28px;box-shadow:0 20px 50px rgba(74,44,42,0.1);
+}
+.erro-404-code{
+  font-family:'Cormorant Garamond',serif;
+  font-size:80px;font-weight:900;color:#7c3aed;
+  line-height:1;margin-bottom:16px;
+}
+.erro-404-card h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px;font-weight:700;color:#1f4d47;margin-bottom:12px;
+}
+.erro-404-card p{font-size:14px;color:#5a2a28;line-height:1.5;margin-bottom:6px}
+.erro-404-hint{color:#8a6a68 !important;font-size:12.5px !important;margin-top:14px !important}
+
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hero">
+    <h1 class="titulo-teste">Teste de Trava Mental</h1>
+    <p class="subtitulo-teste">Uma jornada de autoconhecimento emocional</p>
+    <div class="card-terapeuta" id="cardTerapeuta">
+      <img class="avatar-terapeuta" id="avatarTerapeuta" src="" alt="">
+      <div class="info-terapeuta">
+        <div class="nome-terapeuta" id="terapeutaNomeDisplay">Carregando...</div>
+        <a class="fone-terapeuta" id="foneTerapeuta" href="#" style="display:none">
+          <svg class="ico-fone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span id="terapeutaFoneDisplay"></span>
+        </a>
+      </div>
+    </div>
+    <span id="slugDisplay" style="display:none"></span>
+  </div>
+
+  <div id="alertaSemSlug" style="display:none;background:#fef2f2;border:2px solid #fecaca;border-radius:16px;padding:20px;text-align:center;margin-top:20px">
+    <p style="font-weight:900;color:#dc2626">⚠️ Link inválido - terapeuta não identificada</p>
+    <p style="font-size:13px;color:#7f1d1d;margin-top:8px">Acesse via <code>/t/[slug-da-terapeuta]</code><br>Ex: <code>?terapeuta=mariland-rodrigues</code> ou <code>/t/mariland-rodrigues</code></p>
+    <p style="font-size:11px;color:#7f1d1d;margin-top:8px">NUNCA pode existir cliente sem terapeuta - arquitetura multi-tenant</p>
+  </div>
+
+  <div id="step1" class="card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px"><span style="width:32px;height:32px;border-radius:50%;background:#7c3aed;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900">1</span><span style="font-size:14px;font-weight:900;color:#7c3aed">SOBRE VOCÊ</span></div>
+    <div style="display:grid;gap:18px">
+      <div><label>Como gosta de ser chamada?</label><input id="nome" class="input" placeholder="Ex: Ana"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div><label>Email</label><input id="email" class="input" placeholder="ana@email.com"></div><div><label>WhatsApp</label><input id="whatsapp" class="input" placeholder="41 99999-9999"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div><label>Idade</label><input id="idade" class="input" placeholder="34"></div><div><label>Profissão</label><input id="profissao" class="input" placeholder="O que sua alma faz?"></div></div>
+      <div style="margin-top:24px;padding:20px;background:linear-gradient(135deg, rgba(196,181,253,0.08) 0%, rgba(249,168,212,0.06) 100%);border:1.5px solid rgba(196,181,253,0.18);border-radius:16px">
+        <div style="font-size:11px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#7c3aed;margin-bottom:8px">1. A sua história</div>
+        <p style="font-size:13px;color:#5a2a28;line-height:1.5">Conte situações, pessoas, perdas, conflitos, falas e acontecimentos que marcaram sua infância, adolescência e vida adulta. Não precisa escrever bonito ou encontrar as palavras perfeitas: precisa ser verdadeiro.</p>
+        <p style="font-size:11px;font-weight:700;color:#8a6a68;margin-top:8px">Este é um processo de identificação de padrões emocionais. Responda com calma, sem tentar produzir a resposta "certa".</p>
+      </div>
+
+      <div style="margin-top:20px">
+        <label>Qual ou quais problemas emocionais você gostaria de resolver hoje? <span style="color:#dc2626">*</span></label>
+        <textarea id="problemas" class="input" style="height:110px" placeholder="Descreva com sinceridade o que mais te incomoda hoje..."></textarea>
+        
+      </div>
+
+      <div style="margin-top:16px">
+        <label>Descreva como foi sua infância: o que marcou, o que doeu e quais situações ainda vêm à sua cabeça. <span style="color:#dc2626">*</span></label>
+        <p style="font-size:11px;color:#8a6a68;margin-top:4px">Conte acontecimentos, relações, perdas, brigas, falas e lembranças importantes. Escreva como se estivesse conversando com alguém de confiança.</p>
+        <textarea id="infancia" class="input" style="height:130px" placeholder="Escreva livremente sobre sua infância..."></textarea>
+        
+      </div>
+
+      <div style="margin-top:16px">
+        <label>Descreva como foi sua adolescência. <span style="color:#dc2626">*</span></label>
+        <p style="font-size:11px;color:#8a6a68;margin-top:4px">Conte momentos difíceis, perdas, mudanças, brigas, rejeições, cobranças e falas que tenham marcado essa fase.</p>
+        <textarea id="adolescencia" class="input" style="height:130px" placeholder="Escreva livremente sobre sua adolescência..."></textarea>
+        
+      </div>
+
+      <div style="margin-top:16px">
+        <label>Descreva como tem sido sua vida adulta e o que você sente que ainda carrega até hoje. <span style="color:#dc2626">*</span></label>
+        <p style="font-size:11px;color:#8a6a68;margin-top:4px">Fale sobre relacionamentos, trabalho, família, perdas, responsabilidades, escolhas e acontecimentos que ainda causam desconforto.</p>
+        <textarea id="vida_adulta" class="input" style="height:130px" placeholder="Escreva livremente sobre sua vida adulta..."></textarea>
+        
+      </div>
+
+      <div style="margin-top:20px;padding:16px;background:linear-gradient(135deg, rgba(196,181,253,0.08) 0%, rgba(249,168,212,0.06) 100%);border:1.5px dashed rgba(196,181,253,0.2);border-radius:14px">
+        <p style="font-size:13px;font-weight:700;color:#1a3d38">2. As afirmações</p>
+        <p style="font-size:12px;color:#5a2a28;line-height:1.5;margin-top:6px">Depois, você encontrará 50 afirmações. Leia pensando em como vive <b>hoje</b> e indique o quanto cada frase representa você. Evite racionalizar demais; a primeira percepção costuma ser a mais honesta.</p>
+        <p style="font-size:11px;color:#8a6a68;margin-top:8px;border-left:3px solid #a78bfa;padding-left:10px">Respostas como "foi boa", "foi normal" ou "não lembro" não oferecem informações suficientes para uma análise cuidadosa. Quanto mais sincero e específico você for, mais preciso será o seu mapa de travas.</p>
+        <p style="font-size:11px;color:#6d28d9;font-weight:700;margin-top:8px">Antes de começar, reserve cerca de 15 a 20 minutos e procure um lugar onde possa responder sem interrupções. Este teste não foi feito para ser preenchido no automático, entre uma tarefa e outra.</p>
+      </div>
+
+      <div style="display:none"><textarea id="infancia" class="input">legacy</textarea></div>
+
+      <div style="display:flex;gap:12px;align-items:flex-start;background:rgba(167,139,250,0.08);border:2px solid rgba(167,139,250,0.18);border-radius:14px;padding:16px"><input type="checkbox" id="lgpd" style="width:20px;height:20px;accent-color:#7c3aed"><span style="font-size:14px;color:#5a2a28;line-height:1.5">Aceito espaço seguro e sigiloso (LGPD). Meu questionário será vinculado à terapeuta <b id="lgpdSlug">-</b> e nunca compartilhado. Isolamento por slug obrigatório.</span></div>
+      <button class="btn" onclick="goStep2()">Começar meu questionário 🌿</button>
+    </div>
+  </div>
+
+  <div id="step2" style="display:none">
+    <div class="progress-wrap"><span style="font-size:13px;font-weight:900;color:#7c2d12">SUA JORNADA</span><div class="progress-bar"><div id="progressFill" class="progress-fill" style="width:0%"></div></div><span id="progressText" style="font-size:14px;font-weight:900;color:#6d28d9">0/30</span></div>
+    <div class="instrucao-doce">Respire fundo. Não existem respostas certas ou erradas aqui.<br>Este é um espaço seguro para você reconhecer suas verdades com gentileza.</div>
+    <div id="blocosContainer"></div>
+    <div class="card" style="text-align:center"><button class="btn" onclick="finalizarQuiz()">Finalizar e enviar para minha terapeuta 🌿</button><p id="saveStatus" style="font-size:11px;color:#8a6a68;margin-top:10px"></p></div>
+  </div>
+
+  <div id="step3" style="display:none">
+    <div class="card" style="text-align:center">
+      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(180deg,#c4b5fd 0%,#f9a8d4 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px">🌿</div>
+      <h2 style="font-size:28px;font-weight:900;color:#2d1211">Seu questionário foi acolhido</h2>
+      <p style="font-family:'Crimson Pro',serif;font-style:italic;font-size:19px;color:#7c2d12;margin-top:10px">Sua terapeuta vai olhar seu mapa com carinho</p>
+      <canvas id="chartBlocos" height="280" style="margin-top:24px"></canvas>
+      <div id="blocosResumo" style="text-align:left;margin-top:20px;display:grid;gap:10px"></div>
+      <canvas id="chartTravas" height="360" style="margin-top:28px"></canvas>
+      <div id="topTravas" style="text-align:left;margin-top:16px"></div>
+      <a id="waLink" target="_blank" style="display:block;margin-top:24px;padding:18px;background:linear-gradient(180deg,#16a34a 0%,#15803d 100%);color:#fff;border-radius:16px;text-decoration:none;font-weight:900;font-size:17px">WhatsApp da terapeuta</a>
+      <p style="font-size:11px;color:#8a6a68;margin-top:10px">Vinculado com <b id="slugFinal">slug</b> • ID <span id="idFinal">-</span> • Status novo_questionario</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// MEGA POWER - MULTI-TENANT OBRIGATÓRIO POR SLUG
+// =========================================================
+// quiz-header-v1
+const SUPABASE_URL = 'https://aaqyhcpuwkifaeplxdep.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_1gVxSsEOUPcEswKTFqQY2w_D2Lwxl5b';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function capturarSlug(){
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
+  let slug = params.get('terapeuta') || params.get('slug') || params.get('t') || params.get('therapist') || params.get('therapist_slug');
+  if(!slug){
+    const path = window.location.pathname;
+    const match = path.match(/\/(t|terapeuta|quiz|dashboard)\/([^\/\?]+)/);
+    if(match) slug = match[2];
+  }
+  if(!slug){
+    const host = window.location.hostname;
+    const parts = host.split('.');
+    if(parts.length >= 3 && parts[0] !== 'www' && parts[0] !== 'localhost' && parts[0] !== 'app') {
+      slug = parts[0];
+    }
+  }
+  if(slug) slug = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  return slug || null;
+}
+
+let TERAPEUTA_SLUG = capturarSlug();
+let TERAPEUTA_DATA = null;
+
+const FALLBACK = {
+  'mariland-rodrigues': { nome:'MARILAND RODRIGUES', nicho:'Terapeuta Integrativa & Especialista em Neuroplasticidade', whatsapp:'5541996289968', id:'26e02e29-871b-4fe7-8120-081067219d70' },
+  'leandro-rocha': { nome:'LEANDRO ROCHA', nicho:'Terapeuta & Designer', whatsapp:'5541996824622', id:'35c9d50f-4e70-4b69-b304-e86f7880091d' }
+};
+
+async function carregarTerapeuta(){
+  // 1) Sem slug → 404
+  if(!TERAPEUTA_SLUG){ mostrar404(); return; }
+  // 2) Busca no banco
+  try{
+    const {data, error} = await supabaseClient.from('terapeutas').select('*').eq('slug', TERAPEUTA_SLUG).single();
+    if(error || !data){ mostrar404(); return; }
+    TERAPEUTA_DATA = data;
+  }catch(e){ mostrar404(); return; }
+
+  // 3) Preenche card
+  const nome = TERAPEUTA_DATA.nome || TERAPEUTA_SLUG;
+  const nomeEl = document.getElementById('terapeutaNomeDisplay');
+  if(nomeEl) nomeEl.innerText = nome;
+
+  const fotoUrl = TERAPEUTA_DATA.foto || TERAPEUTA_DATA.foto_url || TERAPEUTA_DATA.avatar || TERAPEUTA_DATA.imagem || TERAPEUTA_DATA.photo || '';
+  const avatarEl = document.getElementById('avatarTerapeuta');
+  if(avatarEl){
+    if(fotoUrl){ avatarEl.src = fotoUrl; }
+    else {
+      const inicial = nome.charAt(0).toUpperCase();
+      avatarEl.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">' +
+        '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#f9a8d4"/></linearGradient></defs>' +
+        '<rect width="72" height="72" fill="url(#g)"/>' +
+        '<text x="36" y="47" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="30" font-weight="900">' + inicial + '</text>' +
+        '</svg>'
+      );
+    }
+  }
+
+  const foneRaw = String(TERAPEUTA_DATA.whatsapp || TERAPEUTA_DATA.telefone || '').replace(/\D/g,'');
+  const foneEl = document.getElementById('foneTerapeuta');
+  const foneDisplay = document.getElementById('terapeutaFoneDisplay');
+  if(foneRaw && foneEl && foneDisplay){
+    foneDisplay.innerText = formatarFone(foneRaw);
+    foneEl.href = 'https://wa.me/' + foneRaw;
+    foneEl.style.display = 'inline-flex';
+  }
+
+  // 4) Preenche campos hidden/texto que já existiam
+  const lgpdSlug = document.getElementById('lgpdSlug');   if(lgpdSlug)   lgpdSlug.innerText = TERAPEUTA_SLUG;
+  const slugFinal = document.getElementById('slugFinal'); if(slugFinal)  slugFinal.innerText = TERAPEUTA_SLUG;
+  const idFinal = document.getElementById('idFinal');     if(idFinal)    idFinal.innerText = (TERAPEUTA_DATA.id||'').slice(0,8);
+  const slugDisplay = document.getElementById('slugDisplay'); if(slugDisplay) slugDisplay.innerText = TERAPEUTA_SLUG;
+}
+
+function formatarFone(fone){
+  const n = String(fone||'').replace(/\D/g,'');
+  if(n.length === 13) return '+' + n.slice(0,2) + ' (' + n.slice(2,4) + ') ' + n.slice(4,9) + '-' + n.slice(9);
+  if(n.length === 12) return '+' + n.slice(0,2) + ' (' + n.slice(2,4) + ') ' + n.slice(4,8) + '-' + n.slice(8);
+  if(n.length === 11) return '(' + n.slice(0,2) + ') ' + n.slice(2,7) + '-' + n.slice(7);
+  if(n.length === 10) return '(' + n.slice(0,2) + ') ' + n.slice(2,6) + '-' + n.slice(6);
+  return n;
+}
+
+function mostrar404(){
+  document.body.innerHTML =
+    '<div class="erro-404-wrap">' +
+      '<div class="erro-404-card">' +
+        '<div class="erro-404-code">404</div>' +
+        '<h2>Link não encontrado</h2>' +
+        '<p>Este link de teste não existe ou foi desativado.</p>' +
+        '<p class="erro-404-hint">Peça um novo link ao seu terapeuta.</p>' +
+      '</div>' +
+    '</div>';
+}
+
+carregarTerapeuta();
+
+const PERGUNTAS = [
+  {bloco:1, texto:'Sinto que, no fundo, ainda não me vejo com todo o valor e brilho que realmente tenho.'},
+  {bloco:1, texto:'Às vezes, falta em mim a certeza de que mereço viver uma realidade mais leve e abundante.'},
+  {bloco:1, texto:'Quando recebo carinho, elogios ou ajuda, sinto um desconforto interno, como se não fosse natural para mim.'},
+  {bloco:1, texto:'Minha paz interior ainda depende muito de como os outros me veem ou me aprovam.'},
+  {bloco:1, texto:'Percebo que sou minha maior crítica, cobrando de mim uma perfeição que não exijo dos outros.'},
+  {bloco:1, texto:'Mesmo quando as coisas vão bem, sinto uma sensação sutil de que "ainda não é o suficiente".'},
+  {bloco:2, texto:'Carrego em meu coração mágoas ou dores antigas relacionadas à figura paterna ou à falta dela.'},
+  {bloco:2, texto:'Ainda escuto dentro de mim vozes críticas que parecem vir de uma autoridade do passado.'},
+  {bloco:2, texto:'Tenho dificuldade de dizer não e de colocar limites com amor, sem culpa.'},
+  {bloco:2, texto:'Quando preciso me posicionar, sinto medo de desagradar ou de ser rejeitada.'},
+  {bloco:2, texto:'Sinto que, para ser amada, preciso agradar, servir ou me anular um pouco.'},
+  {bloco:2, texto:'Em muitos momentos, me pego tentando controlar tudo ao meu redor para me sentir segura.'},
+  {bloco:3, texto:'Meu corpo vive em alerta, como se algo ruim pudesse acontecer a qualquer momento.'},
+  {bloco:3, texto:'Minha mente cria cenários catastróficos e me impede de descansar em paz.'},
+  {bloco:3, texto:'Tenho medo de faltar, de perder, de não ter o suficiente no futuro.'},
+  {bloco:3, texto:'Mesmo quando ganho dinheiro, sinto que ele escorre pelas mãos e não fica comigo.'},
+  {bloco:3, texto:'Carrego uma crença antiga de que prosperar é difícil, pesado ou não é para mim.'},
+  {bloco:3, texto:'Sinto culpa quando penso em cobrar bem pelo que faço ou receber mais.'},
+  {bloco:4, texto:'Nos relacionamentos, tenho medo de ser abandonada ou trocada.'},
+  {bloco:4, texto:'Sinto que preciso fazer muito para ser escolhida, vista e valorizada.'},
+  {bloco:4, texto:'Carrego dores antigas de relacionamentos onde me senti diminuída ou invisível.'},
+  {bloco:4, texto:'Tenho dificuldade de confiar e de me entregar com leveza.'},
+  {bloco:4, texto:'Às vezes, cuido tanto do outro que me esqueço de cuidar de mim.'},
+  {bloco:4, texto:'Sinto que carrego responsabilidades que não são minhas.'},
+  {bloco:4, texto:'Minha história familiar ainda pesa nas minhas escolhas amorosas de hoje.'},
+  {bloco:5, texto:'Tenho muitas ideias, mas sinto dificuldade de transformá-las em ação consistente.'},
+  {bloco:5, texto:'Começo coisas com empolgação, mas me perco no meio do caminho.'},
+  {bloco:5, texto:'Deixo para amanhã o que meu coração sabe que precisa ser feito hoje.'},
+  {bloco:5, texto:'Sinto que me saboto bem na hora de dar um passo importante.'},
+  {bloco:5, texto:'Tenho medo de brilhar, de ser vista, de ocupar meu espaço no mundo.'},
+  {bloco:5, texto:'No fundo, ainda não me permito viver a vida que minha alma tanto deseja.'}
+];
+const BLOCOS = [{id:1, emoji:'🌿', nome:'Identidade e Merecimento'},{id:2, emoji:'🤝', nome:'Autoridade e Limites'},{id:3, emoji:'🕊', nome:'Medo e Escassez'},{id:4, emoji:'💞', nome:'Relacionamentos'},{id:5, emoji:'✨', nome:'Ação e Realização'}];
+let scores = Array(30).fill(5);
+(function init(){
+  const container=document.getElementById('blocosContainer'); let atual=0;
+  PERGUNTAS.forEach((p,i)=>{ if(p.bloco!==atual){atual=p.bloco; const b=BLOCOS.find(x=>x.id===atual); const t=document.createElement('div'); t.className='bloco-titulo'; t.innerHTML=`<span>${b.emoji}</span> Bloco ${b.id}: ${b.nome}`; container.appendChild(t);} const w=document.createElement('div'); w.className='termo-wrap'; w.id='wrap'+i; w.innerHTML=`<div style="display:flex;justify-content:space-between;gap:16px"><p class="termo-pergunta">${i+1}. ${p.texto}</p><span class="score-badge" id="badge${i}"><span id="scoreNum${i}">5.0</span></span></div><div><input type="range" min="0" max="10" step="0.1" value="5" class="slider-acolhedor" oninput="updateScore(${i}, this.value)"><div class="slider-labels"><span>Não ressoa</span><span>Fala muito</span></div></div>`; container.appendChild(w); });
+})();
+function updateScore(i,val){ scores[i]=parseFloat(val); document.getElementById('scoreNum'+i).innerText=parseFloat(val).toFixed(1); document.getElementById('wrap'+i).classList.add('ativo'); setTimeout(()=>document.getElementById('wrap'+i).classList.remove('ativo'),600); document.getElementById('progressFill').style.width=((i+1)/30*100)+'%'; document.getElementById('progressText').innerText=`${i+1}/30`; }
+function goStep2(){ if(!TERAPEUTA_SLUG){ alert('Link inválido - terapeuta não identificada. Use /t/[slug]'); return; } const n=document.getElementById('nome').value.trim(), e=document.getElementById('email').value.trim(), w=document.getElementById('whatsapp').value.trim(), l=document.getElementById('lgpd').checked; if(!n||!e||!w){alert('Preencha nome, email e whatsapp');return} if(!l){alert('Aceite o espaço seguro');return} document.getElementById('step1').style.display='none'; document.getElementById('step2').style.display='block'; window.scrollTo({top:200, behavior:'smooth'}); }
+
+
+
+
+function validarHistoria(){
+  const campos = [
+    {id:'problemas', nome:'Problemas emocionais'},
+    {id:'infancia', nome:'Infância'},
+    {id:'adolescencia', nome:'Adolescência'},
+    {id:'vida_adulta', nome:'Vida adulta'}
+  ];
+  for(let c of campos){
+    const el=document.getElementById(c.id);
+    if(!el || el.value.trim().length < 1){
+      alert('Por favor, preencha o campo "'+c.nome+'"');
+      document.getElementById(c.id)?.focus();
+      return;
+    }
+  }
+  return true;
+}
+
+
+async function finalizarQuiz(){
+  if(!validarHistoria()) return;
+ 
+  if(!TERAPEUTA_SLUG){ TERAPEUTA_SLUG='mariland-rodrigues'; } if(!TERAPEUTA_SLUG){ alert('ERRO CRÍTICO: therapist_slug não capturado. Não é permitido salvar sem terapeuta.'); return; }
+  
+  const nome=document.getElementById('nome').value.trim(), email=document.getElementById('email').value.trim(), whatsapp=document.getElementById('whatsapp').value.trim(), idade=document.getElementById('idade').value.trim(), profissao=document.getElementById('profissao').value.trim();
+  const problemas=document.getElementById('problemas')?.value.trim() || '';
+  const infancia=document.getElementById('infancia')?.value.trim() || '';
+  const adolescencia=document.getElementById('adolescencia')?.value.trim() || '';
+  const vida_adulta=document.getElementById('vida_adulta')?.value.trim() || '';
+    document.getElementById('saveStatus').innerText = 'Salvando vinculado a '+TERAPEUTA_SLUG+'...';
+  
+  const terapeutaId = TERAPEUTA_DATA?.id || null;
+  const blocosScores=BLOCOS.map(b=>{ const idx=PERGUNTAS.map((p,i)=>p.bloco===b.id?i:-1).filter(i=>i>=0); return {bloco:b.nome, emoji:b.emoji, score: idx.reduce((s,i)=>s+scores[i],0)/idx.length} });
+  const map=[{nome:'TRAVA DA AUTOESTIMA', idx:[0,5,2]},{nome:'TRAVA DO MERECIMENTO', idx:[1,3,23]},{nome:'TRAVA DA AUTOCRÍTICA', idx:[4,16,28]},{nome:'TRAVA DA FIGURA PATERNA', idx:[6,7,11]},{nome:'TRAVA DE LIMITES', idx:[8,9,10]},{nome:'TRAVA DA ANSIEDADE/MEDO', idx:[12,13,14]},{nome:'TRAVA DA ESCASSEZ', idx:[15,17,12]},{nome:'TRAVA DOS RELACIONAMENTOS', idx:[18,21,19]},{nome:'TRAVA DO CUIDAR EXCESSIVO', idx:[22,20,23]},{nome:'TRAVA DA AÇÃO', idx:[25,26,29]}];
+  const travas=map.map(t=>({nome:t.nome, score:t.idx.reduce((s,i)=>s+scores[i],0)/t.idx.length}));
+  const topScore = [...travas].sort((a,b)=>b.score-a.score)[0]?.score || 5;
+  const prioridadeTexto = topScore >=8 ? 'alta' : topScore >=6 ? 'media' : 'baixa';
+  const prioridadeNum = topScore >=8 ? 3 : topScore >=6 ? 2 : 1; // 3=alta, 2=media, 1=baixa para coluna integer
+
+  // MEGA POWER - MULTI-TENANT OBRIGATÓRIO - COMPATÍVEL COM integer OU text
+  const lead = {
+    origemid: 'q-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),
+    therapist_slug: TERAPEUTA_SLUG,
+    terapeuta_slug: TERAPEUTA_SLUG,
+    therapist_id: terapeutaId,
+    data: new Date().toISOString(),
+    nome, email, whatsapp, idade, profissao, infancia,
+    problemas, infancia, adolescencia, vida_adulta,
+    resultadostravas: travas,
+    blocos_scores: blocosScores,
+    respostasdetalhadas: scores,
+    status: 'novo_questionario',
+    prioridade: prioridadeTexto, // tenta texto primeiro - se falhar por integer, retry com numero
+    versao_teste: 'mega-power-v3-final-fix'
+  };
+
+  try{
+    let {data, error} = await supabaseClient.from('leads').insert([lead]).select();
+    // FIX: se coluna prioridade for INTEGER no banco, tenta com número
+    if(error && error.message && error.message.toLowerCase().includes('prioridade')){
+      console.warn('Prioridade falhou (talvez integer), tentando com valor numérico...', error.message);
+      const leadFix = {...lead};
+      // Se o erro for integer, usa numero
+      if(error.message.includes('integer') || error.message.includes('invalid input syntax')){
+        leadFix.prioridade = prioridadeNum; // 3=alta,2=media,1=baixa
+      } else {
+        // Se coluna não existe ou outro erro, remove prioridade e tenta sem ela
+        delete leadFix.prioridade;
+      }
+      const retry = await supabaseClient.from('leads').insert([leadFix]).select();
+      data = retry.data; error = retry.error;
+      // Se ainda falhar, tenta sem prioridade (usa default do banco)
+      if(error){
+        console.warn('Ainda falhou, tentando sem prioridade...', error.message);
+        const leadFix2 = {...lead};
+        delete leadFix2.prioridade;
+        const retry2 = await supabaseClient.from('leads').insert([leadFix2]).select();
+        data = retry2.data; error = retry2.error;
+      }
+    }
+    if(error) throw error;
+    document.getElementById('saveStatus').innerText = '✅ Vinculado a '+TERAPEUTA_SLUG+' com sucesso - Status novo_questionario';
+    console.log('✅ Novo questionário salvo - MEGA POWER:', data[0]);
+    
+    // ===== ENVIO AUTOMÁTICO PARA TERAPEUTA - SEM MODAL =====
+    // Roda em background, não trava o fluxo do paciente
+    (async () => {
+      try {
+        const resumoTopTravas = [...travas].sort((a,b)=>b.score-a.score).slice(0,3).map(t=> `${t.nome}: ${t.score.toFixed(1)}`).join(' | ');
+        
+        // Payload completo para a terapeuta
+        const payloadTerapeuta = {
+          therapist_slug: TERAPEUTA_SLUG,
+          therapist_id: terapeutaId,
+          terapeuta_whatsapp: TERAPEUTA_DATA?.whatsapp || TERAPEUTA_DATA?.telefone || null,
+          terapeuta_email: TERAPEUTA_DATA?.email || null,
+          paciente: {
+            nome, email, whatsapp, idade, profissao,
+            problemas, infancia, adolescencia, vida_adulta,
+            infancia,
+            origemid: lead.origemid,
+            data: lead.data,
+            prioridade: prioridadeTexto,
+            prioridade_num: prioridadeNum
+          },
+          resultados: {
+            travas,
+            blocos_scores: blocosScores,
+            respostas_detalhadas: scores,
+            top_travas: resumoTopTravas
+          },
+          link_dashboard: `https://app.terapeuta.app/dashboard/${TERAPEUTA_SLUG}?lead=${lead.origemid}`,
+          timestamp: new Date().toISOString()
+        };
+
+        // 1) Tenta webhook configurado na terapeuta (se existir)
+        const webhookUrl = TERAPEUTA_DATA?.webhook_url || TERAPEUTA_DATA?.config?.webhook_url || TERAPEUTA_DATA?.n8n_webhook || null;
+        if(webhookUrl){
+          fetch(webhookUrl, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payloadTerapeuta)
+          }).then(r=>console.log('✅ Webhook terapeuta enviado:', r.status)).catch(e=>console.warn('⚠️ Falha webhook terapeuta:', e.message));
+        }
+
+        // 2) Salva notificação automática no Supabase para o dashboard dela
+        // Tabela opcional: notificacoes_terapeuta - se não existir, falha silenciosa
+        try{
+          await supabaseClient.from('notificacoes_terapeuta').insert([{
+            therapist_slug: TERAPEUTA_SLUG,
+            therapist_id: terapeutaId,
+            lead_origemid: lead.origemid,
+            tipo: 'novo_questionario',
+            titulo: `Novo questionário: ${nome}`,
+            mensagem: `Paciente ${nome} (${prioridadeTexto} prioridade) - ${resumoTopTravas}`,
+            dados: payloadTerapeuta,
+            lida: false,
+            created_at: new Date().toISOString()
+          }]);
+          console.log('✅ Notificação salva para terapeuta');
+        }catch(e){
+          console.warn('Tabela notificacoes_terapeuta não existe ou falhou (ok, segue):', e.message);
+        }
+
+        // 3) Tenta chamar Edge Function / webhook genérico (se você criar depois)
+        // Você pode criar uma Edge Function chamada 'enviar-para-terapeuta' no Supabase
+        try{
+          await supabaseClient.functions.invoke('enviar-para-terapeuta', {
+            body: payloadTerapeuta
+          });
+          console.log('✅ Edge Function enviar-para-terapeuta chamada');
+        }catch(e){
+          // Silencioso - função pode não existir ainda
+          console.log('Edge Function enviar-para-terapeuta não configurada ainda (ok)');
+        }
+
+        // 4) Log final - sem modal, sem alert
+        console.log(`🔔 [AUTO-ENVIO] Questionário de ${nome} enviado automaticamente para terapeuta ${TERAPEUTA_SLUG} - Prioridade ${prioridadeTexto}`);
+
+      } catch(errAuto){
+        console.error('Erro no auto-envio para terapeuta (não afeta paciente):', errAuto);
+      }
+    })();
+    
+  }catch(err){ 
+    console.error('Erro Supabase:', err);
+    document.getElementById('saveStatus').innerText = '⚠️ Erro: '+err.message;
+    return;
+  }
+
+  document.getElementById('step2').style.display='none'; document.getElementById('step3').style.display='block';
+  new Chart(document.getElementById('chartBlocos'),{type:'bar', data:{labels:blocosScores.map(b=>b.emoji+' '+b.bloco), datasets:[{data:blocosScores.map(b=>b.score), backgroundColor:blocosScores.map(b=> b.score<3?'#c4b5fd': b.score<6?'#f9a8d4':'#fde68a'), borderRadius:8}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{min:0,max:10}}} });
+  document.getElementById('blocosResumo').innerHTML=blocosScores.map(b=>`<div style="display:flex;justify-content:space-between;padding:14px 18px;background:#fff;border:2px solid #f5e6cc;border-radius:14px"><span style="font-size:16px;font-weight:700">${b.emoji} ${b.bloco}</span><span style="font-weight:900;color:#6d28d9">${b.score.toFixed(1)}</span></div>`).join('');
+  new Chart(document.getElementById('chartTravas'),{type:'bar', data:{labels:travas.map(t=>t.nome.replace('TRAVA DA ','')), datasets:[{data:travas.map(t=>t.score), backgroundColor:travas.map(t=>t.score<3?'#a7f3d0':t.score<6?'#fde68a':'#fca5a5'), borderRadius:6}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{min:0,max:10}}} });
+  const sorted=[...travas].sort((a,b)=>b.score-a.score);
+  document.getElementById('topTravas').innerHTML=`<p style="font-size:14px;font-weight:900;color:#6d28d9;margin-bottom:10px">TOP 3:</p>`+sorted.slice(0,3).map((t,i)=>`<div style="display:flex;justify-content:space-between;padding:14px 18px;background:linear-gradient(90deg, rgba(196,181,253,0.15), rgba(249,168,212,0.1));border:2px solid rgba(196,181,253,0.25);border-radius:14px;margin-bottom:8px"><span>${i+1}. ${t.nome}</span><span style="font-weight:900">${t.score.toFixed(1)}</span></div>`).join('');
+  const foneLink = TERAPEUTA_DATA?.whatsapp || '5541996289968';
+  document.getElementById('waLink').href=`https://wa.me/${foneLink}?text=${encodeURIComponent(`Oi, sou ${nome}, acabei de responder o questionário vinculado a ${TERAPEUTA_SLUG}`)}`; 
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>

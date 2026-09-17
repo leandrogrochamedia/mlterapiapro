@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Terapia Pro — Criar conta</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fdf2f8 50%,#f0fdf4 100%);min-height:100vh;padding:24px 16px 60px;color:#1c3d38}
+.wrap{max-width:620px;margin:0 auto}
+
+.btn-back{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:12px;background:rgba(255,255,255,.7);border:1.5px solid #e9d5ff;color:#7c3aed;font-weight:800;font-size:12px;text-decoration:none;cursor:pointer;margin-bottom:18px;transition:.2s;backdrop-filter:blur(6px)}
+.btn-back:hover{background:#fff;border-color:#7c3aed;transform:translateY(-1px)}
+
+.head{text-align:center;margin-bottom:26px}
+h1{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;line-height:1.1;color:#1c3d38}
+.sub{font-size:12.5px;color:#8b5cf6;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-top:6px}
+
+.card{background:#fff;border:1.5px solid #e9d5ff;border-radius:24px;padding:24px 22px;box-shadow:0 16px 40px rgba(124,58,237,.06);margin-bottom:16px}
+.section{margin-bottom:26px;padding-bottom:24px;border-bottom:1px dashed #e9d5ff}
+.section:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.section-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.9px;color:#7c3aed;margin-bottom:16px}
+.section-title .ico{font-size:14px}
+
+.field{margin-bottom:14px}
+label{display:block;font-size:10px;font-weight:800;color:#991b1b;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
+label .opt{color:#8b5cf6;font-weight:700;font-size:9px;text-transform:none;letter-spacing:0;margin-left:4px}
+input,textarea,select{width:100%;padding:13px 15px;border-radius:13px;border:1.5px solid #e9d5ff;background:#fef9f6;font-family:inherit;font-size:14px;outline:none;transition:.2s;color:#1c3d38}
+input:focus,textarea:focus,select:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+input::placeholder,textarea::placeholder{color:#c4b5fd}
+textarea{resize:vertical;min-height:90px;line-height:1.5}
+.hint{font-size:10.5px;color:#8b5cf6;margin-top:5px;font-weight:500}
+.hint.warn{color:#be185d}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+@media(max-width:560px){.row2,.row3{grid-template-columns:1fr}}
+
+.foto-row{display:flex;gap:16px;align-items:center;margin-bottom:16px}
+.foto-preview{width:86px;height:86px;border-radius:22px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:32px;overflow:hidden;flex-shrink:0;box-shadow:0 8px 20px rgba(124,58,237,.25)}
+.foto-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.foto-actions{flex:1;min-width:0}
+.btn-mini{padding:10px 16px;border-radius:11px;border:1.5px solid #7c3aed;background:#fff;color:#7c3aed;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;transition:.2s}
+.btn-mini:hover{background:#7c3aed;color:#fff;transform:translateY(-1px)}
+.btn-mini.ghost{border-color:#e9d5ff;color:#8b5cf6;margin-left:6px}
+.btn-mini.ghost:hover{background:#faf5ff;color:#7c3aed;border-color:#7c3aed}
+
+.msg{padding:12px 14px;border-radius:12px;font-size:12.5px;font-weight:700;margin-bottom:16px;display:none}
+.msg.show{display:block}
+.msg.error{background:#fdf2f8;color:#be185d;border:1px solid #fbcfe8}
+.msg.ok{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+
+/* CTA card */
+.cta{background:linear-gradient(135deg,#8b5cf6 0%,#7c3aed 60%,#6d28d9 100%);border-radius:24px;padding:26px 24px;box-shadow:0 16px 40px rgba(124,58,237,.3);color:#fff;text-align:center;position:relative;overflow:hidden}
+.cta::before{content:"";position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08)}
+.cta::after{content:"";position:absolute;bottom:-60px;left:-30px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.05)}
+.cta h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;margin-bottom:6px;position:relative;z-index:1}
+.cta p{font-size:12.5px;opacity:.9;margin-bottom:20px;line-height:1.55;position:relative;z-index:1}
+.cta .beneficios{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;text-align:left;position:relative;z-index:1}
+.cta .beneficio{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;background:rgba(255,255,255,.12);padding:10px 14px;border-radius:12px;backdrop-filter:blur(4px)}
+.cta .beneficio .bico{font-size:16px}
+.cta .btn-cta{width:100%;padding:16px;border-radius:14px;border:none;background:#fff;color:#7c3aed;font-family:inherit;font-weight:900;font-size:15px;cursor:pointer;transition:.2s;box-shadow:0 6px 16px rgba(0,0,0,.15);position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:10px}
+.cta .btn-cta:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.cta .btn-cta:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.cta .privacy{font-size:10.5px;opacity:.75;margin-top:14px;position:relative;z-index:1}
+
+/* Success overlay */
+.success-overlay{position:fixed;inset:0;background:rgba(28,61,56,.6);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+.success-overlay.show{display:flex;animation:fade .3s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.success-card{background:#fff;border-radius:28px;padding:40px 28px;max-width:400px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.success-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:36px;color:#fff;box-shadow:0 8px 24px rgba(34,197,94,.3)}
+.success-card h2{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#1c3d38;margin-bottom:6px}
+.success-card p{font-size:13px;color:#8b5cf6;font-weight:600;margin-bottom:22px}
+.success-bar{width:100%;height:6px;background:#f3e8ff;border-radius:20px;overflow:hidden}
+.success-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#8b5cf6,#7c3aed);transition:width 1.4s ease;border-radius:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="btn-back" href="login.html">← Voltar ao login</a>
+
+  <div class="head">
+    <h1 id="titulo">Criar conta profissional</h1>
+    <p class="sub" id="subtitulo">Plataforma Comercial &amp; Prontuário TAP</p>
+  </div>
+
+  <div class="card">
+    <div class="msg" id="msg"></div>
+
+    <!-- ================= IDENTIDADE ================= -->
+    <div class="section">
+      <div class="section-title"><span class="ico">👤</span> Identidade</div>
+
+      <div class="foto-row">
+        <div class="foto-preview" id="fotoPreview">M</div>
+        <div class="foto-actions">
+          <label style="margin-bottom:6px">Foto de perfil <span class="opt">(opcional)</span></label>
+          <button type="button" class="btn-mini" onclick="document.getElementById('inputFoto').click()">📷 Escolher</button>
+          <button type="button" class="btn-mini ghost" onclick="removerFoto()">Remover</button>
+          <input id="inputFoto" type="file" accept="image/*" style="display:none" onchange="carregarFoto(this)">
+          <div class="hint">JPG/PNG · redimensionada pra 240×240</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Nome completo *</label>
+        <input id="nome" type="text" placeholder="Ex: Mariland Rodrigues" autocomplete="name">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>CPF <span class="opt">(opcional)</span></label>
+          <input id="cpf" type="text" placeholder="000.000.000-00" inputmode="numeric" oninput="mascaraCPF(this)">
+        </div>
+        <div class="field">
+          <label>Data de nascimento <span class="opt">(opcional)</span></label>
+          <input id="data_nascimento" type="date">
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CONTATO ================= -->
+    <div class="section">
+      <div class="section-title"><span class="ico">📞</span> Contato</div>
+
+      <div class="field">
+        <label>E-mail profissional *</label>
+        <input id="email" type="email" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>WhatsApp * <span class="opt">(com DDI)</span></label>
+          <input id="whatsapp" type="tel" placeholder="5541999999999" inputmode="numeric" oninput="soNumeros(this)">
+        </div>
+        <div class="field">
+          <label>Instagram <span class="opt">(opcional)</span></label>
+          <input id="instagram" type="text" placeholder="@seu_perfil">
+        </div>
+      </div>
+      <div class="field">
+        <label>Site / link <span class="opt">(opcional)</span></label>
+        <input id="site" type="url" placeholder="https://seusite.com">
+      </div>
+    </div>
+
+    <!-- ================= ENDEREÇO ================= -->
+    <div class="section">
+      <div class="section-title"><span class="ico">🏠</span> Endereço</div>
+
+      <div class="row3">
+        <div class="field">
+          <label>CEP *</label>
+          <input id="cep" type="text" placeholder="00000-000" inputmode="numeric" oninput="mascaraCEP(this)" onblur="buscarCEP()">
+        </div>
+        <div class="field" style="grid-column:span 2">
+          <label>Logradouro *</label>
+          <input id="endereco" type="text" placeholder="Rua / Avenida">
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>Número *</label>
+          <input id="numero" type="text" placeholder="123">
+        </div>
+        <div class="field" style="grid-column:span 2">
+          <label>Complemento <span class="opt">(opcional)</span></label>
+          <input id="complemento" type="text" placeholder="Apto, bloco...">
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>Bairro *</label>
+          <input id="bairro" type="text" placeholder="Centro">
+        </div>
+        <div class="field">
+          <label>Cidade *</label>
+          <input id="cidade" type="text" placeholder="Curitiba">
+        </div>
+        <div class="field">
+          <label>UF *</label>
+          <input id="estado" type="text" placeholder="PR" maxlength="2" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="hint" id="cepHint" style="display:none">✅ Endereço preenchido pelo CEP — confira e ajuste se precisar.</div>
+    </div>
+
+    <!-- ================= PROFISSIONAL ================= -->
+    <div class="section">
+      <div class="section-title"><span class="ico">🎓</span> Dados profissionais</div>
+
+      <div class="row2">
+        <div class="field">
+          <label>Profissão *</label>
+          <input id="profissao" type="text" placeholder="Ex: Terapeuta TAP" list="listaProfissoes">
+          <datalist id="listaProfissoes">
+            <option value="Terapeuta TAP">
+            <option value="Psicólogo(a)">
+            <option value="Terapeuta Holístico(a)">
+            <option value="Constelador(a) Familiar">
+            <option value="Coach">
+            <option value="Analista de Perfil">
+          </datalist>
+        </div>
+        <div class="field">
+          <label>Formação</label>
+          <input id="formacao" type="text" placeholder="Ex: Psicologia - PUC">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Registro profissional <span class="opt">(opcional)</span></label>
+          <input id="registro_profissional" type="text" placeholder="CRP, CRM, etc.">
+        </div>
+        <div class="field">
+          <label>Especialidades</label>
+          <input id="especialidades" type="text" placeholder="Ex: Ansiedade, Casais, Luto">
+        </div>
+      </div>
+      <div class="field">
+        <label>Bio / apresentação <span class="opt">(opcional)</span></label>
+        <textarea id="bio" placeholder="Conte em 2-3 linhas sua abordagem e como você trabalha..."></textarea>
+      </div>
+    </div>
+
+    <!-- ================= FISCAL ================= -->
+    <div class="section">
+      <div class="section-title"><span class="ico">🧾</span> Fiscal <span class="opt" style="color:#8b5cf6">(opcional)</span></div>
+
+      <div class="field">
+        <label>CNPJ <span class="opt">(se atender como PJ)</span></label>
+        <input id="cnpj" type="text" placeholder="00.000.000/0000-00" inputmode="numeric" oninput="mascaraCNPJ(this)">
+        <div class="hint">Se atender como pessoa física, pode deixar em branco.</div>
+      </div>
+    </div>
+
+    <!-- ================= ACESSO ================= -->
+    <div class="section">
+      <div class="section-title"><span class="ico">🔐</span> Acesso à plataforma</div>
+
+      <div class="field">
+        <label>Link público (slug) *</label>
+        <input id="slug" type="text" placeholder="seu-nome" oninput="sanitizarSlug()">
+        <div class="hint">Será usado na sua URL pública: mlterapia.pro/<b id="slugPreview">seu-nome</b></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Senha * <span class="opt">(min 6)</span></label>
+          <input id="senha" type="password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>Confirmar senha *</label>
+          <input id="senha2" type="password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CTA ================= -->
+  <div class="cta">
+    <h2 id="ctaTitle">Tudo pronto pra começar ✨</h2>
+    <p id="ctaSub">Você está a 1 clique de ter acesso à plataforma completa de gestão terapêutica.</p>
+
+    <div class="beneficios">
+      <div class="beneficio"><span class="bico">🧠</span> Teste de travas com 10 dimensões</div>
+      <div class="beneficio"><span class="bico">📋</span> Prontuário + anamnese digital</div>
+      <div class="beneficio"><span class="bico">📅</span> Agenda integrada com WhatsApp</div>
+      <div class="beneficio"><span class="bico">💰</span> Financeiro e pacotes automáticos</div>
+    </div>
+
+    <button class="btn-cta" id="btnSalvar" onclick="salvar()">
+      <span id="btnLabel">Criar minha conta</span>
+      <span style="font-size:18px">→</span>
+    </button>
+    <p class="privacy">🔒 Seus dados ficam protegidos. Não compartilhamos com terceiros.</p>
+  </div>
+</div>
+
+<!-- ================= SUCESSO ================= -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <h2 id="successTitle">Conta criada!</h2>
+    <p id="successMsg">Preparando seu painel...</p>
+    <div class="success-bar"><div class="success-bar-fill" id="successBar"></div></div>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+const params = new URLSearchParams(window.location.search);
+const slugOriginal = params.get('slug');
+const editando = !!slugOriginal;
+let fotoBase64 = null;
+
+// =================== BOOTSTRAP ===================
+(async function(){
+  if (editando) {
+    document.getElementById('titulo').textContent = 'Editar meu perfil';
+    document.getElementById('subtitulo').textContent = 'Atualize seus dados profissionais';
+    document.getElementById('btnLabel').textContent = 'Salvar alterações';
+    document.getElementById('ctaTitle').textContent = 'Atualize e continue 💜';
+    document.getElementById('ctaSub').textContent = 'Suas alterações aparecem na hora no painel.';
+    document.getElementById('successTitle').textContent = 'Perfil atualizado!';
+
+    const { data, error } = await sb.from('terapeutas').select('*').eq('slug', slugOriginal).maybeSingle();
+    if (error || !data) {
+      mostrarMsg('Não foi possível carregar os dados.', 'error');
+      return;
+    }
+    const F = {
+      nome: data.nome, email: data.email, senha: data.password, slug: data.slug,
+      whatsapp: data.whatsapp, instagram: data.instagram, cpf: data.cpf,
+      cnpj: data.cnpj, data_nascimento: data.data_nascimento, telefone: data.telefone,
+      cep: data.cep, endereco: data.endereco, numero: data.numero, complemento: data.complemento,
+      bairro: data.bairro, cidade: data.cidade, estado: data.estado,
+      profissao: data.profissao, formacao: data.formacao, registro_profissional: data.registro_profissional,
+      bio: data.bio, especialidades: data.especialidades, site: data.site
+    };
+    Object.entries(F).forEach(([k, v]) => {
+      const el = document.getElementById(k);
+      if (el && v != null) el.value = v;
+    });
+    document.getElementById('senha2').value = data.password || '';
+    if (data.foto) {
+      fotoBase64 = data.foto;
+      document.getElementById('fotoPreview').innerHTML = '<img src="' + data.foto + '">';
+    } else {
+      atualizarInicialPreview();
+    }
+    document.getElementById('slug').dataset.manual = '1';
+    atualizarSlugPreview();
+  } else {
+    atualizarInicialPreview();
+  }
+})();
+
+// =================== FOTO ===================
+function carregarFoto(input){
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const lado = Math.min(img.width, img.height);
+      const sx = (img.width - lado) / 2;
+      const sy = (img.height - lado) * 0.4;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 240;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, 240, 240);
+      ctx.drawImage(img, sx, sy, lado, lado, 0, 0, 240, 240);
+      fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      document.getElementById('fotoPreview').innerHTML = '<img src="' + fotoBase64 + '">';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function removerFoto(){ fotoBase64 = null; atualizarInicialPreview(); }
+
+function atualizarInicialPreview(){
+  const nome = (document.getElementById('nome')?.value || '').trim();
+  const letra = nome ? nome.charAt(0).toUpperCase() : 'M';
+  document.getElementById('fotoPreview').innerHTML = letra;
+}
+
+// =================== MÁSCARAS ===================
+function soNumeros(el){ el.value = el.value.replace(/\D/g, ''); }
+
+function mascaraCPF(el){
+  el.value = el.value.replace(/\D/g, '')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+    .slice(0, 14);
+}
+
+function mascaraCNPJ(el){
+  el.value = el.value.replace(/\D/g, '')
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2')
+    .slice(0, 18);
+}
+
+function mascaraCEP(el){
+  el.value = el.value.replace(/\D/g, '')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .slice(0, 9);
+}
+
+// =================== VIA CEP ===================
+async function buscarCEP(){
+  const cep = document.getElementById('cep').value.replace(/\D/g, '');
+  if (cep.length !== 8) return;
+  try {
+    const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const d = await r.json();
+    if (d.erro) return;
+    document.getElementById('endereco').value = d.logradouro || '';
+    document.getElementById('bairro').value   = d.bairro || '';
+    document.getElementById('cidade').value   = d.localidade || '';
+    document.getElementById('estado').value   = d.uf || '';
+    const hint = document.getElementById('cepHint');
+    hint.style.display = 'block';
+    setTimeout(() => hint.style.display = 'none', 5000);
+  } catch(e) {}
+}
+
+// =================== SLUG ===================
+function gerarSlug(txt){
+  return String(txt || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+function sanitizarSlug(){
+  const el = document.getElementById('slug');
+  el.value = el.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  atualizarSlugPreview();
+}
+
+function atualizarSlugPreview(){
+  const s = document.getElementById('slug').value || 'seu-nome';
+  document.getElementById('slugPreview').textContent = s;
+}
+
+document.getElementById('nome').addEventListener('input', () => {
+  if (!fotoBase64) atualizarInicialPreview();
+  if (!editando) {
+    const slugField = document.getElementById('slug');
+    if (!slugField.dataset.manual) {
+      slugField.value = gerarSlug(document.getElementById('nome').value);
+      atualizarSlugPreview();
+    }
+  }
+});
+
+document.getElementById('slug').addEventListener('input', function(){
+  this.dataset.manual = '1';
+  sanitizarSlug();
+});
+
+// =================== SALVAR ===================
+async function salvar(){
+  const btn = document.getElementById('btnSalvar');
+  const btnLabel = document.getElementById('btnLabel');
+
+  const dados = {
+    nome:      document.getElementById('nome').value.trim(),
+    email:     document.getElementById('email').value.trim(),
+    password:  document.getElementById('senha').value,
+    slug:      document.getElementById('slug').value.trim(),
+    whatsapp:  document.getElementById('whatsapp').value.replace(/\D/g, ''),
+    instagram: document.getElementById('instagram').value.trim() || null,
+    site:      document.getElementById('site').value.trim() || null,
+    cpf:       document.getElementById('cpf').value.trim() || null,
+    cnpj:      document.getElementById('cnpj').value.trim() || null,
+    data_nascimento: document.getElementById('data_nascimento').value || null,
+    cep:       document.getElementById('cep').value.trim() || null,
+    endereco:  document.getElementById('endereco').value.trim(),
+    numero:    document.getElementById('numero').value.trim(),
+    complemento: document.getElementById('complemento').value.trim() || null,
+    bairro:    document.getElementById('bairro').value.trim(),
+    cidade:    document.getElementById('cidade').value.trim(),
+    estado:    document.getElementById('estado').value.trim().toUpperCase(),
+    profissao: document.getElementById('profissao').value.trim(),
+    formacao:  document.getElementById('formacao').value.trim() || null,
+    registro_profissional: document.getElementById('registro_profissional').value.trim() || null,
+    especialidades: document.getElementById('especialidades').value.trim() || null,
+    bio:       document.getElementById('bio').value.trim() || null,
+    foto:      fotoBase64
+  };
+
+  const senha2 = document.getElementById('senha2').value;
+
+  // Validações
+  const faltando = [];
+  if (!dados.nome) faltando.push('Nome');
+  if (!dados.email) faltando.push('Email');
+  if (!dados.password) faltando.push('Senha');
+  if (!dados.slug) faltando.push('Slug');
+  if (!dados.whatsapp) faltando.push('WhatsApp');
+  if (!dados.cep) faltando.push('CEP');
+  if (!dados.endereco) faltando.push('Logradouro');
+  if (!dados.numero) faltando.push('Número');
+  if (!dados.bairro) faltando.push('Bairro');
+  if (!dados.cidade) faltando.push('Cidade');
+  if (!dados.estado) faltando.push('UF');
+  if (!dados.profissao) faltando.push('Profissão');
+
+  if (faltando.length) {
+    mostrarMsg('Preencha: ' + faltando.join(', '), 'error');
+    return;
+  }
+  if (dados.password.length < 6) {
+    mostrarMsg('A senha precisa ter no mínimo 6 caracteres.', 'error');
+    return;
+  }
+  if (dados.password !== senha2) {
+    mostrarMsg('As senhas não coincidem.', 'error');
+    return;
+  }
+
+  // Remove nulos pra não sobrescrever
+  Object.keys(dados).forEach(k => { if (dados[k] === null) delete dados[k]; });
+
+  btn.disabled = true;
+  btnLabel.textContent = 'Salvando...';
+
+  try {
+    if (editando) {
+      const { error } = await sb.from('terapeutas').update(dados).eq('slug', slugOriginal);
+      if (error) throw error;
+      const sess = JSON.parse(localStorage.getItem('terapeuta_sessao') || '{}');
+      Object.assign(sess, dados);
+      localStorage.setItem('terapeuta_sessao', JSON.stringify(sess));
+      localStorage.setItem('therapist_slug', dados.slug);
+      showSuccess('Perfil atualizado!', 'Redirecionando pro painel...');
+    } else {
+      const { data: dupEmail } = await sb.from('terapeutas').select('id').eq('email', dados.email).maybeSingle();
+      if (dupEmail) throw new Error('Este e-mail já está cadastrado.');
+
+      const { data: dupSlug } = await sb.from('terapeutas').select('id').eq('slug', dados.slug).maybeSingle();
+      if (dupSlug) throw new Error('Este slug já está em uso. Escolha outro.');
+
+      const { data, error } = await sb.from('terapeutas').insert(dados).select().single();
+      if (error) throw error;
+
+      localStorage.setItem('terapeuta_sessao', JSON.stringify(data));
+      localStorage.setItem('therapist_slug', data.slug);
+      localStorage.setItem('mlterapiapro_last_email', data.email);
+      localStorage.setItem('mlterapiapro_last_password', dados.password);
+      localStorage.setItem('mlterapiapro_last_login_at', new Date().toISOString());
+      showSuccess('Conta criada! 🎉', 'Preparando seu painel...');
+    }
+  } catch (e) {
+    mostrarMsg(e.message || 'Erro inesperado.', 'error');
+    btn.disabled = false;
+    btnLabel.textContent = editando ? 'Salvar alterações' : 'Criar minha conta';
+  }
+}
+
+function mostrarMsg(txt, tipo){
+  const el = document.getElementById('msg');
+  el.textContent = txt;
+  el.className = 'msg show ' + (tipo === 'ok' ? 'ok' : 'error');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showSuccess(titulo, sub){
+  document.getElementById('successTitle').textContent = titulo;
+  document.getElementById('successMsg').textContent = sub;
+  const ov = document.getElementById('successOverlay');
+  ov.classList.add('show');
+  setTimeout(() => { document.getElementById('successBar').style.width = '100%'; }, 80);
+  setTimeout(() => { window.location.href = 'dashboard.html'; }, 1600);
+}
+</script>
+</body>
+</html>

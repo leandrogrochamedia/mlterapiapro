@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARILAND - Comparação Local vs GitHub</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{text-align:center;margin-bottom:24px}
+.header h1{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.header p{font-size:12px;opacity:.5;margin-top:6px}
+.phones{display:flex;gap:24px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.iphone-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.iphone-label{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:6px 14px;border-radius:20px}
+.label-github{background:#24292f;color:#fff;border:1px solid #30363d}
+.label-local{background:#1c3d38;color:#a7f3d0;border:1px solid rgba(16,185,129,.3)}
+.iphone{width:390px;height:844px;background:#000;border-radius:56px;padding:12px;box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 0 0 3px #1a1a1a, 0 30px 80px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.1);position:relative}
+.iphone-inner{width:100%;height:100%;background:#fff;border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.iphone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:28px;background:#000;border-radius:0 0 18px 18px;z-index:10;display:flex;align-items:center;justify-content:center;gap:6px}
+.notch-speaker{width:48px;height:5px;background:#1a1a1a;border-radius:10px}
+.notch-cam{width:10px;height:10px;background:radial-gradient(circle at 30% 30%, #2a2a4a, #000);border-radius:50%;border:1px solid #222}
+.iphone-screen{flex:1;width:100%;height:100%;border:none;display:block;background:#fdf8f6}
+.iphone-home{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:132px;height:5px;background:#000;border-radius:10px;z-index:10;opacity:.8}
+.iphone-url{font-size:10px;background:#111;border:1px solid #222;color:#888;padding:6px 10px;border-radius:10px;max-width:390px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.controls{display:flex;gap:8px;justify-content:center;margin-top:18px}
+.ctrl-btn{padding:8px 14px;border-radius:10px;border:1px solid #222;background:#171717;color:#ccc;font-size:11px;font-weight:600;cursor:pointer}
+.ctrl-btn:hover{background:#222;color:#fff}
+@media(max-width:850px){
+  .phones{flex-direction:column;align-items:center}
+  .iphone{width:360px;height:780px}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>MARILAND. — Local vs GitHub Pages</h1>
+  <p>Dois iPhones lado a lado • Esquerda: GitHub • Direita: Local (mesma pasta)</p>
+</div>
+
+<div class="phones">
+  <!-- iPhone GitHub -->
+  <div class="iphone-wrap">
+    <div class="iphone-label label-github">● GITHUB PAGES</div>
+    <div class="iphone-url" id="urlGithub">https://leandrogrochamedia.github.io/mlterapiapro/marilandapp.html</div>
+    <div class="iphone">
+      <div class="iphone-notch"><div class="notch-speaker"></div><div class="notch-cam"></div></div>
+      <div class="iphone-inner">
+        <iframe id="frameGithub" class="iphone-screen" src="https://leandrogrochamedia.github.io/mlterapiapro/marilandapp.html" allow="clipboard-read; clipboard-write" loading="lazy"></iframe>
+      </div>
+      <div class="iphone-home"></div>
+    </div>
+  </div>
+
+  <!-- iPhone Local -->
+  <div class="iphone-wrap">
+    <div class="iphone-label label-local">● LOCAL — ./login.html</div>
+    <div class="iphone-url" id="urlLocal">./login.html (arquivo na mesma pasta)</div>
+    <div class="iphone">
+      <div class="iphone-notch"><div class="notch-speaker"></div><div class="notch-cam"></div></div>
+      <div class="iphone-inner">
+        <iframe id="frameLocal" class="iphone-screen" src="./login.html" allow="clipboard-read; clipboard-write" loading="lazy"></iframe>
+      </div>
+      <div class="iphone-home"></div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" onclick="reloadBoth()">↻ Recarregar ambos</button>
+  <button class="ctrl-btn" onclick="openGithub()">↗ Abrir GitHub em nova aba</button>
+  <button class="ctrl-btn" onclick="openLocal()">↗ Abrir Local em nova aba</button>
+</div>
+
+<script>
+function reloadBoth(){
+  document.getElementById('frameGithub').src = document.getElementById('frameGithub').src;
+  document.getElementById('frameLocal').src = document.getElementById('frameLocal').src;
+}
+function openGithub(){
+  window.open('https://leandrogrochamedia.github.io/mlterapiapro/marilandapp.html','_blank');
+}
+function openLocal(){
+  window.open('./login.html','_blank');
+}
+// Mostra hora real no notch (opcional)
+setInterval(()=>{
+  // pode atualizar se quiser
+},1000);
+
+// Detecta se local não existe e avisa
+document.getElementById('frameLocal').addEventListener('error', ()=>{
+  alert('Não encontrou ./login.html na mesma pasta. Coloque o LOCAL_BROWSER.html junto com login.html');
+});
+</script>
+</body>
+</html>

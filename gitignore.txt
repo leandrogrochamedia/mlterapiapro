@@ -1,0 +1,31 @@
+# ── Segredos ──
+config.js
+.env
+.env.*
+*.key
+*.pem
+
+# ── Backups locais do Python ──
+_backups/
+
+# ── Python ──
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# ── Node ──
+node_modules/
+
+# ── SO / Editor ──
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# ── Logs / temp ──
+*.log
+tmp/
+temp/

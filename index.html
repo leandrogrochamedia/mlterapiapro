@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Terapia Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: Inter, sans-serif;
+  }
+
+  /* ── Fundo igual ao do login ── */
+  .splash {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #faf5ff 0%, #fdf2f8 50%, #f0fdf4 100%);
+    z-index: 9999;
+  }
+
+  /* ── Bloco da logo + tagline ── */
+  .logo-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    will-change: opacity, filter, transform;
+    /* Força aceleração de GPU (blur fica mais fluido) */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    animation: splashKiss 3s linear 0s both;
+  }
+
+  .logo-wrap img {
+    width: min(64vw, 470px);
+    height: auto;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    filter: drop-shadow(0 12px 32px rgba(124,58,237,.18));
+  }
+
+  .tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #7c3aed;
+    opacity: .75;
+    font-weight: 600;
+    margin-top: -9px;
+  }
+
+  /* ── Animação suave de 3 segundos ──
+     Blur desce em passos: 44 → 34 → 22 → 10 → 0
+     Nítida por um tempinho e volta em passos
+  ── */
+  @keyframes splashKiss {
+    /* Entrada — blur caindo suave */
+    0%   { opacity: 0;    filter: blur(44px); transform: scale(.92); }
+    5%   { opacity: .22;  filter: blur(34px); transform: scale(.94); }
+    11%  { opacity: .55;  filter: blur(22px); transform: scale(.96); }
+    17%  { opacity: .85;  filter: blur(10px); transform: scale(.98); }
+    25%  { opacity: 1;    filter: blur(0px);  transform: scale(1);   }
+
+    /* Pausa — logo nítida pra ser "lida" */
+    65%  { opacity: 1;    filter: blur(0px);  transform: scale(1);   }
+
+    /* Saída — blur voltando suave */
+    77%  { opacity: .78;  filter: blur(10px); transform: scale(1.015); }
+    88%  { opacity: .38;  filter: blur(24px); transform: scale(1.035); }
+    100% { opacity: 0;    filter: blur(44px); transform: scale(1.05);  }
+  }
+</style>
+</head>
+<body>
+
+<div class="splash" id="splash">
+  <div class="logo-wrap">
+    <img src="images/logo-mlterapiapro.png" alt="ML Terapia Pro">
+    <div class="tagline">Sistema de Gestão Clínica</div>
+  </div>
+</div>
+
+<script>
+  // Duração total: 3 segundos
+  //   0–750ms     : blur cai em passos (entrada suave)
+  //   750–1950ms  : nítida (tempo de leitura)
+  //   1950–3000ms : blur sobe em passos (saída suave)
+  //   3000ms      : navega pro login
+  const NAVEGAR_EM = 3000;
+
+  // Pré-carrega a logo do login pra evitar "pop"
+  try { (new Image()).src = 'images/logo-mlterapiapro.png'; } catch(e) {}
+
+  setTimeout(() => {
+    window.location.replace('Login-v2.html');
+  }, NAVEGAR_EM);
+</script>
+
+</body>
+</html>

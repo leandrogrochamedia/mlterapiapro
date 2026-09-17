@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ML Terapia Pro — CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="config.js"></script>
+  <script src="travas.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [x-cloak] { display: none !important; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #f4f7fb;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+    .bg-card {
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.02);
+      transition: box-shadow 0.2s;
+    }
+    .bg-card:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.04); }
+    .btn-primary {
+      background: #2c3e50;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 4px 12px rgba(44,62,80,0.15);
+    }
+    .btn-primary:hover { background: #1a2a3a; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(44,62,80,0.2); }
+    .btn-success { background: #27ae60; box-shadow: 0 4px 12px rgba(39,174,96,0.15); }
+    .btn-success:hover { background: #1e8449; }
+    .btn-danger { background: #e74c3c; box-shadow: 0 4px 12px rgba(231,76,60,0.15); }
+    .btn-danger:hover { background: #c0392b; }
+    .btn-outline {
+      background: transparent;
+      color: #2c3e50;
+      border: 1.5px solid #2c3e50;
+      box-shadow: none;
+    }
+    .btn-outline:hover { background: rgba(44,62,80,0.04); transform: none; }
+    .input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.02);
+      border: 1.5px solid rgba(0,0,0,0.06);
+      outline: none;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: 0.2s;
+      color: #1e293b;
+    }
+    .input:focus {
+      background: #fff;
+      border-color: #2c3e50;
+      box-shadow: 0 0 0 4px rgba(44,62,80,0.06);
+    }
+    .badge {
+      padding: 2px 12px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.15s;
+      background: transparent;
+      border: none;
+      color: #64748b;
+    }
+    .tab-btn.active {
+      background: #2c3e50;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(44,62,80,0.1);
+    }
+    .tab-btn:hover { color: #1e293b; }
+    .tab-btn.active:hover { color: #fff; }
+    .kanban-col {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(4px);
+      border-radius: 20px;
+      border: 1px solid rgba(0,0,0,0.04);
+      padding: 16px;
+      min-height: 400px;
+    }
+    .kanban-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.04);
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
+    .modal-overlay {
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(6px);
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 999;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    input[type=range].slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #27ae60, #f1c40f, #e74c3c);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range].slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #2c3e50;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .accordion-content.open { max-height: 8000px; }
+    @media (max-width: 640px) {
+      .bg-card { padding: 16px; border-radius: 20px; }
+      .kanban-col { padding: 12px; }
+    }
+  </style>
+</head>
+<body x-data="crmApp()" x-init="init()" x-cloak>
+
+  <!-- TOAST -->
+  <div x-show="toast.show" x-transition class="toast">
+    <i class="fa-regular fa-circle-check text-green-400"></i>
+    <span x-text="toast.message"></span>
+  </div>
+
+  <!-- HEADER -->
+  <header class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-[#e2e8f0]">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-[#2c3e50] text-white flex items-center justify-center font-black text-sm">ML</div>
+        <div>
+          <h1 class="text-sm font-bold leading-tight">ML Terapia Pro</h1>
+          <p class="text-[10px] text-[#64748b]" x-text="'Olá, ' + user.nome.split(' ')[0]"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] px-2 py-1 rounded-full font-bold" :class="isConnected ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'" x-text="isConnected ? 'Online' : 'Offline'"></span>
+        <button @click="logout()" class="text-[#64748b] hover:text-[#1e293b] p-1.5 text-sm"><i class="fa-regular fa-right-from-bracket"></i></button>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div class="px-4 pb-2 flex gap-1 overflow-x-auto">
+      <template x-for="t in tabs" :key="t.key">
+        <button @click="tab = t.key" :class="{'active': tab===t.key}" class="tab-btn whitespace-nowrap flex items-center gap-1.5">
+          <i :class="'fa-regular ' + t.icon"></i>
+          <span x-text="t.label"></span>
+          <span x-show="t.key==='kanban'" class="bg-[#2c3e50] text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1" x-text="myLeads.length"></span>
+        </button>
+      </template>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-4 pb-24 space-y-6">
+
+    <!-- DASHBOARD -->
+    <div x-show="tab==='dashboard'" class="space-y-6">
+      <div class="bg-gradient-to-r from-[#2c3e50] to-[#1a2a3a] text-white p-6 rounded-3xl shadow-lg">
+        <div class="flex items-center gap-3">
+          <i class="fa-regular fa-bullseye text-2xl text-yellow-300"></i>
+          <div>
+            <h3 class="font-extrabold">Ritmo Comercial</h3>
+            <p class="text-xs text-[#94a3b8]" x-text="config.prospectionsTarget + ' abordagens/mês · ' + config.workDaysPerWeek + ' dias/semana'"></p>
+          </div>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-2 bg-white/10 rounded-2xl p-4">
+          <span class="text-sm">Meta diária:</span>
+          <span class="text-2xl font-black text-yellow-300" x-text="dailyTarget + ' abordagens'"></span>
+          <button @click="tab='config'" class="bg-white text-[#2c3e50] font-bold text-xs px-4 py-2 rounded-xl">Ajustar</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-card p-5"><p class="text-[10px] font-bold uppercase text-[#64748b]">Novos Hoje</p><p class="text-2xl font-black mt-1" x-text="metrics.novosHoje"></p></div>
+        <div class="bg-card p-5"><p class="text-[10px] font-bold uppercase text-[#64748b]">Agendados</p><p class="text-2xl font-black mt-1 text-amber-600" x-text="metrics.agendados"></p></div>
+        <div class="bg-card p-5"><p class="text-[10px] font-bold uppercase text-[#64748b]">Faturado</p><p class="text-xl font-black mt-1 text-emerald-600" x-text="fmtCur(metrics.faturado)"></p></div>
+        <div class="bg-card p-5"><p class="text-[10px] font-bold uppercase text-[#64748b]">A Receber</p><p class="text-xl font-black mt-1 text-blue-600" x-text="fmtCur(metrics.aReceber)"></p></div>
+      </div>
+
+      <div class="bg-card p-6 space-y-4">
+        <div class="flex justify-between items-center">
+          <div><h3 class="font-bold">Meta de Faturamento</h3><p class="text-xs text-[#64748b]" x-text="fmtCur(metrics.faturado) + ' de ' + fmtCur(config.revenueTarget)"></p></div>
+          <span class="text-2xl font-black text-[#2c3e50]" x-text="pct(metrics.faturado, config.revenueTarget) + '%'"></span>
+        </div>
+        <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+          <div class="bg-gradient-to-r from-emerald-500 to-[#2c3e50] h-full rounded-full" :style="'width:' + Math.min(100, pct(metrics.faturado, config.revenueTarget)) + '%'"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-amber-50 p-3 rounded-xl flex justify-between"><span class="text-xs font-bold text-amber-800">Desafio (+50%)</span><span class="font-extrabold" x-text="fmtCur(config.revenueTarget*1.5)"></span></div>
+          <div class="bg-purple-50 p-3 rounded-xl flex justify-between"><span class="text-xs font-bold text-purple-800">Disney (+100%)</span><span class="font-extrabold" x-text="fmtCur(config.revenueTarget*2)"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KANBAN -->
+    <div x-show="tab==='kanban'" class="space-y-4">
+      <div class="bg-card p-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div><label class="block font-bold mb-1 text-[#64748b] uppercase">Buscar</label><input x-model="kf.search" placeholder="Nome..." class="input"></div>
+          <div><label class="block font-bold mb-1 text-[#64748b] uppercase">Abordado</label><select x-model="kf.abordado" class="input"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
+          <div><label class="block font-bold mb-1 text-[#64748b] uppercase">Agendou</label><select x-model="kf.agendou" class="input"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
+          <div><label class="block font-bold mb-1 text-[#64748b] uppercase">Ordenar</label><select x-model="kf.order" class="input"><option value="desc">Mais recentes</option><option value="asc">Mais antigos</option></select></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="kanban-col">
+          <div class="flex justify-between items-center border-b pb-2 mb-3"><span class="font-bold text-xs uppercase">Novos</span><span class="badge badge-blue" x-text="kLeads('novos').length"></span></div>
+          <template x-for="lead in kLeads('novos')" :key="lead.origemId">
+            <div @click="openLead(lead)" class="kanban-card">
+              <div class="flex justify-between"><span class="font-bold text-sm" x-text="lead.nome"></span><a :href="'https://wa.me/'+lead.whatsapp.replace(/\D/g,'')" @click.stop target="_blank" class="text-green-600"><i class="fa-brands fa-whatsapp"></i></a></div>
+              <div class="text-[10px] text-gray-500" x-text="fmtDate(lead.data)"></div>
+              <div class="text-[10px] font-bold text-[#2c3e50] mt-1" x-text="top2Badge(lead)"></div>
+            </div>
+          </template>
+        </div>
+        <div class="kanban-col">
+          <div class="flex justify-between items-center border-b pb-2 mb-3"><span class="font-bold text-xs uppercase">Agendados</span><span class="badge badge-amber" x-text="kLeads('agendados').length"></span></div>
+          <template x-for="lead in kLeads('agendados')" :key="lead.origemId">
+            <div @click="openLead(lead)" class="kanban-card">
+              <div class="flex justify-between"><span class="font-bold text-sm" x-text="lead.nome"></span><a :href="'https://wa.me/'+lead.whatsapp.replace(/\D/g,'')" @click.stop target="_blank" class="text-green-600"><i class="fa-brands fa-whatsapp"></i></a></div>
+              <div class="text-[10px] text-amber-700 font-bold" x-text="lead.agenda ? fmtDate(lead.agenda.data)+' às '+lead.agenda.hora : 'Sem data'"></div>
+            </div>
+          </template>
+        </div>
+        <div class="kanban-col">
+          <div class="flex justify-between items-center border-b pb-2 mb-3"><span class="font-bold text-xs uppercase">Fechados</span><span class="badge badge-green" x-text="kLeads('fechados').length"></span></div>
+          <template x-for="lead in kLeads('fechados')" :key="lead.origemId">
+            <div @click="openLead(lead)" class="kanban-card">
+              <div class="flex justify-between"><span class="font-bold text-sm" x-text="lead.nome"></span><a :href="'https://wa.me/'+lead.whatsapp.replace(/\D/g,'')" @click.stop target="_blank" class="text-green-600"><i class="fa-brands fa-whatsapp"></i></a></div>
+              <div class="text-[10px] text-emerald-700 font-bold" x-text="fmtCur(lead.produtoValor||0)"></div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- TESTE (público) -->
+    <div x-show="tab==='teste'" class="max-w-3xl mx-auto">
+      <div class="bg-card p-6 space-y-4">
+        <h2 class="text-xl font-black">Teste de Travas</h2>
+        <p class="text-xs text-[#64748b]">Preencha os dados e responda as afirmações (0 a 10).</p>
+        <div x-show="testeStep===1" class="space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="text-[10px] font-bold">Nome *</label><input x-model="testeForm.nome" class="input"></div>
+            <div><label class="text-[10px] font-bold">E-mail *</label><input x-model="testeForm.email" class="input"></div>
+            <div><label class="text-[10px] font-bold">WhatsApp *</label><input x-model="testeForm.whatsapp" class="input" placeholder="55DDD999999999"></div>
+            <div><label class="text-[10px] font-bold">Idade</label><input x-model="testeForm.idade" type="number" class="input"></div>
+          </div>
+          <div><label class="text-[10px] font-bold">Profissão</label><input x-model="testeForm.profissao" class="input"></div>
+          <div><label class="text-[10px] font-bold">Principais dores</label><textarea x-model="testeForm.problemas" rows="2" class="input"></textarea></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="text-[10px] font-bold">Terapia anterior</label><select x-model="testeForm.terapia_anterior" class="input"><option value="">Selecione</option><option>Não</option><option>Sim terapia</option><option>Sim constelação</option><option>Sim TAP</option></select></div>
+            <div><label class="text-[10px] font-bold">Renda mensal</label><select x-model="testeForm.renda" class="input"><option value="">Selecione</option><option>Até 2k</option><option>2k a 5k</option><option>5k a 8k</option><option>8k a 15k</option><option>Acima 15k</option></select></div>
+          </div>
+          <div class="flex items-center gap-2"><input type="checkbox" x-model="testeForm.lgpd" class="accent-[#2c3e50]"><span class="text-[10px]">Concordo com a LGPD</span></div>
+          <button @click="testeStep=2" class="btn-primary w-full" :disabled="!testeStep1Valid()">Continuar →</button>
+        </div>
+        <div x-show="testeStep===2" class="space-y-4">
+          <template x-for="(t,i) in travas" :key="i">
+            <div class="border-b pb-3">
+              <div class="flex justify-between"><span class="font-bold text-sm" x-text="(i+1)+'. '+t.nome"></span><span class="font-bold text-[#2c3e50]" x-text="testeScores[i].toFixed(1)"></span></div>
+              <p class="text-[10px] text-[#64748b]" x-text="t.descricao"></p>
+              <input type="range" min="0" max="10" step="0.1" x-model="testeScores[i]" class="slider">
+            </div>
+          </template>
+          <div class="flex gap-2"><button @click="testeStep=1" class="btn-outline btn-primary flex-1">Voltar</button><button @click="submitTeste()" class="btn-primary flex-1">Finalizar</button></div>
+        </div>
+        <div x-show="testeStep===3" class="text-center">
+          <div class="w-16 h-16 rounded-full bg-green-600 text-white flex items-center justify-center text-3xl mx-auto">✓</div>
+          <h3 class="text-xl font-black mt-2">Seu Mapa de Travas</h3>
+          <div class="text-left mt-4 space-y-1 max-h-80 overflow-y-auto">
+            <template x-for="r in testeResults" :key="r.nome">
+              <div class="flex items-center gap-2 text-sm"><span class="w-32 font-bold" x-text="r.nome"></span><div class="flex-1 h-2 bg-gray-200 rounded-full"><div class="h-full rounded-full" :style="'width:'+(r.score*10)+'%'" :class="r.score>7.5?'bg-red-500':r.score>5?'bg-orange-400':r.score>2.5?'bg-yellow-400':'bg-green-400'"></div></div><span class="w-8 text-right" x-text="r.score.toFixed(1)"></span></div>
+            </template>
+          </div>
+          <a :href="waLinkTeste" target="_blank" class="btn-primary w-full mt-4 bg-green-600 hover:bg-green-700 flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp"></i> Falar com terapeuta</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRONTUÁRIO -->
+    <div x-show="tab==='prontuario'" class="space-y-3">
+      <div class="flex justify-between items-center"><h2 class="text-xl font-black">Prontuário</h2><span class="text-xs bg-[#e2e8f0] px-3 py-1 rounded-full font-bold" x-text="pacientes.length+' pacientes'"></span></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <template x-for="p in pacientes" :key="p.id">
+          <div @click="openPaciente(p)" class="bg-card p-5 cursor-pointer hover:shadow-lg transition">
+            <div class="flex justify-between"><span class="font-bold" x-text="p.nome"></span><span class="text-xs bg-[#2c3e50] text-white px-3 py-1 rounded-full" x-text="p.status"></span></div>
+            <div class="text-[10px] text-gray-500 mt-1" x-text="p.whatsapp"></div>
+            <div class="text-[10px] mt-1" x-text="'Última sessão: '+(p.ultimaSessao?fmtDate(p.ultimaSessao):'—')"></div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div x-show="tab==='historico'" class="space-y-4">
+      <div class="flex justify-between items-center"><h2 class="text-xl font-black">Histórico de Testes</h2><span class="text-sm text-gray-500" x-text="pacienteLeads.length + ' testes'"></span></div>
+      <div x-show="pacienteLeads.length===0" class="bg-card p-6 text-center text-gray-500">Nenhum teste encontrado para este paciente.</div>
+      <div x-show="pacienteLeads.length>0" class="space-y-4">
+        <div class="flex items-center justify-between"><span class="text-sm font-bold" x-text="'Teste '+(testeAtualIdx+1)+' de '+pacienteLeads.length"></span><div class="flex gap-2"><button @click="if(testeAtualIdx>0) testeAtualIdx--; $nextTick(()=>renderTesteChart())" class="btn-outline btn-primary btn-sm" :disabled="testeAtualIdx===0">◀ Anterior</button><button @click="if(testeAtualIdx<pacienteLeads.length-1) testeAtualIdx++; $nextTick(()=>renderTesteChart())" class="btn-outline btn-primary btn-sm" :disabled="testeAtualIdx===pacienteLeads.length-1">Próximo ▶</button></div></div>
+        <div class="bg-gray-50 p-4 rounded-xl"><canvas id="chartTesteHistorico" height="300"></canvas></div>
+      </div>
+    </div>
+
+    <!-- FINANCEIRO -->
+    <div x-show="tab==='financeiro'" class="space-y-3">
+      <h2 class="text-xl font-black">Financeiro</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-card p-5"><p class="text-[10px] font-bold">Caixa</p><p class="text-xl font-black text-emerald-600" x-text="fmtCur(finMetrics.caixaRealizado)"></p></div>
+        <div class="bg-card p-5"><p class="text-[10px] font-bold">A Receber</p><p class="text-xl font-black text-blue-600" x-text="fmtCur(finMetrics.aReceber)"></p></div>
+        <div class="bg-card p-5"><p class="text-[10px] font-bold">Vencidas</p><p class="text-xl font-black text-red-600" x-text="fmtCur(finMetrics.vencidas)"></p></div>
+        <div class="bg-card p-5"><p class="text-[10px] font-bold">A Vencer</p><p class="text-xl font-black text-amber-600" x-text="fmtCur(finMetrics.aVencer)"></p></div>
+      </div>
+      <div class="bg-card p-5"><h3 class="font-bold">Parcelas</h3><div class="max-h-60 overflow-y-auto space-y-1 mt-2"><template x-for="p in allParcelas" :key="p.id"><div class="flex justify-between items-center text-sm border-b py-1"><span x-text="p.cliente"></span><span x-text="fmtCur(p.valor)+' '+p.vencimento"></span><span :class="p.paga?'text-green-600':'text-red-600'" x-text="p.paga?'Paga':'Pendente'"></span></div></template></div></div>
+    </div>
+
+    <!-- CONFIG -->
+    <div x-show="tab==='config'" class="max-w-2xl mx-auto space-y-4">
+      <h2 class="text-xl font-black">Configurações</h2>
+      <div class="bg-card p-6 space-y-3">
+        <div><label class="text-[10px] font-bold">Nome</label><input x-model="user.nome" class="input"></div>
+        <div><label class="text-[10px] font-bold">Slug</label><input x-model="user.slug" class="input"></div>
+        <div><label class="text-[10px] font-bold">WhatsApp</label><input x-model="user.whatsapp" class="input"></div>
+        <button @click="saveProfile()" class="btn-primary w-full">Salvar perfil</button>
+      </div>
+      <div class="bg-card p-6 space-y-3">
+        <h3 class="font-bold">Metas</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="text-[10px] font-bold">Dias/semana</label><input type="number" x-model.number="config.workDaysPerWeek" class="input"></div>
+          <div><label class="text-[10px] font-bold">Prospecções/mês</label><input type="number" x-model.number="config.prospectionsTarget" class="input"></div>
+          <div class="col-span-2"><label class="text-[10px] font-bold">Meta faturamento (R$)</label><input type="number" x-model.number="config.revenueTarget" class="input"></div>
+        </div>
+        <button @click="saveConfig()" class="btn-primary w-full">Salvar metas</button>
+      </div>
+      <div class="bg-card p-6 space-y-3">
+        <h3 class="font-bold">Produtos</h3>
+        <div class="flex gap-2"><input x-model="newProd.nome" placeholder="Nome" class="input flex-1"><input x-model.number="newProd.valor" placeholder="Valor R$" class="input w-24"><input x-model.number="newProd.sessoes" placeholder="Sessões" class="input w-20"><button @click="addProduct()" class="btn-primary">+</button></div>
+        <div class="space-y-1"><template x-for="p in produtos" :key="p.id"><div class="flex justify-between text-sm border-b py-1"><span x-text="p.nome"></span><span x-text="fmtCur(p.valor)+' ('+p.sessoes+' sessões)'"></span></div></template></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL LEAD -->
+  <div x-show="leadModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay" @click.away="leadModalOpen=false">
+    <div class="modal-content max-w-3xl w-full p-6">
+      <div class="flex justify-between items-center border-b pb-4">
+        <div><h3 class="font-black text-xl" x-text="selLead?.nome"></h3><p class="text-xs text-gray-500" x-text="selLead?.email+' • '+selLead?.whatsapp"></p></div>
+        <button @click="leadModalOpen=false" class="text-2xl text-gray-400 hover:text-gray-600">&times;</button>
+      </div>
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+        <div class="space-y-4">
+          <div><h4 class="font-bold text-xs uppercase text-gray-400">Anamnese</h4><div class="text-xs space-y-1 mt-1"><p><strong>Idade:</strong> <span x-text="selLead?.idade||'—'"></span></p><p><strong>Profissão:</strong> <span x-text="selLead?.profissao||'—'"></span></p><p><strong>Problemas:</strong> <span x-text="selLead?.problemas||'—'"></span></p><p><strong>Terapia anterior:</strong> <span x-text="selLead?.terapia_anterior||'—'"></span></p><p><strong>Renda:</strong> <span x-text="selLead?.renda||'—'"></span></p></div></div>
+          <div><h4 class="font-bold text-xs uppercase text-gray-400">Prontuário</h4><textarea x-model="prontInput" placeholder="Anotações..." class="input w-full mt-1" rows="3"></textarea><button @click="savePront()" class="btn-primary btn-sm w-full mt-2">Salvar</button><div class="mt-2 text-xs bg-gray-50 p-3 rounded-xl whitespace-pre-wrap" x-text="selLead?.prontuario||'Sem anotações'"></div></div>
+        </div>
+        <div class="space-y-4">
+          <div><h4 class="font-bold text-xs uppercase text-gray-400">Travas</h4><canvas id="chartLead" height="250"></canvas></div>
+          <div><button @click="copiarParaIA()" class="btn-primary btn-sm w-full bg-indigo-600 hover:bg-indigo-700"><i class="fa-regular fa-copy"></i> Copiar para IA</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== DADOS DAS TRAVAS (importado de travas.js) =====
+    const TRAVAS_DATA = window.TRAVAS_DATA || [
+      { nome: 'Ansiedade', descricao: 'Sinto que estou sempre preocupado com o futuro.' },
+      { nome: 'Procrastinação', descricao: 'Deixo para depois o que poderia fazer agora.' },
+      { nome: 'Culpa Excessiva', descricao: 'Sinto-me culpado por coisas que não são minha responsabilidade.' },
+      { nome: 'Autossabotagem', descricao: 'Quando algo vai bem, acabo fazendo algo para estragar.' },
+      { nome: 'Dificuldade de Dizer Não', descricao: 'Tenho dificuldade em recusar pedidos, mesmo quando me sobrecarrega.' },
+      { nome: 'Medo de Cobrar', descricao: 'Evito cobrar o que é meu por direito.' },
+      { nome: 'Baixa Autoconfiança', descricao: 'Não acredito que sou capaz de realizar grandes coisas.' },
+      { nome: 'Perfeccionismo', descricao: 'Preciso que tudo seja perfeito, senão não vale a pena.' },
+      { nome: 'Dependência Emocional', descricao: 'Preciso da aprovação dos outros para me sentir bem.' },
+      { nome: 'Dificuldade com Críticas', descricao: 'Levo críticas como ataques pessoais.' }
+    ];
+
+    const DADOS_TESTE_REF = window.DADOS_TESTE_REF || [
+      { trava: 'TRAVA DA AUTOCONFIANÇA', perguntas: ['Evito situações desafiadoras...','Preocupação excessiva com a opinião dos outros...','Busca constante por aprovação...','Falta de iniciativa...','Baixa autoestima...'] },
+      // ... mais travas (para brevidade, usaremos o mesmo do original)
+    ];
+
+    function crmApp() {
+      return {
+        tab: 'dashboard',
+        supabase: null,
+        isConnected: false,
+        user: { nome: '', email: '', slug: '', whatsapp: '' },
+        leads: [],
+        produtos: [],
+        config: { workDaysPerWeek: 5, prospectionsTarget: 100, revenueTarget: 15000 },
+        kf: { search: '', abordado: '', agendou: '', order: 'desc' },
+        leadModalOpen: false,
+        selLead: null,
+        prontInput: '',
+        testeStep: 1,
+        testeForm: { nome: '', email: '', whatsapp: '', idade: '', profissao: '', problemas: '', terapia_anterior: '', renda: '', lgpd: false },
+        testeScores: Array(10).fill(5),
+        testeResults: [],
+        waLinkTeste: '',
+        newProd: { nome: '', valor: '', sessoes: 4 },
+        pacienteLeads: [],
+        testeAtualIdx: 0,
+        allParcelas: [],
+        toast: { show: false, message: '' },
+        tabs: [
+          { key: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
+          { key: 'kanban', label: 'Funil', icon: 'fa-table-columns' },
+          { key: 'teste', label: 'Teste', icon: 'fa-brain' },
+          { key: 'prontuario', label: 'Prontuário', icon: 'fa-file-medical' },
+          { key: 'historico', label: 'Histórico', icon: 'fa-clock-rotate-left' },
+          { key: 'financeiro', label: 'Financeiro', icon: 'fa-coins' },
+          { key: 'config', label: 'Config', icon: 'fa-gear' }
+        ],
+
+        async init() {
+          const saved = localStorage.getItem('mlterapiapro_user');
+          if (!saved) { window.location.href = 'index.html'; return; }
+          try {
+            const u = JSON.parse(saved);
+            if (!u.loggedIn) { window.location.href = 'index.html'; return; }
+            this.user = u;
+          } catch(e) { window.location.href = 'index.html'; return; }
+          this.loadLocal();
+          const url = window.SUPABASE_URL || 'https://aaqyhcpuwkifaeplxdep.supabase.co';
+          const key = window.SUPABASE_ANON_KEY || 'sb_publishable_1gVxSsEOUPcEswKTFqQY2w_D2Lwxl5b';
+          if (window.supabase) {
+            this.supabase = window.supabase.createClient(url, key);
+            await this.syncFromSupabase();
+          }
+        },
+
+        loadLocal() {
+          try {
+            const l = localStorage.getItem('marilandpro_leads'); if (l) this.leads = JSON.parse(l);
+            const p = localStorage.getItem('marilandpro_produtos'); if (p) this.produtos = JSON.parse(p);
+            const c = localStorage.getItem('marilandpro_config'); if (c) this.config = { ...this.config, ...JSON.parse(c) };
+          } catch(e) {}
+        },
+
+        async syncFromSupabase() {
+          try {
+            const { data } = await this.supabase.from('leads').select('*').eq('terapeuta_slug', this.user.slug);
+            if (data && data.length) { this.leads = data; localStorage.setItem('marilandpro_leads', JSON.stringify(this.leads)); }
+            this.isConnected = true;
+          } catch(e) { this.isConnected = false; }
+        },
+
+        saveLeads() {
+          localStorage.setItem('marilandpro_leads', JSON.stringify(this.leads));
+          if (this.supabase && this.isConnected) {
+            this.supabase.from('leads').upsert(this.leads, { onConflict: 'origemId' }).catch(()=>{});
+          }
+        },
+
+        saveConfig() { localStorage.setItem('marilandpro_config', JSON.stringify(this.config)); this.showToast('Metas salvas!'); },
+        saveProfile() { localStorage.setItem('mlterapiapro_user', JSON.stringify(this.user)); this.showToast('Perfil salvo!'); },
+
+        logout() {
+          localStorage.removeItem('mlterapiapro_user');
+          window.location.href = 'index.html';
+        },
+
+        get myLeads() { return this.leads.filter(l => !l.terapeuta_slug || l.terapeuta_slug === this.user.slug); },
+        get myProdutos() { return this.produtos.filter(p => !p.terapeuta_slug || p.terapeuta_slug === this.user.slug); },
+        get dailyTarget() { return Math.ceil((this.config.prospectionsTarget||100) / ((this.config.workDaysPerWeek||5)*4)); },
+        get metrics() {
+          const today = new Date().toISOString().split('T')[0];
+          return {
+            novosHoje: this.myLeads.filter(l => l.data?.split('T')[0] === today).length,
+            agendados: this.myLeads.filter(l => l.agendouSessao).length,
+            faturado: this.myLeads.reduce((s,l) => s + (l.parcelas||[]).filter(p=>p.pago).reduce((a,p)=>a+p.valor,0), 0),
+            aReceber: this.myLeads.reduce((s,l) => s + (l.parcelas||[]).filter(p=>!p.pago).reduce((a,p)=>a+p.valor,0), 0),
+          };
+        },
+        get finMetrics() {
+          const total = this.allParcelas.reduce((s,p) => s + p.valor, 0);
+          const pagas = this.allParcelas.filter(p => p.paga).reduce((s,p) => s + p.valor, 0);
+          const vencidas = this.allParcelas.filter(p => !p.paga && p.vencimento < new Date().toISOString().split('T')[0]).reduce((s,p) => s + p.valor, 0);
+          const aVencer = this.allParcelas.filter(p => !p.paga && p.vencimento >= new Date().toISOString().split('T')[0]).reduce((s,p) => s + p.valor, 0);
+          return { caixaRealizado: pagas, aReceber: total - pagas, vencidas, aVencer };
+        },
+
+        kLeads(col) {
+          let list = this.myLeads.filter(l => !l.arquivado);
+          if (col === 'novos') list = list.filter(l => !l.agendouSessao && !l.fechouProtocolo);
+          else if (col === 'agendados') list = list.filter(l => l.agendouSessao && !l.fechouProtocolo);
+          else if (col === 'fechados') list = list.filter(l => l.fechouProtocolo);
+          if (this.kf.search) list = list.filter(l => l.nome.toLowerCase().includes(this.kf.search.toLowerCase()));
+          if (this.kf.abordado === 'sim') list = list.filter(l => l.abordado);
+          if (this.kf.abordado === 'nao') list = list.filter(l => !l.abordado);
+          if (this.kf.agendou === 'sim') list = list.filter(l => l.agendouSessao);
+          if (this.kf.agendou === 'nao') list = list.filter(l => !l.agendouSessao);
+          list.sort((a,b) => this.kf.order === 'desc' ? new Date(b.data) - new Date(a.data) : new Date(a.data) - new Date(b.data));
+          return list;
+        },
+
+        top2Badge(lead) {
+          if (!lead.resultadosTravas?.length) return 'Sem travas';
+          const s = [...lead.resultadosTravas].sort((a,b) => b.score - a.score);
+          return s.slice(0,2).map(t => t.nome.replace(/TRAVA DA |TRAVA DO /,'') + ' ' + Number(t.score).toFixed(1)).join(' | ');
+        },
+
+        openLead(lead) { this.selLead = lead; this.leadModalOpen = true; this.$nextTick(()=>{ setTimeout(()=>this.renderChart(), 300); }); },
+        openPaciente(lead) { this.selLead = lead; this.leadModalOpen = true; this.pacienteLeads = this.myLeads.filter(l => (l.email && l.email===lead.email) || (l.whatsapp && l.whatsapp===lead.whatsapp)).sort((a,b) => new Date(a.data) - new Date(b.data)); this.testeAtualIdx = this.pacienteLeads.length - 1; this.$nextTick(()=>{ setTimeout(()=>{ this.renderChart(); this.renderTesteChart(); }, 300); }); },
+
+        savePront() {
+          if (!this.prontInput || !this.selLead) return;
+          const entry = `[${new Date().toLocaleString('pt-BR')}]\n${this.prontInput}\n\n`;
+          this.selLead.prontuario = (this.selLead.prontuario || '') + entry;
+          this.prontInput = '';
+          this.saveLeads();
+          this.showToast('Prontuário salvo!');
+        },
+
+        renderChart() {
+          const ctx = document.getElementById('chartLead');
+          if (!ctx || !this.selLead?.resultadosTravas) return;
+          if (window._leadChart) window._leadChart.destroy();
+          const data = this.selLead.resultadosTravas;
+          window._leadChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.map(t => t.nome.replace(/TRAVA DA |TRAVA DO /,'')),
+              datasets: [{
+                data: data.map(t => t.score),
+                backgroundColor: data.map(t => t.score<2.5?'#27ae60':t.score<5?'#f1c40f':t.score<7.5?'#e67e22':'#e74c3c'),
+                borderRadius: 6,
+                barThickness: 20,
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              plugins: { legend: { display: false } },
+              scales: { x: { min: 0, max: 10, grid: { display: false } }, y: { grid: { display: false } } },
+              responsive: true,
+              maintainAspectRatio: false
+            }
+          });
+        },
+
+        renderTesteChart() {
+          const ctx = document.getElementById('chartTesteHistorico');
+          if (!ctx || !this.pacienteLeads[this.testeAtualIdx]?.resultadosTravas) return;
+          if (window._testeChart) window._testeChart.destroy();
+          const data = this.pacienteLeads[this.testeAtualIdx].resultadosTravas;
+          window._testeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.map(t => t.nome.replace(/TRAVA DA |TRAVA DO /,'')),
+              datasets: [{
+                data: data.map(t => t.score),
+                backgroundColor: data.map(t => t.score<2.5?'#27ae60':t.score<5?'#f1c40f':t.score<7.5?'#e67e22':'#e74c3c'),
+                borderRadius: 6,
+                barThickness: 20,
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              plugins: { legend: { display: false } },
+              scales: { x: { min: 0, max: 10, grid: { display: false } }, y: { grid: { display: false } } },
+              responsive: true,
+              maintainAspectRatio: false
+            }
+          });
+        },
+
+        copiarParaIA() {
+          if (!this.selLead) return;
+          const lead = this.selLead;
+          let texto = `Aja como terapeuta especialista. Analise detalhadamente as respostas do paciente ${lead.nome}.\n\nRESUMO DAS TRAVAS:\n`;
+          (lead.resultadosTravas||[]).forEach(r => { texto += `- ${r.nome}: ${r.score.toFixed(1)}\n`; });
+          navigator.clipboard.writeText(texto).then(() => this.showToast('✅ Copiado para a IA!'));
+        },
+
+        testeStep1Valid() { return this.testeForm.nome && this.testeForm.email && this.testeForm.whatsapp && this.testeForm.lgpd; },
+        submitTeste() {
+          const resultados = TRAVAS_DATA.map((t,i) => ({ nome: t.nome, score: parseFloat(this.testeScores[i]||5) }));
+          this.testeResults = [...resultados].sort((a,b) => b.score - a.score);
+          const lead = {
+            origemId: 'lead-'+Date.now(),
+            terapeuta_slug: this.user.slug,
+            data: new Date().toISOString(),
+            nome: this.testeForm.nome,
+            email: this.testeForm.email,
+            whatsapp: this.testeForm.whatsapp,
+            idade: this.testeForm.idade,
+            profissao: this.testeForm.profissao,
+            problemas: this.testeForm.problemas,
+            terapia_anterior: this.testeForm.terapia_anterior,
+            renda: this.testeForm.renda,
+            resultadosTravas: resultados,
+            status: 'novo',
+            abordado: false,
+            agendouSessao: false,
+            fechouProtocolo: false,
+            arquivado: false,
+            versaoTeste: 'v2-revisado'
+          };
+          this.leads.push(lead);
+          this.saveLeads();
+          const phone = (this.user.whatsapp || '5541996289968').replace(/\D/g,'');
+          this.waLinkTeste = `https://wa.me/${phone}?text=${encodeURIComponent(`Olá ${this.user.nome}! Acabei de fazer o teste. Minha maior trava foi ${this.testeResults[0]?.nome} (${this.testeResults[0]?.score.toFixed(1)}/10).`)}`;
+          this.testeStep = 3;
+        },
+
+        addProduct() {
+          if (!this.newProd.nome || !this.newProd.valor) return;
+          this.produtos.push({ id: 'prod-'+Date.now(), terapeuta_slug: this.user.slug, nome: this.newProd.nome, valor: parseFloat(this.newProd.valor), sessoes: parseInt(this.newProd.sessoes)||4 });
+          localStorage.setItem('marilandpro_produtos', JSON.stringify(this.produtos));
+          this.newProd = { nome: '', valor: '', sessoes: 4 };
+          this.showToast('Produto adicionado!');
+        },
+
+        get pacientes() { return this.myLeads.filter(l => l.status==='fechado' || l.status==='paciente'); },
+        get travas() { return TRAVAS_DATA; },
+
+        pct(val, total) { if (!total) return 0; return ((val/total)*100).toFixed(0); },
+        fmtCur(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v||0); },
+        fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('pt-BR'); },
+        showToast(msg) { this.toast = { show: true, message: msg }; setTimeout(()=> this.toast.show = false, 3000); }
+      }
+    }
+  </script>
+</body>
+</html>

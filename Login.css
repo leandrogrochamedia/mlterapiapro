@@ -1,0 +1,11 @@
+
+/* login.css - Tela de login premium */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,sans-serif;background:#fdf8f6;color:#2d1211;min-height:100vh}
+.login-bg{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 600px at 20% 10%, rgba(196,181,253,0.18) 0%, transparent 60%), radial-gradient(700px 500px at 80% 90%, rgba(249,168,212,0.15) 0%, transparent 60%), linear-gradient(180deg,#fff 0%,#fdf8f6 100%);padding:20px}
+.login-card{background:#fff;border-radius:28px;box-shadow:0 20px 80px rgba(74,44,42,0.12), 0 0 0 1px rgba(231,201,169,0.3);padding:42px 36px;max-width:460px;width:100%;text-align:center;position:relative}
+.avatar-wrap{position:relative;display:inline-block;margin-bottom:18px} .avatar{width:92px;height:92px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 12px 32px rgba(74,44,42,0.18), 0 0 0 6px rgba(255,255,255,0.8), 0 0 0 8px rgba(196,181,253,0.15)}
+.nome{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#1a3d38;letter-spacing:1.5px;line-height:1.1} .sub{font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:#7c3aed;margin-top:8px}
+.input{width:100%;padding:14px 16px;border-radius:14px;border:2px solid #f5e6cc;background:#fffdf9;font-size:14px;outline:none;transition:.2s;margin-top:8px} .input:focus{border-color:#a78bfa;box-shadow:0 0 0 4px rgba(167,139,250,0.12);background:#fff} .label{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#7c2d12;text-align:left;display:block;margin-top:14px} .btn{width:100%;padding:15px;border-radius:14px;background:linear-gradient(180deg,#7c3aed 0%,#6d28d9 100%);border:none;color:#fff;font-weight:800;font-size:14px;cursor:pointer;margin-top:16px;box-shadow:0 8px 20px rgba(124,58,237,0.25);transition:.2s;min-height:48px} .btn:hover{transform:translateY(-1px)} .btn:disabled{opacity:.6}
+#loadingOverlay{position:fixed;inset:0;z-index:9999;background:rgba(253,248,246,.92);backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center}#loadingOverlay.show{display:flex}
+.loading-card{background:#fff;border:1.5px solid #f5e6cc;border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.15);text-align:center;width:90%;max-width:340px}
