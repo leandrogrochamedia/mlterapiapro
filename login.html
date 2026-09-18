@@ -173,11 +173,32 @@ async function fazerLogin(){
 document.getElementById('senha').addEventListener('keydown', e => {
   if (e.key === 'Enter') fazerLogin();
 });
+// ═══════════════════════════════════════════════════════════
+// FIX reload — se veio de F5 no dashboard (?reload=1), NÃO auto-loga
+// ═══════════════════════════════════════════════════════════
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const veioDeReload = params.get('reload') === '1';
+  const flag = (() => { try { return sessionStorage.getItem('ml_reload_flag'); } catch(e){ return null; } })();
+
+  if (veioDeReload || flag === '1') {
+    try { sessionStorage.removeItem('ml_reload_flag'); } catch(e){}
+    try { localStorage.removeItem('therapist_slug'); } catch(e){}
+    // marca global pro auto-login de baixo saber que deve pular
+    window._mlSkipAutoLogin = true;
+    // limpa a URL (remove ?reload=1) sem recarregar
+    try { window.history.replaceState({}, '', 'login.html'); } catch(e){}
+  }
+})();
+
 // Auto-login se já tem sessão ativa (pula se ?logout=1)
 (async function(){
   if (new URLSearchParams(window.location.search).get('logout') === '1') {
     try { await sb.auth.signOut(); } catch(e){}
     window.history.replaceState({}, '', 'login.html');
+  } else if (window._mlSkipAutoLogin) {
+    // veio de reload — pula auto-login, mostra tela de login limpa
+    console.log('[login] skip auto-login (veio de reload)');
   } else {
     try{
       const { data: { session } } = await sb.auth.getSession();

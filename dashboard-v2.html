@@ -861,7 +861,52 @@ const ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const ICON_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
 
+
+// ═══════════════════════════════════════════════════════════
+// LOGOUT-ON-REFRESH v3 — SÍNCRONO, não depende de signOut()
+// Limpa localStorage na mão ANTES de redirecionar (evita corrida)
+// Detecta reload via PerformanceNavigationTiming
+// ═══════════════════════════════════════════════════════════
+(function(){
+  try {
+    const navEntry = performance.getEntriesByType('navigation')[0];
+    const tipo = navEntry ? navEntry.type : 'navigate';
+
+    if (tipo === 'reload') {
+      // 1) SÍNCRONO: limpa as chaves do Supabase + nossas (na mão)
+      try {
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('sb-') || k === 'therapist_slug' || k.startsWith('mlterapiapro_')) {
+            localStorage.removeItem(k);
+          }
+        });
+      } catch(e){}
+
+      // 2) SÍNCRONO: limpa sessionStorage e seta flag
+      try {
+        sessionStorage.clear();
+        sessionStorage.setItem('ml_reload_flag', '1');
+      } catch(e){}
+
+      // 3) Em background: signOut (não espera, não bloqueia)
+      try {
+        if (typeof supabaseClient !== 'undefined' && supabaseClient.auth) {
+          supabaseClient.auth.signOut().catch(()=>{});
+        }
+      } catch(e){}
+
+      // 4) Redireciona — localStorage já está limpo, login não auto-logá
+      window.location.replace('login.html?reload=1');
+      return;
+    }
+  } catch(e) {
+    console.warn('[logout-on-refresh] falhou:', e);
+  }
+})();
+
 let _authChecked = false;
+
+
 
 async function checkAuth(){
   if(_authChecked && TERAPEUTA_DATA) return true;
