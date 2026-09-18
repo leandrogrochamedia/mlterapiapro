@@ -641,7 +641,7 @@ body::-webkit-scrollbar,
   <button class="filtro-chip"        data-status="novo_questionario"  onclick="filtrarClientesPorStatus('novo_questionario')">✨ Novos <span class="filtro-num" id="chip-count-novos"></span></button>
   <button class="filtro-chip"        data-status="em_contato"         onclick="filtrarClientesPorStatus('em_contato')">🟡 Em contato <span class="filtro-num" id="chip-count-contato"></span></button>
   <button class="filtro-chip"        data-status="agendado"           onclick="filtrarClientesPorStatus('agendado')">📅 Agendados <span class="filtro-num" id="chip-count-agendados"></span></button>
-  <button class="filtro-chip"        data-status="ativo"              onclick="filtrarClientesPorStatus('ativo')">🟢 Ativos <span class="filtro-num" id="chip-count-ativos"></span></button>
+  <button class="filtro-chip"        data-status="em_acompanhamento" onclick="filtrarClientesPorStatus('em_acompanhamento')">🟢 Ativos <span class="filtro-num" id="chip-count-ativos"></span></button>
   <button class="filtro-chip"        data-status="arquivado"          onclick="filtrarClientesPorStatus('arquivado')">📦 Arquivados <span class="filtro-num" id="chip-count-arquivados"></span></button>
 </div>
 
@@ -1080,7 +1080,7 @@ function atualizarChipsContadores(){
   const novos     = naoArq.filter(l => l.status === 'novo_questionario').length;
   const emContato = naoArq.filter(l => l.status === 'em_contato').length;
   const agendado  = naoArq.filter(l => l.status === 'agendado').length;
-  const ativo     = naoArq.filter(l => l.status === 'ativo').length;
+  const ativo     = naoArq.filter(l => l.status === 'em_acompanhamento').length;
   const set = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v > 0 ? v : ''; };
   set('chip-count-todos',      naoArq.length);
   set('chip-count-novos',      novos);
