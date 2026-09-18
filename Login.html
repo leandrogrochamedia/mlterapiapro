@@ -12,9 +12,20 @@
 body{font-family:Inter,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fdf2f8 50%,#f0fdf4 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:#1c3d38}
 .card{background:#fff;width:100%;max-width:420px;border-radius:32px;border:1.5px solid #e9d5ff;box-shadow:0 20px 60px rgba(124,58,237,.08);padding:36px 28px 28px;animation:fade .4s ease}
 @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.logo{width:72px;height:72px;border-radius:50%;background:#991b1b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;margin:0 auto;box-shadow:0 8px 20px rgba(153,27,27,.25)}
-h1.brand{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;text-align:center;margin-top:4px;color:#1c3d38;letter-spacing:1.5px;text-transform:uppercase}
-.sub{font-size:12px;color:#8b5cf6;text-align:center;margin-top:4px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+
+.logo{
+  display:block;
+  width:100%;
+  max-width:280px;
+  height:auto;
+  margin:0 auto 6px;
+  user-select:none;
+  -webkit-user-drag:none;
+  filter: drop-shadow(0 8px 22px rgba(124,58,237,.10));
+}
+
+h1.brand{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;text-align:center;margin-top:4px;color:#1c3d38;letter-spacing:1.5px;text-transform:uppercase}
+.sub{font-size:11.5px;color:#8b5cf6;text-align:center;margin-top:4px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
 .tabs{display:flex;gap:4px;background:#faf5ff;border:1.5px solid #e9d5ff;border-radius:14px;padding:4px;margin-top:22px;max-width:300px;margin-left:auto;margin-right:auto}
 .tab{flex:1;padding:8px 10px;border-radius:10px;border:none;background:transparent;font-family:inherit;font-size:10.5px;font-weight:800;color:#7c3aed;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
 .tab.active{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 12px rgba(124,58,237,.3)}
@@ -31,11 +42,8 @@ input:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,5
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:#c4b5fd;font-size:11px;font-weight:700;letter-spacing:.5px}
 .divider::before,.divider::after{content:"";flex:1;height:1px;background:#e9d5ff}
-.small{font-size:12px;color:#be185d;text-align:center;margin-bottom:10px;font-weight:600}
 .link-cadastro{background:transparent;border:none;font-family:inherit;font-size:12.5px;font-weight:800;color:#7c3aed;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:6px 10px;display:block;margin:8px auto 0;transition:.2s}
 .link-cadastro:hover{color:#6d28d9}
-.footer{font-size:11px;color:#16a34a;text-align:center;margin-top:22px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
-.last-login{font-size:10.5px;color:#8b5cf6;text-align:center;margin-top:10px;font-weight:600}
 .msg{padding:11px 14px;border-radius:12px;font-size:12px;font-weight:700;margin-top:14px;display:none}
 .msg.show{display:block}
 .msg.error{background:#fdf2f8;color:#be185d;border:1px solid #fbcfe8}
@@ -47,8 +55,9 @@ input:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,5
 </head>
 <body>
 <div class="card">
-  <h1 class="brand">ML TERAPIA PRO</h1>
-  <p class="sub">Plataforma Comercial &amp; Prontuário TAP</p>
+
+  <img class="logo" src="images/logo-mlterapiapro.png" alt="ML Terapia Pro">
+  <p class="sub">Sistema de Gestão Clínica</p>
 
   <div class="tabs">
     <button class="tab active" data-tab="login">👤 Login</button>
@@ -68,8 +77,6 @@ input:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,5
     <button class="btn-primary" id="btnEntrar" onclick="fazerLogin()">Entrar <span style="font-size:16px">→</span></button>
     <div class="divider">ou</div>
     <button class="link-cadastro" onclick="window.location.href='onboarding.html'">Cadastrar novo terapeuta →</button>
-    <p class="footer">🔒 Acesso restrito a terapeutas cadastrados.</p>
-    <p class="last-login" id="lastLogin"></p>
   </div>
 
   <div class="pane hidden" id="pane-register">
@@ -78,7 +85,7 @@ input:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,5
       <p>Preencha seus dados profissionais e configure seu acesso à plataforma. Leva menos de 2 minutos.</p>
       <button class="btn-primary" onclick="window.location.href='onboarding.html'">👤 Começar cadastro</button>
     </div>
-    <p class="footer">Já tem conta? <a href="#" onclick="trocarAba('login');return false;" style="color:#991b1b;font-weight:800;text-decoration:none">Fazer login</a></p>
+    <p style="font-size:11px;color:#16a34a;text-align:center;margin-top:22px;font-weight:600">Já tem conta? <a href="#" onclick="trocarAba('login');return false;" style="color:#991b1b;font-weight:800;text-decoration:none">Fazer login</a></p>
   </div>
 </div>
 
@@ -112,22 +119,25 @@ async function fazerLogin(){
   btn.textContent = 'Entrando...';
 
   try {
-    const { data, error } = await sb.from('terapeutas')
-      .select('*')
-      .eq('email', email)
-      .maybeSingle();
+    // 🔒 RPC — senha nunca sai do banco em texto plano
+    const { data, error } = await sb.rpc('login_terapeuta', {
+      p_email: email,
+      p_senha: senha
+    });
 
     if (error) throw error;
-    if (!data) return mostrarMsg('E-mail não cadastrado.', 'error');
-    if (data.password !== senha) return mostrarMsg('Senha incorreta.', 'error');
+    if (!data || data.length === 0) return mostrarMsg('E-mail ou senha incorretos.', 'error');
 
-    localStorage.setItem('terapeuta_sessao', JSON.stringify(data));
-    localStorage.setItem('therapist_slug', data.slug);
+    const terapeuta = data[0];
+    if (!terapeuta || !terapeuta.slug) return mostrarMsg('Cadastro incompleto. Fale com o suporte.', 'error');
+
+    localStorage.setItem('terapeuta_sessao', JSON.stringify(terapeuta));
+    localStorage.setItem('therapist_slug', terapeuta.slug);
     localStorage.setItem('mlterapiapro_last_email', email);
-    localStorage.setItem('mlterapiapro_last_password', senha);
     localStorage.setItem('mlterapiapro_last_login_at', new Date().toISOString());
+    // 🔒 senha NAO vai pro localStorage
 
-    window.location.href = 'dashboard.html';
+    window.location.href = 'dashboard-v2.html';
   } catch (e) {
     mostrarMsg('Erro: ' + e.message, 'error');
     btn.disabled = false;
@@ -139,18 +149,12 @@ document.getElementById('senha').addEventListener('keydown', e => {
   if (e.key === 'Enter') fazerLogin();
 });
 
-// Pré-preenche último email + mostra último login
+// Pre-preenche apenas o email. 🔒 Senha nunca e salva.
 (function(){
   const email = localStorage.getItem('mlterapiapro_last_email');
-  const pwd   = localStorage.getItem('mlterapiapro_last_password');
-  const lastAt = localStorage.getItem('mlterapiapro_last_login_at');
   if (email) document.getElementById('email').value = email;
-  if (pwd)   document.getElementById('senha').value = pwd;
-  if (lastAt) {
-    const d = new Date(lastAt);
-    const fmt = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
-    document.getElementById('lastLogin').textContent = 'Último login: ' + fmt;
-  }
+  // Limpa senha de versoes antigas que ficou guardada
+  try { localStorage.removeItem('mlterapiapro_last_password'); } catch(e) {}
 })();
 </script>
 </body>

@@ -1,0 +1,466 @@
+══════════════════════════════════════════════════════════════
+DATABASE SCHEMA — ML TERAPIA PRO
+Gerado em: 18/09/2026, 01:25:27
+(auto-gerado direto do Supabase)
+══════════════════════════════════════════════════════════════
+
+INFRA
+──────────────────────────────────────────
+Banco:        Supabase (PostgreSQL)
+Auth:         FAKE (senha texto plano na tabela terapeutas)
+Multi-tenant: por coluna slug (terapeutas) + terapeuta_slug (filhas)
+Timezone:     SEMPRE salvar timestamps em UTC (ISO string)
+
+
+══════════════════════════════════════════════════════════════
+TABELA: agendamentos
+(13 colunas)
+──────────────────────────────────────────
+  id                    uuid                        NOT NULL
+  therapist_slug        text                        NOT NULL
+  therapist_id          uuid                      
+  paciente_id           uuid                      
+  paciente_origemid     text                      
+  data_agendamento      timestamp with time zone    NOT NULL
+  duracao_min           integer                   
+  tipo                  text                      
+  status                text                      
+  observacoes           text                      
+  created_at            timestamp with time zone  
+  terapeuta_slug        text                        NOT NULL
+  tenant_id             uuid                        NOT NULL
+
+══════════════════════════════════════════════════════════════
+TABELA: anamneses
+(17 colunas)
+──────────────────────────────────────────
+  id                    uuid                        NOT NULL
+  client_id             text                      
+  terapeuta_slug        text                        NOT NULL
+  data                  date                      
+  terapia_anterior      text                      
+  habitos               text                      
+  estado_problema       text                      
+  prioridades           text                      
+  estado_desejado       text                      
+  comprometimento       integer                   
+  reflexoes             text                      
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+  therapist_slug        text                      
+  paciente_id           text                      
+  paciente_origemid     text                      
+  tenant_id             uuid                        NOT NULL
+
+══════════════════════════════════════════════════════════════
+TABELA: automacoes
+(15 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  tipo                  text                        NOT NULL
+  nome                  text                        NOT NULL
+  ativo                 boolean                   
+  canal                 text                        NOT NULL
+  gatilho_offset        integer                   
+  gatilho_unidade       text                      
+  gatilho_momento       text                      
+  mensagem_template     text                        NOT NULL
+  variaveis             jsonb                     
+  ultima_execucao       timestamp with time zone  
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: bloqueios_horario
+(12 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  titulo                text                        NOT NULL
+  tipo                  text                        NOT NULL
+  data_inicio           timestamp with time zone    NOT NULL
+  data_fim              timestamp with time zone    NOT NULL
+  dia_inteiro           boolean                   
+  cor                   text                      
+  observacoes           text                      
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: categorias_financeiras
+(10 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  nome                  text                        NOT NULL
+  tipo                  text                        NOT NULL
+  cor                   text                      
+  icone                 text                      
+  ativo                 boolean                   
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: contas_pagar
+(16 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  despesa_id            bigint                    
+  fornecedor            text                      
+  descricao             text                        NOT NULL
+  numero_parcela        integer                   
+  total_parcelas        integer                   
+  valor                 numeric                     NOT NULL
+  vencimento            date                        NOT NULL
+  status                text                        NOT NULL
+  data_pagamento        date                      
+  forma_pagamento       text                      
+  observacoes           text                      
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: contas_receber
+(18 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  cliente_origemid      text                      
+  cliente_nome          text                      
+  receita_id            bigint                    
+  pacote_id             text                      
+  descricao             text                        NOT NULL
+  numero_parcela        integer                   
+  total_parcelas        integer                   
+  valor                 numeric                     NOT NULL
+  vencimento            date                        NOT NULL
+  status                text                        NOT NULL
+  data_recebimento      date                      
+  forma_pagamento       text                      
+  observacoes           text                      
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: despesas
+(16 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  categoria_id          bigint                    
+  categoria             text                      
+  descricao             text                        NOT NULL
+  valor                 numeric                     NOT NULL
+  data_despesa          date                        NOT NULL
+  status                text                        NOT NULL
+  forma_pagamento       text                      
+  recorrente            boolean                   
+  frequencia            text                      
+  comprovante_url       text                      
+  observacoes           text                      
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: documentos
+(15 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  cliente_origemid      text                      
+  cliente_nome          text                      
+  sessao_id             bigint                    
+  tipo                  text                        NOT NULL
+  nome_arquivo          text                        NOT NULL
+  descricao             text                      
+  url_arquivo           text                        NOT NULL
+  tamanho_bytes         bigint                    
+  mime_type             text                      
+  visivel_paciente      boolean                   
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: generated_links
+(7 colunas)
+──────────────────────────────────────────
+  id                    uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  therapist_id          uuid                      
+  client_name           text                      
+  link                  text                        NOT NULL
+  type                  text                      
+  created_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: leads
+(48 colunas)
+──────────────────────────────────────────
+  origemid              text                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  tipoteste             text                      
+  data                  timestamp with time zone  
+  nome                  text                        NOT NULL
+  email                 text                      
+  whatsapp              text                      
+  idade                 text                      
+  profissao             text                      
+  infancia              text                      
+  adolescencia          text                      
+  vida_adulta           text                      
+  problemas             text                      
+  terapia_anterior      text                      
+  renda                 text                      
+  investir              text                      
+  prioridade            text                      
+  indicacao             text                      
+  resultadostravas      jsonb                     
+  respostasdetalhadas   jsonb                     
+  status                text                      
+  abordado              boolean                   
+  agendousessao         boolean                   
+  fechouprotocolo       boolean                   
+  arquivado             boolean                   
+  sessao_atual          text                      
+  desconfortos          text                      
+  agenda                jsonb                     
+  prontuario            text                      
+  parcelas              jsonb                     
+  sessoesfeitas         integer                   
+  productid             text                      
+  id                    uuid                      
+  therapist_id          uuid                      
+  telefone              text                      
+  instagram             text                      
+  estado_civil          text                      
+  cpf                   text                      
+  data_nascimento       date                      
+  cara_de_pix           text                      
+  origem                text                      
+  evolucao_manual       jsonb                     
+  versao_teste          text                      
+  previous_scores       jsonb                     
+  therapist_slug        text                      
+  blocos_scores         jsonb                     
+  prioridade_texto      text                      
+  tenant_id             uuid                        NOT NULL
+
+══════════════════════════════════════════════════════════════
+TABELA: logs
+(14 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                      
+  terapeuta_slug        text                      
+  autor_id              uuid                      
+  autor_nome            text                      
+  acao                  text                        NOT NULL
+  entidade              text                        NOT NULL
+  entidade_id           text                      
+  descricao             text                      
+  dados_antes           jsonb                     
+  dados_depois          jsonb                     
+  ip                    text                      
+  user_agent            text                      
+  created_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: logs_acesso
+(6 colunas)
+──────────────────────────────────────────
+  id                    uuid                        NOT NULL
+  therapist_slug        text                        NOT NULL
+  acao                  text                        NOT NULL
+  paciente_id           uuid                      
+  detalhes              jsonb                     
+  created_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: pacotes_financeiro
+(19 colunas)
+──────────────────────────────────────────
+  id                    uuid                        NOT NULL
+  therapist_slug        text                        NOT NULL
+  therapist_id          uuid                      
+  paciente_id           uuid                      
+  paciente_origemid     text                      
+  descricao             text                        NOT NULL
+  valor_total           numeric                     NOT NULL
+  sessoes_total         integer                     NOT NULL
+  sessoes_usadas        integer                   
+  status                text                      
+  data_venda            date                      
+  forma_pagamento       text                      
+  observacoes           text                      
+  created_at            timestamp with time zone  
+  terapeuta_slug        text                      
+  valor_sessao          numeric                   
+  tenant_id             uuid                        NOT NULL
+  updated_at            timestamp with time zone  
+  parcelas              jsonb                     
+
+══════════════════════════════════════════════════════════════
+TABELA: planner
+(10 colunas)
+──────────────────────────────────────────
+  id                    text                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  title                 text                        NOT NULL
+  date                  text                        NOT NULL
+  completed             boolean                   
+  created_at            timestamp with time zone  
+  therapist_id          uuid                      
+  descricao             text                      
+  horario               time without time zone    
+  concluida             boolean                   
+
+══════════════════════════════════════════════════════════════
+TABELA: produtos
+(8 colunas)
+──────────────────────────────────────────
+  id                    text          NOT NULL
+  terapeuta_slug        text          NOT NULL
+  nome                  text          NOT NULL
+  valor                 numeric       NOT NULL
+  sessoes               integer     
+  temsessao             boolean     
+  therapist_id          uuid        
+  sem_sessao            boolean     
+
+══════════════════════════════════════════════════════════════
+TABELA: prontuarios
+(18 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  sessao_id             bigint                    
+  cliente_origemid      text                      
+  cliente_nome          text                      
+  tipo                  text                        NOT NULL
+  titulo                text                      
+  conteudo              text                        NOT NULL
+  tecnicas              text                      
+  encaminhamentos       text                      
+  tarefas               text                      
+  proximos_passos       text                      
+  humor_inicial         text                      
+  humor_final           text                      
+  visivel_paciente      boolean                   
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: receitas
+(17 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  cliente_origemid      text                      
+  cliente_nome          text                      
+  categoria_id          bigint                    
+  origem                text                        NOT NULL
+  descricao             text                        NOT NULL
+  valor                 numeric                     NOT NULL
+  data_receita          date                        NOT NULL
+  status                text                        NOT NULL
+  forma_pagamento       text                      
+  sessao_id             bigint                    
+  pacote_id             text                      
+  observacoes           text                      
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: sessoes
+(22 colunas)
+──────────────────────────────────────────
+  id                    bigint                      NOT NULL
+  tenant_id             uuid                        NOT NULL
+  terapeuta_slug        text                        NOT NULL
+  cliente_origemid      text                      
+  cliente_nome          text                      
+  cliente_whatsapp      text                      
+  agendamento_id        bigint                    
+  numero_sessao         integer                   
+  data_sessao           timestamp with time zone    NOT NULL
+  duracao_minutos       integer                   
+  tipo                  text                      
+  modalidade            text                      
+  status                text                        NOT NULL
+  valor                 numeric                   
+  pago                  boolean                   
+  forma_pagamento       text                      
+  pacote_id             text                      
+  tecnica_utilizada     text                      
+  observacoes           text                      
+  proximos_passos       text                      
+  created_at            timestamp with time zone  
+  updated_at            timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: tenant_config
+(26 colunas)
+──────────────────────────────────────────
+  id                      bigint                      NOT NULL
+  tenant_id               uuid                        NOT NULL
+  terapeuta_slug          text                        NOT NULL
+  crp                     text                      
+  pix                     text                      
+  endereco                text                      
+  cidade                  text                      
+  estado                  text                      
+  instagram               text                      
+  site                    text                      
+  dias_atendimento        jsonb                     
+  hora_inicio             time without time zone    
+  hora_fim                time without time zone    
+  duracao_padrao_min      integer                   
+  intervalo_entre_min     integer                   
+  meta_prospeccoes_mes    integer                   
+  meta_faturamento_mes    numeric                   
+  meta_clientes_ativos    integer                   
+  tema                    text                      
+  notif_email             boolean                   
+  notif_whatsapp          boolean                   
+  timezone                text                      
+  google_calendar_token   jsonb                     
+  outlook_calendar_token  jsonb                     
+  created_at              timestamp with time zone  
+  updated_at              timestamp with time zone  
+
+══════════════════════════════════════════════════════════════
+TABELA: terapeutas
+(16 colunas)
+──────────────────────────────────────────
+  slug                  text                           NOT NULL
+  nome                  text                           NOT NULL
+  email                 text                           NOT NULL
+  password              text                           NOT NULL
+  whatsapp              text                         
+  created_at            timestamp with time zone     
+  id                    uuid                         
+  config                jsonb                        
+  crp                   text                         
+  foto_url              text                         
+  preco_sessao          numeric                      
+  msg_whatsapp          text                         
+  meta_faturamento      numeric                      
+  foto_base64           text                         
+  foto_updated_at       timestamp without time zone  
+  foto                  text                         
+
+
+══════════════════════════════════════════════════════════════
+FIM DO SCHEMA
+══════════════════════════════════════════════════════════════

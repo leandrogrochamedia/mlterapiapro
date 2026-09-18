@@ -312,7 +312,7 @@ let fotoBase64 = null;
       return;
     }
     const F = {
-      nome: data.nome, email: data.email, senha: data.password, slug: data.slug,
+      nome: data.nome, email: data.email, slug: data.slug,
       whatsapp: data.whatsapp, instagram: data.instagram, cpf: data.cpf,
       cnpj: data.cnpj, data_nascimento: data.data_nascimento, telefone: data.telefone,
       cep: data.cep, endereco: data.endereco, numero: data.numero, complemento: data.complemento,
@@ -324,7 +324,7 @@ let fotoBase64 = null;
       const el = document.getElementById(k);
       if (el && v != null) el.value = v;
     });
-    document.getElementById('senha2').value = data.password || '';
+    // 🔒 senha nao e pre-preenchida. Se quiser trocar, digite nos 2 campos.
     if (data.foto) {
       fotoBase64 = data.foto;
       document.getElementById('fotoPreview').innerHTML = '<img src="' + data.foto + '">';
@@ -462,7 +462,7 @@ async function salvar(){
   const dados = {
     nome:      document.getElementById('nome').value.trim(),
     email:     document.getElementById('email').value.trim(),
-    password:  document.getElementById('senha').value,
+    password_hash: document.getElementById('senha').value,
     slug:      document.getElementById('slug').value.trim(),
     whatsapp:  document.getElementById('whatsapp').value.replace(/\D/g, ''),
     instagram: document.getElementById('instagram').value.trim() || null,
@@ -506,17 +506,26 @@ async function salvar(){
     mostrarMsg('Preencha: ' + faltando.join(', '), 'error');
     return;
   }
-  if (dados.password.length < 6) {
-    mostrarMsg('A senha precisa ter no mínimo 6 caracteres.', 'error');
-    return;
-  }
-  if (dados.password !== senha2) {
-    mostrarMsg('As senhas não coincidem.', 'error');
-    return;
+  // No modo edicao, campo em branco = mantem a senha atual
+  const trocandoSenha = editando ? !!dados.password_hash : true;
+  if (trocandoSenha) {
+    if (!dados.password_hash || dados.password_hash.length < 6) {
+      mostrarMsg('A senha precisa ter no mínimo 6 caracteres.', 'error');
+      return;
+    }
+    if (dados.password_hash !== senha2) {
+      mostrarMsg('As senhas não coincidem.', 'error');
+      return;
+    }
   }
 
   // Remove nulos pra não sobrescrever
   Object.keys(dados).forEach(k => { if (dados[k] === null) delete dados[k]; });
+
+  // Em edicao sem trocar senha: remove password_hash (trigger nao roda)
+  if (editando && (!dados.password_hash || dados.password_hash === '')) {
+    delete dados.password_hash;
+  }
 
   btn.disabled = true;
   btnLabel.textContent = 'Salvando...';
@@ -526,7 +535,9 @@ async function salvar(){
       const { error } = await sb.from('terapeutas').update(dados).eq('slug', slugOriginal);
       if (error) throw error;
       const sess = JSON.parse(localStorage.getItem('terapeuta_sessao') || '{}');
-      Object.assign(sess, dados);
+      const safe = { ...dados };
+      if (safe.password_hash) delete safe.password_hash;
+      Object.assign(sess, safe);
       localStorage.setItem('terapeuta_sessao', JSON.stringify(sess));
       localStorage.setItem('therapist_slug', dados.slug);
       showSuccess('Perfil atualizado!', 'Redirecionando pro painel...');
@@ -539,6 +550,9 @@ async function salvar(){
 
       const { data, error } = await sb.from('terapeutas').insert(dados).select().single();
       if (error) throw error;
+
+      // 🔒 nao guarda o hash da senha no localStorage
+      if (data && data.password_hash) delete data.password_hash;
 
       localStorage.setItem('terapeuta_sessao', JSON.stringify(data));
       localStorage.setItem('therapist_slug', data.slug);

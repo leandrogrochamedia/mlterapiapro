@@ -1,7 +1,0 @@
-
-/* components.css - Dock, modais, tabs */
-.apple-dock{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:100;display:flex;gap:4px;padding:8px 10px;background:rgba(255,255,255,.88);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.6);box-shadow:0 12px 40px rgba(0,0,0,.15);border-radius:28px;max-width:calc(100% - 24px)} .dock-btn{width:58px;height:50px;border-radius:14px;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#8a6a68;transition:.2s} .dock-btn.active{background:#1c3d38;color:#fff}
-body.login-mode .apple-dock{display:none !important}
-.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45);backdrop-filter:blur(12px);display:none;align-items:flex-end;justify-content:center} .modal-overlay.show{display:flex} .modal-card{background:#fdf8f6;width:100%;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px} @media(min-width:768px){.modal-overlay{align-items:center} .modal-card{max-width:920px;border-radius:24px;max-height:88vh}}
-.tab-btn{padding:10px 14px;border-radius:10px;border:1.5px solid #f5e6cc;background:#fff;font-size:11px;font-weight:700;cursor:pointer} .tab-btn.active{background:#1c3d38;color:#fff;border-color:#1c3d38}
-.fila-item{padding:14px;border:1.5px solid #f5e6cc;border-radius:14px;background:#fff;margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;transition:.2s}.fila-item:hover{border-color:#a78bfa;transform:translateY(-1px)}

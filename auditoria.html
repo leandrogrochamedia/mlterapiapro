@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Terapia Pro — Auditoria</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,sans-serif;background:#fef9f6;color:#1c3d38;min-height:100vh;padding:20px;font-size:14px}
+.wrap{max-width:1400px;margin:0 auto}
+h1{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;letter-spacing:1px;margin-bottom:4px}
+.sub{font-size:12px;color:#8b5cf6;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px}
+.card{background:#fff;border:1.5px solid #f5e6cc;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 6px 20px rgba(0,0,0,.03)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input,button,select{padding:10px 14px;border-radius:12px;border:1.5px solid #f5e6cc;font-family:inherit;font-size:13px;outline:none}
+input{background:#fffdf9;min-width:220px}
+button{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border:none;font-weight:800;cursor:pointer;transition:.2s}
+button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(124,58,237,.3)}
+button.sec{background:#fff;color:#1c3d38;border:1.5px solid #f5e6cc}
+h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:12px}
+h3{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;color:#1c3d38}
+table{width:100%;border-collapse:collapse;font-size:12px;font-family:'JetBrains Mono',monospace}
+th{text-align:left;padding:8px 10px;background:#fdf8f6;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#8a6a68;border-bottom:2px solid #f5e6cc;font-weight:800}
+td{padding:8px 10px;border-bottom:1px solid #fdf8f6;vertical-align:top}
+tr:hover td{background:#fdf8f6}
+.mono{font-family:'JetBrains Mono',monospace}
+.ok{color:#16a34a;font-weight:800}
+.err{color:#dc2626;font-weight:800;background:#fef2f2}
+.warn{color:#d97706;font-weight:800;background:#fffbeb}
+.badge{display:inline-block;font-size:10px;font-weight:900;padding:3px 8px;border-radius:20px;letter-spacing:.5px}
+.badge-local{background:#dcfce7;color:#166534}
+.badge-rpc{background:#dbeafe;color:#1e40af}
+.badge-diff{background:#fee2e2;color:#991b1b;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.count-box{display:inline-block;background:#f0f7f5;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;color:#1c3d38;margin-left:8px}
+.diff-note{background:#fef2f2;border-left:4px solid #dc2626;padding:10px 14px;border-radius:10px;font-size:12px;margin-top:8px;font-family:'JetBrains Mono',monospace;color:#991b1b}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px}
+.summary-card{background:#fff;border:2px solid #f5e6cc;border-radius:16px;padding:14px 16px;transition:.2s}
+.summary-card.diff{border-color:#fecaca;background:#fef2f2}
+.summary-card.match{border-color:#bbf7d0;background:#f0fdf4}
+.summary-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#8a6a68;margin-bottom:8px}
+.summary-values{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.summary-local{font-size:20px;font-weight:900;color:#166534}
+.summary-rpc{font-size:20px;font-weight:900;color:#1e40af}
+.summary-vs{font-size:10px;font-weight:800;color:#8a6a68}
+.empty{text-align:center;color:#8a6a68;padding:20px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ML Terapia Pro</h1>
+  <div class="sub">Auditoria — Local vs RPC</div>
+
+  <div class="card">
+    <div class="row">
+      <input id="slugInput" placeholder="slug da terapeuta" value="">
+      <button onclick="auditar()">🔍 Auditar</button>
+      <button class="sec" onclick="carregarDoCache()">↻ Usar sessão logada</button>
+    </div>
+    <div class="row" style="margin-top:10px;font-size:12px;color:#8a6a68">
+      Compara cálculo local (direto das tabelas) com a RPC get_kpis(). Diferenças ficam vermelhas.
+    </div>
+  </div>
+
+  <div id="loading" style="display:none" class="card">
+    <div style="text-align:center;padding:20px">Carregando…</div>
+  </div>
+
+  <div id="resultado" style="display:none">
+    <!-- KPIs -->
+    <div class="card">
+      <h2>📊 KPIs — Local vs RPC</h2>
+      <div class="row">
+        <span class="badge badge-local">LOCAL = cálculo das tabelas</span>
+        <span class="badge badge-rpc">RPC = get_kpis()</span>
+        <span class="badge badge-diff">DIFF = divergem</span>
+      </div>
+      <div id="kpiSummary" class="summary-grid"></div>
+      <div id="kpiDiffNote"></div>
+    </div>
+
+    <!-- Tabela comparativa detalhada -->
+    <div class="card">
+      <h2>🔎 Tabela detalhada</h2>
+      <table id="kpiTable">
+        <thead><tr>
+          <th>KPI</th><th>Local</th><th>RPC</th><th>Diferença</th><th>Status</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Leads -->
+    <div class="card">
+      <h2>👥 Leads <span class="count-box" id="countLeads">0</span></h2>
+      <div class="row" style="margin-bottom:10px">
+        <label style="font-size:12px"><input type="checkbox" id="soArquivados" onchange="renderLeads()"> só arquivados</label>
+        <input id="filtroLeads" placeholder="filtrar por nome/email" oninput="renderLeads()" style="min-width:180px">
+      </div>
+      <div style="max-height:400px;overflow:auto">
+        <table id="tblLeads">
+          <thead><tr>
+            <th>origemid</th><th>nome</th><th>email</th><th>whatsapp</th>
+            <th>status</th><th>arquivado</th><th>data</th><th>prioridade</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Agendamentos -->
+    <div class="card">
+      <h2>📅 Agendamentos <span class="count-box" id="countAgend">0</span></h2>
+      <div style="max-height:400px;overflow:auto">
+        <table id="tblAgend">
+          <thead><tr>
+            <th>id</th><th>paciente_nome</th><th>paciente_origemid</th>
+            <th>data_agendamento</th><th>status</th><th>tipo</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pacotes -->
+    <div class="card">
+      <h2>💰 Pacotes financeiro <span class="count-box" id="countPacotes">0</span></h2>
+      <div style="max-height:400px;overflow:auto">
+        <table id="tblPacotes">
+          <thead><tr>
+            <th>id</th><th>descricao</th><th>valor_total</th>
+            <th>sessoes</th><th>status</th><th>data_venda</th><th>created_at</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Anamneses / Bloqueios -->
+    <div class="card">
+      <h2>📋 Outras tabelas</h2>
+      <div id="outrasCounts"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+let DADOS = {
+  slug: null,
+  leads: [],
+  agendamentos: [],
+  pacotes: [],
+  anamneses: [],
+  bloqueios: [],
+  kpis_rpc: null,
+};
+
+function setLoading(on){ document.getElementById('loading').style.display = on ? 'block' : 'none'; }
+function el(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function carregarDoCache(){
+  const s = localStorage.getItem('therapist_slug');
+  if(s){ el('slugInput').value = s; auditar(); }
+  else alert('Nenhuma sessão no localStorage. Digite o slug manualmente.');
+}
+
+async function auditar(){
+  const slug = el('slugInput').value.trim();
+  if(!slug){ alert('Digite o slug'); return; }
+  DADOS.slug = slug;
+
+  setLoading(true);
+  el('resultado').style.display = 'none';
+
+  try {
+    // Busca paralela — tudo de uma vez
+    const [rLeads, rAgend, rPacotes, rAnam, rBloq, rRpc] = await Promise.all([
+      sb.from('leads').select('*').eq('terapeuta_slug', slug).order('data',{ascending:false}).limit(1000),
+      sb.from('agendamentos').select('*').eq('terapeuta_slug', slug).order('data_agendamento',{ascending:false}).limit(1000),
+      sb.from('pacotes_financeiro').select('*').eq('therapist_slug', slug).order('created_at',{ascending:false}).limit(1000),
+      sb.from('anamneses').select('id').eq('terapeuta_slug', slug).limit(1000),
+      sb.from('bloqueios_horario').select('id').eq('terapeuta_slug', slug).limit(1000),
+      sb.rpc('get_kpis', { p_slug: slug }).then(r => r).catch(e => ({ data: null, error: e })),
+    ]);
+
+    // Fallback legado (leads pode ter therapist_slug)
+    let leads = rLeads.data || [];
+    if(!leads.length){
+      const r2 = await sb.from('leads').select('*').eq('therapist_slug', slug).order('data',{ascending:false}).limit(1000);
+      leads = r2.data || [];
+    }
+
+    let pacotes = rPacotes.data || [];
+    if(!pacotes.length){
+      const r2 = await sb.from('pacotes_financeiro').select('*').eq('terapeuta_slug', slug).order('created_at',{ascending:false}).limit(1000);
+      pacotes = r2.data || [];
+    }
+
+    DADOS.leads = leads;
+    DADOS.agendamentos = rAgend.data || [];
+    DADOS.pacotes = pacotes;
+    DADOS.anamneses = rAnam.data || [];
+    DADOS.bloqueios = rBloq.data || [];
+    DADOS.kpis_rpc = Array.isArray(rRpc.data) ? rRpc.data[0] : rRpc.data;
+
+    render();
+    el('resultado').style.display = 'block';
+  } catch(e) {
+    alert('Erro: ' + e.message);
+    console.error(e);
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CÁLCULO LOCAL — replica o que o dashboard faz
+// ═══════════════════════════════════════════════════════════
+function calcLocal(){
+  const hoje = new Date();
+  const hojeISO = hoje.toISOString().slice(0,10);
+  const amanhaISO = new Date(Date.now() + 86400000).toISOString().slice(0,10);
+  const semanaFim = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+
+  const leads = DADOS.leads;
+  const agend = DADOS.agendamentos;
+  const pacotes = DADOS.pacotes;
+
+  const leadsAtivos = leads.filter(l => !l.arquivado);
+  const leadsInativos = leads.filter(l => {
+    if(l.arquivado) return false;
+    if(!l.data) return false;
+    const d = new Date(l.data);
+    const diff = (Date.now() - d.getTime()) / 86400000;
+    return diff > 60;
+  });
+
+  const agHoje = agend.filter(a => a.data_agendamento && a.data_agendamento.slice(0,10) === hojeISO && (a.status||'').toLowerCase() !== 'cancelado');
+  const agAmanha = agend.filter(a => a.data_agendamento && a.data_agendamento.slice(0,10) === amanhaISO && (a.status||'').toLowerCase() !== 'cancelado');
+  const agSemana = agend.filter(a => a.data_agendamento && a.data_agendamento.slice(0,10) >= hojeISO && a.data_agendamento.slice(0,10) <= semanaFim && (a.status||'').toLowerCase() !== 'cancelado');
+
+  const pacAtivos = pacotes.filter(p => p.status === 'ativo');
+
+  const pacMes = pacotes.filter(p => {
+    const d = new Date(p.created_at || p.data_venda);
+    return d.getMonth() === mesAtual && d.getFullYear() === anoAtual
+      && ['pago','ativo','concluido'].includes(p.status);
+  });
+
+  const receitaMes = pacMes.reduce((s,p) => s + Number(p.valor_total||0), 0);
+
+  // Sessões pendentes = pacotes ativos com sessões restantes
+  const sessoesPend = pacAtivos.reduce((s,p) => {
+    const usadas = Number(p.sessoes_usadas||0);
+    const total  = Number(p.sessoes_total||0);
+    return s + Math.max(0, total - usadas);
+  }, 0);
+
+  const clientesAtivos = leadsAtivos.length;
+  const novos30d = leads.filter(l => {
+    const d = (l.data||'').slice(0,10);
+    const d30 = new Date(Date.now() - 30*86400000).toISOString().slice(0,10);
+    return d && d >= d30 && d <= hojeISO;
+  }).length;
+
+  return {
+    clientes_ativos:    clientesAtivos,
+    clientes_novos_30d: novos30d,
+    consultas_hoje:     agHoje.length,
+    consultas_amanha:   agAmanha.length,
+    consultas_semana:   agSemana.length,
+    receita_mes:        receitaMes,
+    receita_prevista:   null, // só RPC sabe
+    pacotes_ativos:     pacAtivos.length,
+    sessoes_pendentes:  sessoesPend,
+    clientes_inativos:  leadsInativos.length,
+    _raw_ag_hoje:       agHoje,
+    _raw_ag_amanha:     agAmanha,
+    _raw_ag_semana:     agSemana,
+    _raw_pac_mes:       pacMes,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function render(){
+  const L = calcLocal();
+  const R = DADOS.kpis_rpc || {};
+
+  // Cards resumo
+  const campos = [
+    ['clientes_ativos',    'Clientes ativos',      L.clientes_ativos,    R.clientes_ativos],
+    ['clientes_novos_30d', 'Novos · 30d',          L.clientes_novos_30d, R.clientes_novos_30d],
+    ['consultas_hoje',     'Consultas hoje',       L.consultas_hoje,     R.consultas_hoje],
+    ['consultas_amanha',   'Consultas amanhã',     L.consultas_amanha,   R.consultas_amanha],
+    ['consultas_semana',   'Próximos 7 dias',      L.consultas_semana,   R.consultas_semana],
+    ['receita_mes',        'Receita do mês (R$)',  L.receita_mes,        R.receita_mes],
+    ['receita_prevista',   'Receita prevista (R$)',L.receita_prevista,   R.receita_prevista],
+    ['pacotes_ativos',     'Pacotes ativos',       L.pacotes_ativos,     R.pacotes_ativos],
+    ['sessoes_pendentes',  'Sessões pendentes',    L.sessoes_pendentes,  R.sessoes_pendentes],
+    ['clientes_inativos',  'Clientes inativos',    L.clientes_inativos,  R.clientes_inativos],
+  ];
+
+  const sumDiv = el('kpiSummary');
+  sumDiv.innerHTML = campos.map(([key, label, local, rpc]) => {
+    const lv = local == null ? '—' : local;
+    const rv = rpc == null ? '—' : rpc;
+    const iguais = String(lv) === String(rv);
+    const cls = (local == null || rpc == null) ? '' : (iguais ? 'match' : 'diff');
+    return `<div class="summary-card ${cls}">
+      <div class="summary-label">${esc(label)}</div>
+      <div class="summary-values">
+        <span class="summary-local">${esc(lv)}</span>
+        <span class="summary-vs">vs</span>
+        <span class="summary-rpc">${esc(rv)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Nota de diferenças
+  const difs = campos.filter(([k,l,lv,rv]) => lv != null && rv != null && String(lv) !== String(rv));
+  if(difs.length){
+    el('kpiDiffNote').innerHTML = `<div class="diff-note">
+      ⚠️ ${difs.length} KPI(s) divergem entre local e RPC:<br>
+      ${difs.map(([k,label,lv,rv]) => `• <b>${esc(label)}</b>: local=${esc(lv)} / rpc=${esc(rv)}`).join('<br>')}
+    </div>`;
+  } else {
+    el('kpiDiffNote').innerHTML = '<div class="diff-note" style="background:#f0fdf4;border-left-color:#16a34a;color:#166534">✓ Todos os KPIs batem entre local e RPC</div>';
+  }
+
+  // Tabela detalhada
+  const tbody = el('kpiTable').querySelector('tbody');
+  tbody.innerHTML = campos.map(([key, label, lv, rv]) => {
+    const lvS = lv == null ? '—' : lv;
+    const rvS = rv == null ? '—' : rv;
+    const igual = String(lvS) === String(rvS);
+    const diff  = lv != null && rv != null && !igual;
+    const cls   = diff ? 'err' : (igual ? 'ok' : '');
+    const status = diff ? '🔴 DIVERGE' : (igual ? '🟢 ok' : '⚪ só 1 fonte');
+    return `<tr>
+      <td><b>${esc(label)}</b><br><small style="color:#8a6a68">${esc(key)}</small></td>
+      <td class="${diff?'err':''}">${esc(lvS)}</td>
+      <td class="${diff?'err':''}">${esc(rvS)}</td>
+      <td class="${cls}">${lv != null && rv != null ? (Number(rv) - Number(lv)) : ''}</td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+
+  el('countLeads').innerText   = DADOS.leads.length;
+  el('countAgend').innerText   = DADOS.agendamentos.length;
+  el('countPacotes').innerText = DADOS.pacotes.length;
+
+  renderLeads();
+  renderAgend();
+  renderPacotes();
+  renderOutras(L);
+}
+
+function renderLeads(){
+  const soArq = el('soArquivados').checked;
+  const filtro = (el('filtroLeads').value||'').toLowerCase();
+  let lista = DADOS.leads;
+  if(soArq) lista = lista.filter(l => l.arquivado);
+  if(filtro) lista = lista.filter(l => (l.nome||'').toLowerCase().includes(filtro) || (l.email||'').toLowerCase().includes(filtro));
+
+  el('tblLeads').querySelector('tbody').innerHTML = lista.slice(0,200).map(l => `<tr>
+    <td>${esc((l.origemid||'').slice(0,14))}…</td>
+    <td><b>${esc(l.nome||'—')}</b></td>
+    <td>${esc(l.email||'—')}</td>
+    <td>${esc(l.whatsapp||'—')}</td>
+    <td>${esc(l.status||'—')}</td>
+    <td>${l.arquivado ? '<span class="err">SIM</span>' : 'não'}</td>
+    <td>${l.data ? new Date(l.data).toLocaleString('pt-BR') : '—'}</td>
+    <td>${esc(l.prioridade||'—')}</td>
+  </tr>`).join('') || '<tr><td colspan="8" class="empty">vazio</td></tr>';
+}
+
+function renderAgend(){
+  el('tblAgend').querySelector('tbody').innerHTML = DADOS.agendamentos.slice(0,200).map(a => `<tr>
+    <td>${esc((a.id||'').slice(0,8))}…</td>
+    <td><b>${esc(a.paciente_nome||'—')}</b></td>
+    <td>${esc((a.paciente_origemid||'').slice(0,14))}…</td>
+    <td>${a.data_agendamento ? new Date(a.data_agendamento).toLocaleString('pt-BR') : '—'}</td>
+    <td>${esc(a.status||'—')}</td>
+    <td>${esc(a.tipo||'—')}</td>
+  </tr>`).join('') || '<tr><td colspan="6" class="empty">vazio</td></tr>';
+}
+
+function renderPacotes(){
+  el('tblPacotes').querySelector('tbody').innerHTML = DADOS.pacotes.slice(0,200).map(p => `<tr>
+    <td>${esc((p.id||'').slice(0,8))}…</td>
+    <td><b>${esc(p.descricao||'—')}</b></td>
+    <td>R$ ${Number(p.valor_total||0).toLocaleString('pt-BR')}</td>
+    <td>${p.sessoes_usadas||0}/${p.sessoes_total||0}</td>
+    <td>${esc(p.status||'—')}</td>
+    <td>${esc(p.data_venda||'—')}</td>
+    <td>${p.created_at ? new Date(p.created_at).toLocaleString('pt-BR') : '—'}</td>
+  </tr>`).join('') || '<tr><td colspan="7" class="empty">vazio</td></tr>';
+}
+
+function renderOutras(L){
+  el('outrasCounts').innerHTML = `
+    <table>
+      <tbody>
+        <tr><td><b>Anamneses</b></td><td>${DADOS.anamneses.length}</td></tr>
+        <tr><td><b>Bloqueios de horário</b></td><td>${DADOS.bloqueios.length}</td></tr>
+        <tr><td><b>Consultas hoje (filtradas local)</b></td><td>${L._raw_ag_hoje.length}</td></tr>
+        <tr><td><b>Consultas amanhã (filtradas local)</b></td><td>${L._raw_ag_amanha.length}</td></tr>
+        <tr><td><b>Consultas próximos 7d</b></td><td>${L._raw_ag_semana.length}</td></tr>
+        <tr><td><b>Pacotes do mês atual</b></td><td>${L._raw_pac_mes.length}</td></tr>
+      </tbody>
+    </table>
+  `;
+}
+
+// auto-preenche com slug da sessão
+(function(){
+  const s = localStorage.getItem('therapist_slug');
+  if(s) el('slugInput').value = s;
+})();
+</script>
+</body>
+</html>

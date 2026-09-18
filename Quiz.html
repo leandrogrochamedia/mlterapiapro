@@ -47,6 +47,20 @@ label{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercas
   margin-bottom:28px;
   font-weight:500;
 }
+/* ===== app-logo-quiz-v1 ===== */
+.app-logo-wrap{
+  text-align:center;
+  margin-bottom:18px;
+}
+.app-logo{
+  width:min(52vw,220px);
+  height:auto;
+  display:inline-block;
+  user-select:none;
+  -webkit-user-drag:none;
+  filter:drop-shadow(0 8px 22px rgba(124,58,237,.12));
+}
+
 .card-terapeuta{
   display:flex;
   align-items:center;
@@ -91,6 +105,11 @@ label{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercas
   border:1.5px solid #f5e6cc;border-radius:24px;
   padding:40px 28px;box-shadow:0 20px 50px rgba(74,44,42,0.1);
 }
+.erro-404-logo{
+  width:180px;height:auto;display:block;margin:0 auto 14px;
+  user-select:none;-webkit-user-drag:none;
+  filter:drop-shadow(0 6px 18px rgba(124,58,237,.10));
+}
 .erro-404-code{
   font-family:'Cormorant Garamond',serif;
   font-size:80px;font-weight:900;color:#7c3aed;
@@ -108,6 +127,9 @@ label{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercas
 <body>
 <div class="page">
   <div class="hero">
+    <div class="app-logo-wrap">
+      <img class="app-logo" src="images/logo-mlterapiapro.png" alt="ML Terapia Pro">
+    </div>
     <h1 class="titulo-teste">Teste de Trava Mental</h1>
     <p class="subtitulo-teste">Uma jornada de autoconhecimento emocional</p>
     <div class="card-terapeuta" id="cardTerapeuta">
@@ -170,12 +192,10 @@ label{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercas
 
       <div style="margin-top:20px;padding:16px;background:linear-gradient(135deg, rgba(196,181,253,0.08) 0%, rgba(249,168,212,0.06) 100%);border:1.5px dashed rgba(196,181,253,0.2);border-radius:14px">
         <p style="font-size:13px;font-weight:700;color:#1a3d38">2. As afirmações</p>
-        <p style="font-size:12px;color:#5a2a28;line-height:1.5;margin-top:6px">Depois, você encontrará 50 afirmações. Leia pensando em como vive <b>hoje</b> e indique o quanto cada frase representa você. Evite racionalizar demais; a primeira percepção costuma ser a mais honesta.</p>
+        <p style="font-size:12px;color:#5a2a28;line-height:1.5;margin-top:6px">Depois, você encontrará 30 afirmações. Leia pensando em como vive <b>hoje</b> e indique o quanto cada frase representa você. Evite racionalizar demais; a primeira percepção costuma ser a mais honesta.</p>
         <p style="font-size:11px;color:#8a6a68;margin-top:8px;border-left:3px solid #a78bfa;padding-left:10px">Respostas como "foi boa", "foi normal" ou "não lembro" não oferecem informações suficientes para uma análise cuidadosa. Quanto mais sincero e específico você for, mais preciso será o seu mapa de travas.</p>
         <p style="font-size:11px;color:#6d28d9;font-weight:700;margin-top:8px">Antes de começar, reserve cerca de 15 a 20 minutos e procure um lugar onde possa responder sem interrupções. Este teste não foi feito para ser preenchido no automático, entre uma tarefa e outra.</p>
       </div>
-
-      <div style="display:none"><textarea id="infancia" class="input">legacy</textarea></div>
 
       <div style="display:flex;gap:12px;align-items:flex-start;background:rgba(167,139,250,0.08);border:2px solid rgba(167,139,250,0.18);border-radius:14px;padding:16px"><input type="checkbox" id="lgpd" style="width:20px;height:20px;accent-color:#7c3aed"><span style="font-size:14px;color:#5a2a28;line-height:1.5">Aceito espaço seguro e sigiloso (LGPD). Meu questionário será vinculado à terapeuta <b id="lgpdSlug">-</b> e nunca compartilhado. Isolamento por slug obrigatório.</span></div>
       <button class="btn" onclick="goStep2()">Começar meu questionário 🌿</button>
@@ -244,11 +264,12 @@ const FALLBACK = {
 async function carregarTerapeuta(){
   // 1) Sem slug → 404
   if(!TERAPEUTA_SLUG){ mostrar404(); return; }
-  // 2) Busca no banco
+  // 2) Busca no banco via RPC (nunca recebe password_hash)
   try{
-    const {data, error} = await supabaseClient.from('terapeutas').select('*').eq('slug', TERAPEUTA_SLUG).single();
-    if(error || !data){ mostrar404(); return; }
-    TERAPEUTA_DATA = data;
+    const {data, error} = await supabaseClient.rpc('get_terapeuta_publico', { p_slug: TERAPEUTA_SLUG });
+    const t = Array.isArray(data) ? data[0] : data;
+    if(error || !t){ mostrar404(); return; }
+    TERAPEUTA_DATA = t;
   }catch(e){ mostrar404(); return; }
 
   // 3) Preenche card
@@ -301,6 +322,7 @@ function mostrar404(){
   document.body.innerHTML =
     '<div class="erro-404-wrap">' +
       '<div class="erro-404-card">' +
+        '<img class="erro-404-logo" src="images/logo-mlterapiapro.png" alt="ML Terapia Pro">' +
         '<div class="erro-404-code">404</div>' +
         '<h2>Link não encontrado</h2>' +
         '<p>Este link de teste não existe ou foi desativado.</p>' +
@@ -351,7 +373,32 @@ let scores = Array(30).fill(5);
   PERGUNTAS.forEach((p,i)=>{ if(p.bloco!==atual){atual=p.bloco; const b=BLOCOS.find(x=>x.id===atual); const t=document.createElement('div'); t.className='bloco-titulo'; t.innerHTML=`<span>${b.emoji}</span> Bloco ${b.id}: ${b.nome}`; container.appendChild(t);} const w=document.createElement('div'); w.className='termo-wrap'; w.id='wrap'+i; w.innerHTML=`<div style="display:flex;justify-content:space-between;gap:16px"><p class="termo-pergunta">${i+1}. ${p.texto}</p><span class="score-badge" id="badge${i}"><span id="scoreNum${i}">5.0</span></span></div><div><input type="range" min="0" max="10" step="0.1" value="5" class="slider-acolhedor" oninput="updateScore(${i}, this.value)"><div class="slider-labels"><span>Não ressoa</span><span>Fala muito</span></div></div>`; container.appendChild(w); });
 })();
 function updateScore(i,val){ scores[i]=parseFloat(val); document.getElementById('scoreNum'+i).innerText=parseFloat(val).toFixed(1); document.getElementById('wrap'+i).classList.add('ativo'); setTimeout(()=>document.getElementById('wrap'+i).classList.remove('ativo'),600); document.getElementById('progressFill').style.width=((i+1)/30*100)+'%'; document.getElementById('progressText').innerText=`${i+1}/30`; }
-function goStep2(){ if(!TERAPEUTA_SLUG){ alert('Link inválido - terapeuta não identificada. Use /t/[slug]'); return; } const n=document.getElementById('nome').value.trim(), e=document.getElementById('email').value.trim(), w=document.getElementById('whatsapp').value.trim(), l=document.getElementById('lgpd').checked; if(!n||!e||!w){alert('Preencha nome, email e whatsapp');return} if(!l){alert('Aceite o espaço seguro');return} document.getElementById('step1').style.display='none'; document.getElementById('step2').style.display='block'; window.scrollTo({top:200, behavior:'smooth'}); }
+function goStep2(){
+  if(!TERAPEUTA_SLUG){ alert('Link inválido - terapeuta não identificada. Use /t/[slug]'); return; }
+  const n=document.getElementById('nome').value.trim();
+  const e=document.getElementById('email').value.trim();
+  const w=document.getElementById('whatsapp').value.trim();
+  const l=document.getElementById('lgpd').checked;
+  if(!n||!e||!w){ alert('Preencha nome, email e whatsapp'); return; }
+  if(!l){ alert('Aceite o espaço seguro'); return; }
+  const campos = [
+    {id:'problemas',    nome:'Problemas emocionais'},
+    {id:'infancia',     nome:'Infância'},
+    {id:'adolescencia', nome:'Adolescência'},
+    {id:'vida_adulta',  nome:'Vida adulta'}
+  ];
+  for(const c of campos){
+    const el = document.getElementById(c.id);
+    if(!el || el.value.trim().length < 1){
+      alert('Por favor, preencha o campo "' + c.nome + '"');
+      if(el) el.focus();
+      return;
+    }
+  }
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='block';
+  window.scrollTo({top:200, behavior:'smooth'});
+}
 
 
 
@@ -378,7 +425,7 @@ function validarHistoria(){
 async function finalizarQuiz(){
   if(!validarHistoria()) return;
  
-  if(!TERAPEUTA_SLUG){ TERAPEUTA_SLUG='mariland-rodrigues'; } if(!TERAPEUTA_SLUG){ alert('ERRO CRÍTICO: therapist_slug não capturado. Não é permitido salvar sem terapeuta.'); return; }
+  if(!TERAPEUTA_SLUG){ alert('⚠️ Link inválido — terapeuta não identificada. Peça um novo link ao seu terapeuta.'); return; }
   
   const nome=document.getElementById('nome').value.trim(), email=document.getElementById('email').value.trim(), whatsapp=document.getElementById('whatsapp').value.trim(), idade=document.getElementById('idade').value.trim(), profissao=document.getElementById('profissao').value.trim();
   const problemas=document.getElementById('problemas')?.value.trim() || '';
@@ -402,7 +449,7 @@ async function finalizarQuiz(){
     terapeuta_slug: TERAPEUTA_SLUG,
     therapist_id: terapeutaId,
     data: new Date().toISOString(),
-    nome, email, whatsapp, idade, profissao, infancia,
+    nome, email, whatsapp, idade, profissao,
     problemas, infancia, adolescencia, vida_adulta,
     resultadostravas: travas,
     blocos_scores: blocosScores,

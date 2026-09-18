@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Terapia Pro — Dump do Banco</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,sans-serif;background:#fef9f6;color:#1c3d38;min-height:100vh;padding:16px 16px 80px}
+.wrap{max-width:1200px;margin:0 auto}
+
+/* HEADER */
+.head{background:linear-gradient(135deg,#1c3d38 0%,#2a5a52 100%);color:#fff;border-radius:20px;padding:24px 26px;box-shadow:0 12px 32px rgba(28,61,56,.18);margin-bottom:16px}
+.head h1{font-size:22px;font-weight:900;margin-bottom:6px}
+.head p{font-size:13px;opacity:.75;line-height:1.5}
+.head code{background:rgba(255,255,255,.12);padding:2px 7px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11.5px}
+
+/* BOTÕES */
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;position:sticky;top:8px;z-index:10;background:#fef9f6;padding:10px 0;border-bottom:2px solid #f5e6cc}
+.btn{padding:11px 18px;border-radius:12px;border:none;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn-primary{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 12px rgba(124,58,237,.28)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(124,58,237,.4)}
+.btn-dark{background:#1c3d38;color:#fff}
+.btn-dark:hover{background:#2a5a52;transform:translateY(-1px)}
+.btn-light{background:#fff;color:#1c3d38;border:1.5px solid #f5e6cc}
+.btn-light:hover{background:#fdf8f6;border-color:#1c3d38}
+.btn-ok{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;box-shadow:0 4px 12px rgba(22,163,74,.28)}
+
+/* STATUS */
+.status{background:#fff;border:1.5px solid #f5e6cc;border-radius:14px;padding:14px 18px;margin-bottom:16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.status .dot{width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;animation:pulse 1.2s infinite}
+.status.ok .dot{background:#16a34a;animation:none}
+.status.err .dot{background:#dc2626;animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:#fff;border:1.5px solid #f5e6cc;border-radius:16px;padding:14px 16px;box-shadow:0 6px 18px rgba(0,0,0,.03)}
+.kpi-val{font-size:24px;font-weight:900;color:#1c3d38;line-height:1}
+.kpi-lbl{font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#8a6a68;margin-top:6px}
+
+/* TABELAS-ITEM */
+.tbl-item{border:1.5px solid #f5e6cc;border-radius:14px;margin-bottom:10px;overflow:hidden;transition:.2s;background:#fff}
+.tbl-item:hover{border-color:#8b5cf6;box-shadow:0 6px 16px rgba(139,92,246,.08)}
+.tbl-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#fdf8f6;cursor:pointer;gap:10px;flex-wrap:wrap}
+.tbl-head:hover{background:#faf5ff}
+.tbl-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:#1c3d38;display:flex;align-items:center;gap:8px}
+.tbl-name .pico{font-size:14px}
+.tbl-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pill{font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:.4px;line-height:1;white-space:nowrap}
+.pill-cols{background:#dbeafe;color:#1e40af}
+.pill-rows{background:#dcfce7;color:#166534}
+.pill-rpc{background:#fef3c7;color:#854d0e}
+.pill-err{background:#fee2e2;color:#991b1b}
+.tbl-body{display:none;padding:14px 16px;background:#fff;border-top:1.5px solid #f5e6cc}
+.tbl-body.open{display:block}
+table.schema{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px}
+table.schema th{text-align:left;padding:8px 10px;background:#fdf8f6;border-bottom:2px solid #f5e6cc;font-weight:800;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;color:#8a6a68}
+table.schema td{padding:8px 10px;border-bottom:1px solid #f5f6f8;vertical-align:top}
+table.schema tr:last-child td{border-bottom:none}
+pre.dump{background:#1c3d38;color:#e2f3ef;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.55;padding:14px 16px;border-radius:12px;overflow:auto;max-height:340px;white-space:pre-wrap;word-break:break-word}
+.section{background:#fff;border:1.5px solid #f5e6cc;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.03)}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #f5e6cc;flex-wrap:wrap}
+.section-title{font-size:13px;font-weight:900;color:#1c3d38;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.mini-copy{padding:6px 12px;border-radius:8px;border:1.5px solid #e9d5ff;background:#fff;color:#7c3aed;font-family:inherit;font-size:10.5px;font-weight:800;cursor:pointer;transition:.15s}
+.mini-copy:hover{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.mini-copy.ok{background:#16a34a;color:#fff;border-color:#16a34a}
+.empty{text-align:center;padding:20px;opacity:.5;font-size:13px}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1c3d38;color:#fff;font-weight:800;font-size:13px;padding:13px 22px;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:.35s cubic-bezier(.34,1.56,.64,1);z-index:9999;display:flex;align-items:center;gap:8px}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <h1>🗄️ ML Terapia Pro — Dump do Banco</h1>
+    <p>Extrai <b>tabelas</b>, <b>colunas reais</b>, <b>contagem de linhas</b>, <b>amostras</b> e <b>RPCs</b> direto do Supabase. Depois clica em <code>Copiar TUDO</code> e cola em qualquer IA de dev. ✨</p>
+  </div>
+
+  <div class="bar">
+    <button class="btn btn-primary" id="btnLoad" onclick="carregarTudo()">⚡ Extrair Schema</button>
+    <button class="btn btn-dark" id="btnCopyAll" onclick="copiarTudo()" disabled>📋 Copiar TUDO (bloco .txt)</button>
+    <button class="btn btn-light" id="btnDownload" onclick="baixarTXT()" disabled>💾 Baixar .txt</button>
+    <button class="btn btn-light" onclick="window.location.reload()">🔄 Recarregar</button>
+  </div>
+
+  <div class="status" id="status">
+    <span class="dot"></span>
+    <span id="statusText">Clique em <b>Extrair Schema</b> para começar…</span>
+  </div>
+
+  <div class="kpis" id="kpis" style="display:none">
+    <div class="kpi"><div class="kpi-val" id="kpiTables">-</div><div class="kpi-lbl">Tabelas</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpiCols">-</div><div class="kpi-lbl">Colunas</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpiRows">-</div><div class="kpi-lbl">Linhas totais</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpiRpcs">-</div><div class="kpi-lbl">RPCs</div></div>
+  </div>
+
+  <div class="section" id="secTables" style="display:none">
+    <div class="section-head">
+      <div class="section-title">📁 Tabelas & Colunas</div>
+      <span style="font-size:11px;color:#8a6a68">clica pra expandir</span>
+    </div>
+    <div id="tablesList"></div>
+  </div>
+
+  <div class="section" id="secRpcs" style="display:none">
+    <div class="section-head">
+      <div class="section-title">⚙️ Funções RPC</div>
+      <button class="mini-copy" onclick="copiarRPCs()">📋 Copiar RPCs</button>
+    </div>
+    <div id="rpcsList"></div>
+  </div>
+
+  <div class="section" id="secTXT" style="display:none">
+    <div class="section-head">
+      <div class="section-title">📄 Bloco .txt para IA</div>
+      <button class="mini-copy" onclick="copiarTudo()">📋 Copiar tudo</button>
+    </div>
+    <pre class="dump" id="txtPre" style="max-height:500px"></pre>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const SUPABASE_URL = window.SUPABASE_URL || 'https://aaqyhcpuwkifaeplxdep.supabase.co';
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'sb_publishable_1gVxSsEOUPcEswKTFqQY2w_D2Lwxl5b';
+
+// Tabelas conhecidas (fallback se o auto-discovery falhar)
+const TABLES_FALLBACK = [
+  'terapeutas', 'leads', 'anamneses', 'agendamentos',
+  'pacotes_financeiro', 'bloqueios_horario', 'notificacoes_terapeuta'
+];
+
+// Tabelas que NÃO queremos
+const BLACKLIST = ['schema_migrations','spatial_ref_sys','pg_stat_statements'];
+
+// Estado global
+const DUMP = {
+  ok: false,
+  tables: [],
+  rpcs: [],
+  errors: [],
+  startedAt: null,
+  endedAt: null
+};
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+
+function setStatus(txt, kind){
+  $('statusText').innerHTML = txt;
+  $('status').className = 'status' + (kind ? ' ' + kind : '');
+}
+
+function toast(msg, ok){
+  const t = $('toast');
+  t.innerHTML = (ok !== false ? '✅ ' : '⚠️ ') + msg;
+  t.style.background = ok === false ? '#dc2626' : '#1c3d38';
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function supabaseHeaders(extra){
+  return Object.assign({
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+  }, extra || {});
+}
+
+// ═══════════════════════════════════════════════════════════
+// 1) DESCOBRE AS TABELAS via OpenAPI (swagger.json)
+// ═══════════════════════════════════════════════════════════
+async function fetchOpenAPI(){
+  const r = await fetch(SUPABASE_URL + '/rest/v1/', {
+    headers: supabaseHeaders({ 'Accept': 'application/openapi+json' })
+  });
+  if(!r.ok) throw new Error('OpenAPI falhou: HTTP ' + r.status);
+  return r.json();
+}
+
+function parseSpec(spec){
+  const out = [];
+  const defs = spec.definitions || {};
+  for(const name of Object.keys(defs).sort()){
+    if(BLACKLIST.includes(name)) continue;
+    const def = defs[name];
+    const props = def.properties || {};
+    const required = def.required || [];
+    const columns = Object.keys(props).map(colName => {
+      const c = props[colName];
+      return {
+        name: colName,
+        type: c.type || (c['$ref'] ? 'ref' : 'unknown'),
+        format: c.format || '',
+        nullable: !required.includes(colName),
+        description: c.description || ''
+      };
+    });
+    out.push({ name, columns, rows: null, sample: [], countError: null });
+  }
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 2) CONTA LINHAS + PEGA AMOSTRA
+// ═══════════════════════════════════════════════════════════
+async function fetchTableData(tableName){
+  const result = { rows: 0, sample: [], error: null };
+  try{
+    const headRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tableName)}?select=*&limit=0`,
+      { method: 'HEAD', headers: supabaseHeaders({ 'Prefer': 'count=exact' }) }
+    );
+    const range = headRes.headers.get('content-range') || '';
+    const parts = range.split('/');
+    if(parts[1] && parts[1] !== '*') result.rows = parseInt(parts[1], 10) || 0;
+  }catch(e){ result.error = 'count: ' + e.message; }
+
+  try{
+    const sampleRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tableName)}?select=*&limit=3`,
+      { headers: supabaseHeaders() }
+    );
+    if(sampleRes.ok){
+      const data = await sampleRes.json();
+      result.sample = Array.isArray(data) ? data : [];
+      if(result.rows === 0 && result.sample.length) result.rows = result.sample.length;
+    } else {
+      result.error = (result.error || '') + ' sample: HTTP ' + sampleRes.status;
+    }
+  }catch(e){ result.error = (result.error || '') + ' sample: ' + e.message; }
+
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 3) EXTRAI RPCs
+// ═══════════════════════════════════════════════════════════
+function parseRPCs(spec){
+  const out = [];
+  const paths = spec.paths || {};
+  for(const path of Object.keys(paths).sort()){
+    if(!path.startsWith('/rpc/')) continue;
+    const name = path.replace('/rpc/', '');
+    const p = paths[path];
+    const post = p.post || {};
+    const params = (post.parameters || []).map(pp => ({
+      name: pp.name,
+      in: pp.in,
+      required: !!pp.required,
+      type: (pp.schema && pp.schema.type) || 'unknown'
+    }));
+    out.push({ name, params });
+  }
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 4) RENDER
+// ═══════════════════════════════════════════════════════════
+function renderKPIs(){
+  const tables = DUMP.tables.length;
+  const cols = DUMP.tables.reduce((s,t) => s + t.columns.length, 0);
+  const rows = DUMP.tables.reduce((s,t) => s + (t.rows || 0), 0);
+  const rpcs = DUMP.rpcs.length;
+  $('kpiTables').innerText = tables;
+  $('kpiCols').innerText = cols;
+  $('kpiRows').innerText = rows.toLocaleString('pt-BR');
+  $('kpiRpcs').innerText = rpcs;
+  $('kpis').style.display = 'grid';
+}
+
+function renderTables(){
+  const wrap = $('tablesList');
+  if(!DUMP.tables.length){ wrap.innerHTML = '<p class="empty">Nenhuma tabela encontrada.</p>'; return; }
+
+  wrap.innerHTML = DUMP.tables.map((t, i) => {
+    const colsHtml = t.columns.map(c => `
+      <tr>
+        <td style="font-family:'JetBrains Mono',monospace;font-weight:600;color:#7c3aed">${c.name}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#16a34a">${c.type}${c.format ? ' · ' + c.format : ''}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8a6a68">${c.nullable ? 'null' : 'not null'}</td>
+      </tr>
+    `).join('');
+
+    const sampleHtml = t.sample.length
+      ? `<pre class="dump" style="max-height:220px">${escapeHtml(JSON.stringify(t.sample, null, 2))}</pre>`
+      : `<p class="empty">Sem amostra (tabela vazia ou sem permissão)</p>`;
+
+    const errHtml = t.countError
+      ? `<p style="color:#dc2626;font-size:11px;margin-top:6px">⚠️ ${escapeHtml(t.countError)}</p>`
+      : '';
+
+    return `
+      <div class="tbl-item">
+        <div class="tbl-head" onclick="toggleTable(${i})">
+          <div class="tbl-name"><span class="pico">📁</span> ${t.name}</div>
+          <div class="tbl-meta">
+            <span class="pill pill-cols">${t.columns.length} colunas</span>
+            <span class="pill pill-rows">${t.rows != null ? t.rows : '?'} linhas</span>
+            <button class="mini-copy" onclick="event.stopPropagation();copiarUmaTabela(${i})">📋 copiar</button>
+          </div>
+        </div>
+        <div class="tbl-body" id="tbl-body-${i}">
+          <table class="schema">
+            <thead><tr><th>Coluna</th><th>Tipo</th><th>Null</th></tr></thead>
+            <tbody>${colsHtml}</tbody>
+          </table>
+          ${errHtml}
+          <div style="margin-top:10px">
+            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#8a6a68;margin-bottom:6px">🔎 Amostra (até 3 linhas)</div>
+            ${sampleHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleTable(i){
+  const el = $('tbl-body-' + i);
+  if(el) el.classList.toggle('open');
+}
+
+function renderRPCs(){
+  const wrap = $('rpcsList');
+  if(!DUMP.rpcs.length){ wrap.innerHTML = '<p class="empty">Nenhuma função RPC encontrada.</p>'; return; }
+  wrap.innerHTML = DUMP.rpcs.map(r => `
+    <div class="tbl-item" style="margin-bottom:6px">
+      <div class="tbl-head" style="cursor:default">
+        <div class="tbl-name"><span class="pico">⚙️</span> ${r.name}</div>
+        <div class="tbl-meta">
+          <span class="pill pill-rpc">${r.params.length} params</span>
+        </div>
+      </div>
+      ${r.params.length ? `
+        <div class="tbl-body open">
+          <table class="schema">
+            <thead><tr><th>Param</th><th>Tipo</th><th>Obrigatório</th></tr></thead>
+            <tbody>
+              ${r.params.map(p => `<tr>
+                <td style="font-family:'JetBrains Mono',monospace;color:#7c3aed;font-weight:600">${p.name}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#16a34a">${p.type}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8a6a68">${p.required ? 'sim' : 'não'}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s){
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+// ═══════════════════════════════════════════════════════════
+// 5) GERA O BLOCO .txt
+// ═══════════════════════════════════════════════════════════
+function gerarTXT(){
+  const L = [];
+  const sep = '═══════════════════════════════════════════════════════';
+  const dash = '───────────────────────────────────────────────────────';
+
+  L.push(sep);
+  L.push('DUMP DO BANCO — ML TERAPIA PRO (Supabase)');
+  L.push(sep);
+  L.push('Gerado em: ' + new Date().toLocaleString('pt-BR'));
+  L.push('Projeto:   ' + SUPABASE_URL);
+  L.push('Total:     ' + DUMP.tables.length + ' tabelas · ' +
+         DUMP.tables.reduce((s,t)=>s+t.columns.length,0) + ' colunas · ' +
+         DUMP.tables.reduce((s,t)=>s+(t.rows||0),0) + ' linhas · ' +
+         DUMP.rpcs.length + ' RPCs');
+  L.push('');
+  L.push('Este dump foi gerado a partir do banco REAL em produção.');
+  L.push('Use como fonte de verdade para entender o schema, os dados');
+  L.push('e as funções RPC disponíveis. NÃO invente colunas ou tabelas');
+  L.push('que não estejam listadas aqui.');
+  L.push('');
+
+  // TABELAS
+  L.push(sep);
+  L.push('TABELAS & COLUNAS');
+  L.push(sep);
+  L.push('');
+
+  for(const t of DUMP.tables){
+    L.push('▸ ' + t.name + '  (' + (t.rows != null ? t.rows + ' linhas' : '?') + ')');
+    L.push(dash);
+    if(t.columns.length === 0){
+      L.push('  (schema não detectado — verificar OpenAPI)');
+    } else {
+      for(const c of t.columns){
+        const nullTag = c.nullable ? '' : ' NOT NULL';
+        const fmt = c.format ? ' [' + c.format + ']' : '';
+        L.push('  - ' + c.name.padEnd(28) + ' : ' + c.type + fmt + nullTag);
+      }
+    }
+    if(t.sample && t.sample.length){
+      L.push('');
+      L.push('  Amostra (1ª linha):');
+      const first = t.sample[0];
+      const trimmed = {};
+      for(const k of Object.keys(first)){
+        let v = first[k];
+        if(v === null || v === undefined) v = null;
+        else if(typeof v === 'string' && v.length > 150) v = v.slice(0,150) + '…(truncado)';
+        else if(typeof v === 'object') v = JSON.stringify(v).slice(0,200);
+        trimmed[k] = v;
+      }
+      L.push('    ' + JSON.stringify(trimmed, null, 2).replace(/\n/g, '\n    '));
+    }
+    if(t.countError) L.push('  ⚠️ erro: ' + t.countError);
+    L.push('');
+  }
+
+  // RPCs
+  if(DUMP.rpcs.length){
+    L.push(sep);
+    L.push('FUNÇÕES RPC DISPONÍVEIS');
+    L.push(sep);
+    L.push('');
+    for(const r of DUMP.rpcs){
+      if(r.params.length){
+        L.push('▸ ' + r.name + '(' + r.params.map(p => p.name + ': ' + p.type).join(', ') + ')');
+      } else {
+        L.push('▸ ' + r.name + '()  (sem parâmetros)');
+      }
+      for(const p of r.params){
+        L.push('    - ' + p.name + ' : ' + p.type + (p.required ? ' (obrigatório)' : ''));
+      }
+      L.push('');
+    }
+  }
+
+  // RODAPÉ
+  L.push(sep);
+  L.push('FIM DO DUMP');
+  L.push(sep);
+  L.push('');
+  L.push('INSTRUÇÕES PARA A IA QUE ESTÁ LENDO:');
+  L.push('1. Este é o schema REAL do projeto ML Terapia Pro em produção.');
+  L.push('2. Multi-tenant obrigatório: TODA query em leads, agendamentos');
+  L.push('   e pacotes_financeiro DEVE filtrar por terapeuta_slug.');
+  L.push('3. Timezone: data_agendamento é SEMPRE salva em UTC (ISO string).');
+  L.push('   Ao exibir, converter para America/Sao_Paulo.');
+  L.push('4. IDs: leads usa "origemid" (texto curto tipo q-xxx) como');
+  L.push('   identificador público. "id" é o uuid interno do banco.');
+  L.push('5. NÃO invente tabelas ou colunas. Se precisar de algo que não');
+  L.push('   está aqui, pergunte antes.');
+  L.push(sep);
+
+  return L.join('\n');
+}
+
+function renderTXT(){
+  $('txtPre').textContent = gerarTXT();
+  $('secTXT').style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════════════════
+// 6) FLUXO PRINCIPAL
+// ═══════════════════════════════════════════════════════════
+async function carregarTudo(){
+  DUMP.startedAt = new Date();
+  DUMP.tables = [];
+  DUMP.rpcs = [];
+  DUMP.errors = [];
+  DUMP.ok = false;
+
+  $('btnLoad').disabled = true;
+  $('btnCopyAll').disabled = true;
+  $('btnDownload').disabled = true;
+  setStatus('⏳ Buscando OpenAPI do Supabase…');
+
+  let spec = null;
+  try{
+    spec = await fetchOpenAPI();
+  }catch(e){
+    console.error(e);
+    DUMP.errors.push('OpenAPI: ' + e.message);
+    setStatus('⚠️ Não consegui pegar o OpenAPI (' + e.message + '). Tentando tabelas conhecidas…', 'err');
+    DUMP.tables = TABLES_FALLBACK.map(name => ({ name, columns: [], rows: null, sample: [] }));
+  }
+
+  if(spec){
+    DUMP.tables = parseSpec(spec);
+    DUMP.rpcs = parseRPCs(spec);
+    if(!DUMP.tables.length){
+      DUMP.tables = TABLES_FALLBACK.map(name => ({ name, columns: [], rows: null, sample: [] }));
+    }
+    setStatus(`✅ OpenAPI carregado: ${DUMP.tables.length} tabelas, ${DUMP.rpcs.length} RPCs. Buscando amostras…`);
+  }
+
+  // Busca dados de cada tabela
+  for(let i = 0; i < DUMP.tables.length; i++){
+    const t = DUMP.tables[i];
+    setStatus(`⏳ [${i+1}/${DUMP.tables.length}] puxando <b>${t.name}</b>…`);
+    const data = await fetchTableData(t.name);
+    t.rows = data.rows;
+    t.sample = data.sample;
+    if(data.error) t.countError = data.error;
+  }
+
+  DUMP.endedAt = new Date();
+  DUMP.ok = true;
+
+  // Renderiza
+  renderKPIs();
+  renderTables();
+  renderRPCs();
+  renderTXT();
+  ['secTables','secRpcs'].forEach(id => $(id).style.display = 'block');
+
+  $('btnLoad').disabled = false;
+  $('btnCopyAll').disabled = false;
+  $('btnDownload').disabled = false;
+
+  const ms = DUMP.endedAt - DUMP.startedAt;
+  setStatus(`🎉 Tudo pronto! ${DUMP.tables.length} tabelas · ${DUMP.rpcs.length} RPCs · em ${ms}ms. Clica em <b>Copiar TUDO</b> e cola pra outra IA.`, 'ok');
+}
+
+// ═══════════════════════════════════════════════════════════
+// 7) COPIAR / BAIXAR
+// ═══════════════════════════════════════════════════════════
+async function copiarTexto(txt){
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(txt);
+      return true;
+    }
+  }catch(e){}
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = txt;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){ return false; }
+}
+
+async function copiarTudo(){
+  if(!DUMP.ok){ toast('Roda o "Extrair Schema" primeiro', false); return; }
+  const txt = gerarTXT();
+  const ok = await copiarTexto(txt);
+  if(ok){
+    const btn = $('btnCopyAll');
+    const orig = btn.innerHTML;
+    btn.classList.add('btn-ok');
+    btn.innerHTML = '✓ Copiado!';
+    toast('Dump copiado — cola pra outra IA! 🎉');
+    setTimeout(() => {
+      btn.classList.remove('btn-ok');
+      btn.innerHTML = orig;
+    }, 2200);
+  } else {
+    toast('Não consegui copiar. Tenta o botão "Baixar .txt"', false);
+  }
+}
+
+async function copiarUmaTabela(i){
+  const t = DUMP.tables[i];
+  const L = [];
+  L.push('▸ ' + t.name + '  (' + (t.rows != null ? t.rows + ' linhas' : '?') + ')');
+  for(const c of t.columns){
+    L.push('  - ' + c.name + ' : ' + c.type + (c.format ? ' [' + c.format + ']' : '') + (c.nullable ? '' : ' NOT NULL'));
+  }
+  if(t.sample && t.sample.length){
+    L.push('  Amostra: ' + JSON.stringify(t.sample[0]).slice(0, 400));
+  }
+  const ok = await copiarTexto(L.join('\n'));
+  toast(ok ? 'Tabela ' + t.name + ' copiada' : 'Falha ao copiar', ok);
+}
+
+async function copiarRPCs(){
+  const txt = DUMP.rpcs.map(r => {
+    const p = r.params.map(x => x.name + ':' + x.type).join(', ');
+    return r.name + '(' + p + ')';
+  }).join('\n');
+  const ok = await copiarTexto(txt);
+  toast(ok ? 'RPCs copiadas' : 'Falha ao copiar', ok);
+}
+
+function baixarTXT(){
+  const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  const nome = 'ml-terapia-dump-' + stamp + '.txt';
+  const conteudo = gerarTXT();
+  const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nome;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Download iniciado: ' + nome);
+}
+
+// Auto-carrega ao abrir
+window.addEventListener('load', () => {
+  setTimeout(carregarTudo, 250);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,594 @@
+⚙️ APP TERAPIA PRO
+ ML Terapia Pro
+# 🧠 HANDOFF — Projeto ML Terapia Pro
+
+> **Instruções para a IA que está lendo isto:** Este documento é a fonte de verdade sobre um projeto real em produção. Leia tudo antes de responder. Você vai trabalhar junto com o Leandro, que é técnico mas prefere que você faça o trabalho pesado. Seja direto, honesto, admita quando errar (ele valoriza isso), não invente o que não sabe, e sempre entregue soluções prontas pra colar — não tutoriais.
+
+---
+
+## 1. QUEM É O USUÁRIO
+
+- **Nome:** Leandro Rocha
+- **Local:** Curitiba/PR — Brasil (timezone `America/Sao_Paulo`, UTC-3)
+- **GitHub:** `leandrogrochamedia` (⚠️ NÃO é `leandrogrocha` — esse foi o erro que custou 1h de debug uma vez)
+- **Email git:** `leandrogrocha@users.noreply.github.com`
+- **Estilo:** direto, quer resultado, odeia tutoriais longos. "Não quero pensar, só colar."
+- **Preferência:** scripts Python que fazem tudo (não comandos soltos)
+- **Editor:** VS Code com pasta aberta
+- **Terminal:** zsh no macOS. Tem alias **`pp` = `python3`** (importante: não use `python`, use `pp` ou `python3`)
+- **Pasta do projeto:** `/Users/leandrogrocha/Documents/DEV/MARILAND/ml-projeto`
+- **Python:** sempre dentro de `.venv` (ele ativa com `source .../activate`)
+
+---
+
+## 2. O PROJETO
+
+**Nome:** ML Terapia Pro
+**Tipo:** SaaS multi-tenant de gestão clínica para terapeutas TAP, psicólogos e coaches
+**Estágio:** MVP em produção (já em uso por 1-2 terapeutas reais)
+**Público-alvo:** "tiazinhas terapeutas" (palavras do Leandro) — profissionais não-técnicas, 40-60 anos, que querem gerenciar agenda, clientes, prontuário e financeiro sem fricção
+
+**Objetivo declarado (do OBJETIVO.txt original):**
+- Organização, automação, produtividade, retenção de clientes
+- Visão financeira e gestão clínica
+- ⚠️ **NÃO adicionar IA generativa** dentro do produto
+- Substituir TODAS as ferramentas externas (planilha, caderno, Google Calendar) por UMA só
+
+---
+
+## 3. STACK E INFRA
+
+| Camada | Tecnologia |
+|---|---|
+| **Frontend** | HTML único + JS vanilla (SPA em um arquivo) |
+| **CSS** | Inline no próprio HTML (não tem build) |
+| **Charts** | Chart.js via CDN |
+| **Backend** | Supabase (Postgres + RLS + RPC) |
+| **Auth** | Fake (compara `password` em texto plano na tabela `terapeutas`) |
+| **Supabase URL** | `https://aaqyhcpuwkifaeplxdep.supabase.co` |
+| **Supabase ANON** | `sb_publishable_1gVxSsEOUPcEswKTFqQY2w_D2Lwxl5b` |
+| **Fontes** | Inter + Cormorant Garamond (Google Fonts) |
+| **Design** | "Apple Light" — cards arredondados, blur, sombras suaves |
+| **Paleta** | Verde-musgo `#1c3d38` + lavanda `#8b5cf6` + bege `#f5e6cc` + roxo `#7c3aed` + fundo `#fef9f6` |
+
+**Repo GitHub:** `https://github.com/leandrogrochamedia/mlterapiapro` (privado)
+
+---
+
+## 4. ESTRUTURA DE PASTAS
+
+```
+/Users/leandrogrocha/Documents/DEV/MARILAND/ml-projeto/
+├── index.html              # Splash com blur/unblur → redireciona pra Login
+├── Login-v2.html           # ⭐ Tela de login (usa a logo)
+├── onboarding.html         # Cadastro de terapeuta (dados + CEP + foto + slug)
+├── dashboard-v2.html       # ⭐⭐ ARQUIVO PRINCIPAL (SPA completa, 150KB+)
+├── quiz.html               # Teste público de travas (cliente final acessa)
+├── config.js               # ⚠️ Expõe window.SUPABASE_URL e window.SUPABASE_ANON_KEY
+├── setup_git.py            # Script que criou o repo GitHub
+├── deploy.py               # Script que automatiza deploy
+├── images/
+│   └── logo-mlterapiapro.png   # Logo (626×367, fundo transparente)
+├── css/ (não usado, tudo inline)
+├── js/ (não usado, tudo inline)
+└── _backups/               # Backups automáticos dos scripts Python
+```
+
+**Pastas a ignorar:** `bak01/`, `REF/`, `REF2/` (backups antigos commitados por acidente)
+
+---
+
+## 5. SCHEMA DO BANCO (Supabase)
+
+### Tabelas
+
+**`terapeutas`** (multi-tenant, 1-2 linhas hoje)
+```
+id uuid PK
+nome text
+email text UNIQUE
+password text (⚠️ TEXTO PLANO - MVP, deveria virar hash depois)
+slug text UNIQUE     ← chave de isolamento
+whatsapp text
+instagram, site, cpf, cnpj, cep, endereco, numero, complemento, bairro, cidade, estado
+profissao, formacao, registro_profissional, especialidades, bio
+foto text (base64 da imagem resized 240x240)
+crp text
+preco_sessao numeric
+msg_whatsapp text    ← template p/ mensagens
+meta_faturamento numeric
+config jsonb         ← {dias_semana, conversao_venda, prospeccoes_mes, ...}
+created_at timestamptz
+```
+
+**`leads`** (= clientes, ~116 linhas)
+```
+id uuid PK
+origemid text UNIQUE     ← id curto tipo "q-1789612577671-0g30v"
+terapeuta_slug text      ← FILTRO OBRIGATÓRIO
+therapist_slug text      ← versão legada do mesmo campo
+therapist_id uuid
+tenant_id uuid           ← aponta pra terapeutas.id
+data timestamptz
+nome, email, whatsapp, idade, profissao
+infancia, adolescencia, vida_adulta text (anamnese)
+problemas text           ← problema emocional atual
+terapia_anterior, renda, investir, indicacao
+resultadostravas jsonb   ← [{nome: "TRAVA DA X", score: 7.5}, ...]
+respostasdetalhadas jsonb ← [0..10] × 30 perguntas
+blocos_scores jsonb
+previous_scores jsonb    ← ⚠️ É OBJETO {} não array! (map nome→score)
+tipoteste text           ← 'aberto' | 'fechado' | 'retorno'
+versao_teste text
+status text              ← 'novo' | 'novo_questionario' | 'arquivado'
+prioridade text          ← 'alta' | 'media' | 'baixa'
+prioridade_texto text
+abordado, agendousessao, fechouprotocolo, arquivado boolean
+cara_de_pix text         ← semáforo de pagamento
+sessao_atual int
+desconfortos text
+evolucao_manual jsonb
+prontuario text          ← ⚠️ BLOB único, não tem histórico por sessão
+parcelas jsonb
+sessoesfeitas int
+productid text
+agenda jsonb
+telefone, instagram, estado_civil, cpf, data_nascimento
+origem text
+```
+
+**`agendamentos`** (~3 linhas hoje)
+```
+id uuid PK
+therapist_slug, terapeuta_slug text
+therapist_id uuid
+paciente_id uuid
+paciente_origemid text
+paciente_nome text
+data_agendamento timestamptz  ← ⚠️ SEMPRE SALVAR EM UTC (ISO string)
+duracao_min int (default 60)
+tipo text                     ← 'sessao' | 'retorno' | 'avaliacao'
+status text                   ← 'confirmado' | 'pendente' | 'cancelado' | 'realizado' | 'faltou'
+observacoes text
+created_at timestamptz
+```
+
+**`pacotes_financeiro`** (~3 linhas)
+```
+id uuid PK
+therapist_slug, terapeuta_slug text
+paciente_id, paciente_origemid
+descricao text
+valor_total numeric
+valor_sessao numeric
+sessoes_total int
+sessoes_usadas int
+status text              ← 'ativo' | 'cancelado' | 'concluido' | 'pago'
+forma_pagamento text     ← 'pix' | 'cartao' | 'dinheiro' | 'parcelado'
+data_venda date
+parcelas jsonb           ← [{numero:1, valor:266.66, vencimento:"2026-10-17"}, ...]
+observacoes text
+created_at timestamptz
+updated_at timestamptz
+```
+
+**`bloqueios_horario`** (recém-criada, schema real)
+```
+id bigint PK (serial)
+tenant_id uuid NOT NULL
+terapeuta_slug text NOT NULL
+titulo text NOT NULL
+tipo text (default 'compromisso')  ← 'ferias' | 'folga' | 'pessoal' | 'evento' | 'curso' | 'viagem'
+data_inicio timestamptz NOT NULL
+data_fim timestamptz NOT NULL
+dia_inteiro boolean (default true)
+cor text (default '#9ca3af')
+observacoes text
+created_at, updated_at timestamptz
+```
+
+**`anamneses`** (existe, mas vazia)
+```
+id uuid PK
+client_id, paciente_id, paciente_origemid
+terapeuta_slug, therapist_slug
+estado_problema text
+observacoes text
+comprometimento int
+plano_terapeutico text
+created_at timestamptz
+```
+
+**`notificacoes_terapeuta`** — ⚠️ **NÃO EXISTE** (o Quiz tenta inserir e falha silencioso)
+
+### Funções RPC existentes
+
+| Nome | Pra quê |
+|---|---|
+| `get_kpis(p_slug)` | KPIs do dashboard |
+| `get_alertas(p_slug)` | Alertas automáticos |
+| `baixar_sessao_pacote(p_pacote_id, p_tecnica, p_observacoes)` | Registra 1 sessão usada |
+| `renovar_pacote(p_pacote_id)` | Duplica pacote zerado |
+| `horario_disponivel(p_slug, p_inicio, p_fim, p_ignorar_id)` | Checa conflito em agendamentos + bloqueios |
+| `generate_installments(total, start_date)` | Gera 3 parcelas 30/60/90 dias |
+| `calculate_trava_scores(...)` | Calcula travas (hoje o JS faz, essa função não é usada) |
+| `preencher_tenant_id()` | Trigger automático |
+| `valida_slug_existe(slug)` | Validação (o onboarding faz via SELECT, redundante) |
+
+### RLS
+Hoje: `using(true)` em tudo (⚠️ inseguro, ideal pro MVP mas não pra produção)
+
+---
+
+## 6. COMO FUNCIONA O SISTEMA (fluxos)
+
+### Fluxo 1 — Cliente novo (lead)
+```
+Cliente acessa Quiz.html?slug=mariland-rodrigues
+  ↓ responde 30 perguntas (10 travas × 3)
+  ↓ salva em `leads` com status='novo_questionario'
+  ↓ calcula resultadostravas no próprio JS
+  ↓ terapeuta vê em "🔥 Atenção — novos questionários" no dashboard
+```
+
+### Fluxo 2 — Login do terapeuta
+```
+index.html (splash com blur 2s)
+  ↓ redireciona
+Login-v2.html
+  ↓ faz SELECT em `terapeutas` WHERE email = X
+  ↓ compara `password` em texto plano (⚠️ fake auth)
+  ↓ salva sessão em localStorage
+  ↓ redireciona
+dashboard-v2.html
+```
+
+### Fluxo 3 — Dashboard (SPA)
+```
+TOP BAR: avatar clicável + nome + busca
+KPIs: 10 cards (Clientes ativos, Novos 30d, Consultas hoje/amanhã/semana, Receita mês/prevista, Pacotes ativos, Sessões pendentes, Inativos)
+GRÁFICO: evolução 14 dias
+ALERTAS: RPC get_alertas → cards vermelhos
+PENDÊNCIAS: resumo dos alertas
+AGENDA HOJE: lista de consultas do dia com botões rápidos
+ATENÇÃO: novos questionários
+DOCK FIXO: Visão / Clientes / Agenda / Financeiro / Testes
+
+VIEWS:
+  - Visão (padrão)
+  - Clientes: cards mobile-first com foto, travas, ações (arquivar/deletar/WA/ficha)
+  - Agenda: grid visual dia/semana + lista completa + form novo agendamento
+  - Financeiro: KPIs + chart + lista por mês
+```
+
+### Fluxo 4 — Ficha do cliente (modal)
+```
+Abre com abrirFicha(id)
+  ↓ 5 abas:
+    📝 Prontuário (textarea + salvar)
+    🧠 Anamnese (lista + criar via prompt)
+    📅 Agenda (lista + criar)
+    💰 Pacotes (form + lista com baixa/renovar/editar)
+  ↓ botões topo: Arquivar / Deletar / WhatsApp / Copiar p/ IA (📋)
+```
+
+### Fluxo 5 — Agendar consulta
+```
+Form agenda → criarAgendamento()
+  ↓ converte datetime-local pra UTC (inicio.toISOString())
+  ↓ chama _checarConflito (RPC horario_disponivel)
+  ↓ se conflito, confirma; se não, salva em `agendamentos`
+  ↓ refresh: carregarAgendaHoje + carregarAgendaCompleta + renderAgendaVisual + carregarKPIs
+```
+
+### Fluxo 6 — Pacote parcelado
+```
+Form pacote com forma='parcelado'
+  ↓ chama RPC generate_installments(total, hoje)
+  ↓ recebe 3 parcelas {numero, valor, vencimento}
+  ↓ salva no campo `parcelas` (jsonb)
+  ↓ card do pacote mostra bloco roxo 💳 3x PARCELAS
+```
+
+---
+
+## 7. WORKFLOW DE TRABALHO (COMO A GENTE TRABALHA JUNTO)
+
+### Padrão: Python que aplica patch em HTML
+
+**NUNCA editar arquivo grande manualmente.** Sempre:
+1. Eu escrevo um **script Python** que aplica a mudança
+2. O script faz **backup** em `_backups/` antes
+3. O script **loga** cada passo com ✅/❌
+4. O script é **idempotente** (rodar 2x não quebra)
+5. Leandro roda: `pp apply_xyz.py` (não usa `python3` puro)
+
+**Template mental do script:**
+
+```python
+#!/usr/bin/env python3
+import re, sys, shutil
+from datetime import datetime
+from pathlib import Path
+
+ROOT = Path("/Users/leandrogrocha/Documents/DEV/MARILAND/ml-projeto")
+TARGET = ROOT / "dashboard-v2.html"
+BACKUP_DIR = ROOT / "_backups"
+
+def backup(p):
+    BACKUP_DIR.mkdir(exist_ok=True)
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    b = BACKUP_DIR / f"{p.stem}.{stamp}{p.suffix}"
+    shutil.copy2(p, b)
+    return b
+
+def replace_function(src, func_name, new_block):
+    """Substitui função inteira via contagem de chaves (não regex guloso)."""
+    pattern = re.compile(rf"(async\s+function\s+{re.escape(func_name)}\s*\([^)]*\)\s*\{{)", re.M)
+    m = pattern.search(src)
+    if not m: return src, False
+    start = m.start()
+    i = m.end() - 1
+    depth, in_str, escape = 0, None, False
+    while i < len(src):
+        c = src[i]
+        if in_str:
+            if escape: escape = False
+            elif c == '\\': escape = True
+            elif c == in_str: in_str = None
+        else:
+            if c in ('"', "'", '`'): in_str = c
+            elif c == '{': depth += 1
+            elif c == '}':
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        i += 1
+    else:
+        return src, False
+    return src[:start] + new_block + src[end:], True
+
+def main():
+    src = TARGET.read_text(encoding="utf-8")
+    log = []
+    src, ok = replace_function(src, "nomeDaFuncao", """async function nomeDaFuncao(){
+  // novo código
+}""")
+    log.append("✅ nomeDaFuncao substituída" if ok else "❌ falhou")
+    if src != TARGET.read_text(encoding="utf-8"):
+        b = backup(TARGET)
+        TARGET.write_text(src, encoding="utf-8")
+        print(f"💾 Backup: {b}")
+    print("\n".join(log))
+
+if __name__ == "__main__":
+    main()
+```
+
+### Regra: NUNCA dar `cat > file << PYEOF` pro Leandro
+
+Ele já se confundiu colando isso **dentro** de arquivo Python. Sempre entregue:
+- "Cria o arquivo X no VS Code e cola isso"
+- OU "roda esse comando único no terminal"
+
+### Git — fluxo de deploy
+
+```bash
+cd /Users/leandrogrocha/Documents/DEV/MARILAND/ml-projeto
+git add .
+git commit -m "descrição"
+git push
+```
+
+**Remote configurado:**
+```
+origin https://github.com/leandrogrochamedia/mlterapiapro.git
+```
+
+⚠️ **Nunca** usar `git push --force` sem confirmar (já sobrescreveu coisas antes por acidente).
+
+### VS Code
+
+- Abre pasta via **File → Open Folder**
+- Source Control em `Cmd+Shift+G`
+- Terminal integrado: `` Cmd+` ``
+
+---
+
+## 8. ESTADO ATUAL (17/Set/2026)
+
+### ✅ Já funcionando em produção
+
+| Feature | Onde |
+|---|---|
+| Splash com blur/unblur (2s) | `index.html` |
+| Login com logo + cadastro | `Login-v2.html` |
+| Cadastro completo de terapeuta | `onboarding.html` |
+| Dashboard com 10 KPIs | `dashboard-v2.html` |
+| Gráfico evolução 14 dias | idem |
+| Alertas automáticos (RPC get_alertas) | idem |
+| Pendências do dia | idem |
+| Agenda de hoje paginada | idem |
+| Novos questionários (atenção) | idem |
+| Agenda visual dia/semana | idem |
+| Ficha completa do cliente (5 abas) | idem |
+| Copiar ficha p/ IA (📋) | idem |
+| Foto do terapeuta (resize client-side) | idem |
+| Pacotes com baixa de sessão | idem |
+| Renovação de pacote | idem |
+| Parcelamento em 3x (RPC) | idem |
+| Validação de conflito de horário | idem |
+| Bloqueio de horários (tabela + RPC) | DB pronto, UI pendente |
+| Quiz público multi-tenant | `Quiz.html` |
+| 404 se slug inválido | idem |
+| UTC correto ao salvar agendamentos | idem |
+| Git repo no GitHub | `leandrogrochamedia/mlterapiapro` |
+
+### ❌ Pendências (backlog priorizado)
+
+**Alta prioridade:**
+1. **Timeline do cliente** — aba 📜 Histórico na ficha (puxa leads + agendamentos + pacotes + anamneses ordenados por data)
+2. **Módulo de Bloqueios** — UI pra criar/listar/deletar `bloqueios_horario` (tabela já existe)
+3. **Lembrete 24h WhatsApp** — botão "📲 Avisar todos de amanhã" na Agenda
+4. **Despesas** — tabela nova + UI pra terapeuta ver lucro real (não só receita)
+5. **Multi-tenant robusto** — migrar tudo pra `tenant_id` (hoje só usa slug)
+
+**Média prioridade:**
+6. **Comparação de Retorno** — Quiz salva `previous_scores` antes de novo insert
+7. **Kanban de leads** — sumiu do dashboard-v2 (tinha no original)
+8. **Criar `notificacoes_terapeuta`** ou remover do Quiz
+
+**Baixa prioridade:**
+9. Sync Google Calendar / Outlook (não implementar — "tiazinha não usa")
+10. LTV, Ticket Médio, Receita Recorrente (vocabulário de startup)
+11. Bloqueio de agenda com regra complexa de recorrência
+
+### 🚫 Coisas que NÃO fazer
+
+- IA generativa dentro do produto (regra do OBJETIVO.txt)
+- Kanban visual de vendas (usuária não é vendedora)
+- Sync com Google Calendar (não usa)
+- Autenticação real do Supabase Auth (hoje é fake, migração planejada mas não urgente)
+- Refatorar pra framework (React/Vue) — vanilla funciona, não quebra o que tá rodando
+
+---
+
+## 9. POSTURA ESPERADA DA IA
+
+### Princípios
+
+1. **Seja direto.** Sem "claro, vou te ajudar com isso!" — só faça.
+2. **Admita quando errar.** Se pintou um diagnóstico errado, retrata sem drama.
+3. **Não invente.** Se não sabe o schema de uma tabela, pede o dump (`select * from information_schema.columns where...`).
+4. **Sempre entregue solução pronta.** Não tutorial. Script Python inteiro ou HTML inteiro.
+5. **Código funciona ou não funciona.** Sem "isso deve funcionar" — testa mentalmente antes de entregar.
+6. **Explique o "porquê" em 1-2 linhas**, não em parágrafos. Leandro é técnico mas quer velocidade.
+7. **Português brasileiro**, informal quando possível, técnico quando precisa.
+8. **Não peça desculpa em excesso.** Reconhece o erro, corrige, segue.
+9. **Se o pedido for ambíguo**, faz a pergunta específica — não assume.
+10. **Sempre considere a usuária final**: "a tiazinha vai entender isso?"
+
+### Estilo de entrega
+
+- **Scripts Python**: idempotentes, com backup, com log visual (✅/❌/⏭)
+- **Arquivos HTML**: completos, prontos pra sobrescrever, sem `// TODO aqui`
+- **SQL**: comentado, explicando o que cada bloco faz
+- **Diagnóstico**: "roda esse comando e me diz o resultado" → sem achismo
+
+### O que o Leandro valoriza
+
+- **Velocidade** > perfeição técnica
+- **Um comando** > cinco comandos
+- **Fazer** > ensinar
+- **Honestidade** > diplomacia
+- **Print/screenshot** > descrição textual do erro (ele pode mandar print, você deve incentivar)
+
+---
+
+## 10. GLOSSÁRIO E TERMOS
+
+| Termo | Significado |
+|---|---|
+| **TAP** | Terapia de Alinhamento de Propósito (a "metodologia" da terapeuta) |
+| **Trava** | Bloqueio emocional medido em 0-10 (10 travas no total, ex: Autoestima, Escassez, Merecimento) |
+| **Bloco** | Grupo de travas (5 blocos: Identidade, Autoridade, Medo, Relacionamentos, Ação) |
+| **Slug** | Identificador URL amigável da terapeuta (ex: `mariland-rodrigues`) |
+| **Tenant** | Cada terapeuta é um "inquilino" isolado (dados nunca cruzam) |
+| **Lead** | Cliente em qualquer estágio (do primeiro questionário até cliente ativo) |
+| **Ficha** | Modal com dados completos do cliente |
+| **Dock** | Barra flutuante de navegação inferior (estilo iOS) |
+| **Tiazinha** | Como Leandro chama as usuárias finais (não-técnicas, 40-60 anos) |
+| **Patch** | Script Python que aplica mudanças em arquivo grande |
+| **pp** | Alias do terminal do Leandro pra `python3` |
+
+---
+
+## 11. BOOT SEQUENCE (COMO CONTINUAR)
+
+Quando o Leandro mandar isso, responda assim:
+
+```
+Beleza, entendi o projeto ML Terapia Pro.
+
+Estado atual:
+- Dashboard v2 completo com agenda visual, pacotes e ficha do cliente
+- Timezone UTC corrigido
+- Parcelamento 3x funcionando
+- Conflito de horário com bloqueio funcionando
+- Git repo sincronizado
+
+Backlog prioritário:
+1. Timeline do cliente (aba 📜 Histórico)
+2. Módulo de Bloqueios (UI sobre a tabela já existente)
+3. Lembrete 24h WhatsApp
+4. Despesas / Lucro real
+5. Multi-tenant com tenant_id
+
+Qual você quer atacar primeiro? Ou me manda o que quer fazer que eu 
+já preparo o script Python.
+```
+
+Depois disso, **não peça contexto de novo** — você tem tudo. Só execute.
+
+---
+
+## 12. ÚLTIMA COISA
+
+Se um dia em dúvida, pergunte:
+- "Quer que eu entregue como script Python ou como HTML completo?"
+- "Posso testar isso antes ou vou direto?"
+
+Mas **nunca** pergunte coisas que já estão neste documento.
+
+---
+
+**FIM DO HANDOFF**
+
+Última atualização: 17/Set/2026
+Próxima fase esperada: Timeline do cliente / Bloqueios
+```
+
+---
+
+## 🎯 Como usar isso
+
+1. **Salva** como `HANDOFF.md` na pasta `ml-projeto/`
+2. **Cola no Git** (faz parte do repo, fica versionado):
+   ```bash
+   cd /Users/leandrogrocha/Documents/DEV/MARILAND/ml-projeto
+   git add HANDOFF.md
+   git commit -m "docs: handoff completo do projeto"
+   git push
+   ```
+3. **Quando um chat novo precisar de contexto:**
+   - Abre o chat novo
+   - Cola o conteúdo do HANDOFF.md inteiro
+   - A nova IA já entra operacional
+
+4. **Se o chat atual travar:** você tem tudo documentado. Não perde nada.
+
+---
+
+## 💡 Dica adicional
+
+Se quiser ser ainda mais à prova de falha, faz um **segundo arquivo** chamado `ESTADO.md` que você atualiza toda semana com:
+
+```markdown
+# Estado atual — 17/Set/2026
+
+## Funcionando
+- [x] feature X
+- [x] feature Y
+
+## Em progresso
+- [ ] feature Z (bloqueada por...)
+
+## Última conversa
+- Fizemos X, Y, Z
+- Próximo passo: W
+```
+
+Assim, se o chat morrer, você cola **HANDOFF.md + ESTADO.md** e a nova IA sabe **exatamente** onde você parou.
+
+Fechou? 🚀

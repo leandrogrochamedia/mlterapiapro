@@ -44,11 +44,11 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;background:#0a0a0a;col
   <!-- iPhone GitHub -->
   <div class="iphone-wrap">
     <div class="iphone-label label-github">● GITHUB PAGES</div>
-    <div class="iphone-url" id="urlGithub">https://leandrogrochamedia.github.io/mlterapiapro/marilandapp.html</div>
+    <div class="iphone-url" id="urlGithub">https://leandrogrochamedia.github.io/mlterapiapro/</div>
     <div class="iphone">
       <div class="iphone-notch"><div class="notch-speaker"></div><div class="notch-cam"></div></div>
       <div class="iphone-inner">
-        <iframe id="frameGithub" class="iphone-screen" src="https://leandrogrochamedia.github.io/mlterapiapro/marilandapp.html" allow="clipboard-read; clipboard-write" loading="lazy"></iframe>
+        <iframe id="frameGithub" class="iphone-screen" src="https://leandrogrochamedia.github.io/mlterapiapro/" allow="clipboard-read; clipboard-write" loading="lazy"></iframe>
       </div>
       <div class="iphone-home"></div>
     </div>
@@ -57,11 +57,11 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;background:#0a0a0a;col
   <!-- iPhone Local -->
   <div class="iphone-wrap">
     <div class="iphone-label label-local" id="labelLocal">● LOCAL</div>
-    <div class="iphone-url" id="urlLocal">./Login-v2.html (mesma pasta)</div>
+    <div class="iphone-url" id="urlLocal">./index.html (mesma pasta)</div>
     <div class="iphone">
       <div class="iphone-notch"><div class="notch-speaker"></div><div class="notch-cam"></div></div>
       <div class="iphone-inner">
-        <iframe id="frameLocal" class="iphone-screen" src="./Login-v2.html" allow="clipboard-read; clipboard-write" loading="lazy"></iframe>
+        <iframe id="frameLocal" class="iphone-screen" src="./index.html" allow="clipboard-read; clipboard-write" loading="lazy"></iframe>
       </div>
       <div class="iphone-home"></div>
     </div>
@@ -69,7 +69,7 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;background:#0a0a0a;col
 </div>
 
 <div class="controls">
-  <input id="localPath" class="ctrl-input" placeholder="./Login-v2.html" value="./Login-v2.html">
+  <input id="localPath" class="ctrl-input" placeholder="./Index.html" value="./index.html">
   <button class="ctrl-btn" onclick="loadLocal()">↻ Carregar</button>
   <button class="ctrl-btn" onclick="reloadBoth()">↻ Recarregar ambos</button>
   <button class="ctrl-btn" onclick="openGithub()">↗ Abrir GitHub</button>
@@ -77,7 +77,7 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;background:#0a0a0a;col
 </div>
 
 <div class="controls" style="margin-top:10px">
-  <button class="ctrl-btn" onclick="setLocal('./Login-v2.html')">Login-v2</button>
+  <button class="ctrl-btn" onclick="setLocal('./Index.html')">Index</button>
   <button class="ctrl-btn" onclick="setLocal('./dashboard-v2.html')">Dashboard-v2</button>
   <button class="ctrl-btn" onclick="setLocal('./Quiz.html')">Quiz</button>
   <button class="ctrl-btn" onclick="setLocal('./onboarding.html')">Onboarding</button>
@@ -92,7 +92,7 @@ function setLocal(path){
 }
 
 function loadLocal(){
-  const path = document.getElementById('localPath').value.trim() || './Login-v2.html';
+  const path = document.getElementById('localPath').value.trim() || './Index.html';
   const frame = document.getElementById('frameLocal');
   frame.src = path;
   document.getElementById('urlLocal').textContent = path + ' (mesma pasta)';
@@ -111,7 +111,7 @@ function openGithub(){
 }
 
 function openLocal(){
-  const path = document.getElementById('localPath').value.trim() || './Login-v2.html';
+  const path = document.getElementById('localPath').value.trim() || './index.html';
   window.open(path,'_blank');
 }
 

@@ -449,6 +449,32 @@ body::-webkit-scrollbar,
 .av-close{margin-top:12px;width:100%;padding:10px;border-radius:11px;border:1.5px solid #f5e6cc;background:#fff;font-family:inherit;font-weight:700;font-size:12px;color:#6b7280;cursor:pointer}
 .av-close:hover{background:#fdf8f6}
 
+
+/* form-v3 — spinner harmonioso */
+.pkg-arrow{
+  width:48px;min-width:48px;height:48px;
+  border-radius:14px;border:2px solid #f5e6cc;background:#fff;
+  font-size:22px;font-weight:900;color:#1c3d38;
+  cursor:pointer;font-family:inherit;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.pkg-arrow:hover{background:#fdf8f6;border-color:#1c3d38}
+.pkg-arrow:active{transform:scale(.94)}
+.pkg-number{
+  flex:1;height:48px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:900;color:#1c3d38;
+  background:#fdf8f6;border-radius:14px;border:2px solid #f5e6cc;
+  outline:none;font-family:inherit;line-height:1;cursor:text;
+  transition:.15s;user-select:none;
+}
+.pkg-number:focus{
+  background:#fff;border-color:#7c3aed;
+  box-shadow:0 0 0 3px rgba(124,58,237,.12);
+  user-select:text;
+}
+
 </style>
 </head>
 <body>
@@ -479,7 +505,7 @@ body::-webkit-scrollbar,
   <div class="kpi-v2" onclick="nav('clientes')">
     <div class="kpi-v2-ico">👥</div>
     <div class="kpi-v2-val" id="kpiTotal">-</div>
-    <div class="kpi-v2-lbl">Clientes ativos</div>
+    <div class="kpi-v2-lbl">Clientes (carteira)</div>
   </div>
   <div class="kpi-v2" onclick="nav('clientes')">
     <div class="kpi-v2-ico">✨</div>
@@ -524,8 +550,17 @@ body::-webkit-scrollbar,
   <div class="kpi-v2" onclick="nav('clientes')" id="kpiInativosCard">
     <div class="kpi-v2-ico">⚠️</div>
     <div class="kpi-v2-val" id="kpiInativos">-</div>
-    <div class="kpi-v2-lbl">Clientes inativos</div>
+    <div class="kpi-v2-lbl">Sem atividade 60d</div>
   </div>
+  <div class="kpi-v2" onclick="nav('clientes')" id="kpiAtivosReaisCard">
+    <div class="kpi-v2-ico">💚</div>
+    <div class="kpi-v2-val" id="kpiAtivosReais">-</div>
+    <div class="kpi-v2-lbl">Ativos recentes</div>
+  </div>
+  <div class="kpi-v2" onclick="nav('financeiro')"><div class="kpi-v2-ico">✅</div><div class="kpi-v2-val" id="kpiRecebidoMes">R$ -</div><div class="kpi-v2-lbl">Recebido no mês</div></div>
+  <div class="kpi-v2" onclick="nav('financeiro')"><div class="kpi-v2-ico">⏳</div><div class="kpi-v2-val" id="kpiAReceber">R$ -</div><div class="kpi-v2-lbl">A receber</div></div>
+  <div class="kpi-v2" onclick="nav('financeiro')" id="kpiAtrasadoCard"><div class="kpi-v2-ico">🔴</div><div class="kpi-v2-val" id="kpiAtrasado">R$ -</div><div class="kpi-v2-lbl">Atrasado</div></div>
+  <div class="kpi-v2" onclick="nav('financeiro')" id="kpiLucroCard"><div class="kpi-v2-ico">💰</div><div class="kpi-v2-val" id="kpiLucro">R$ -</div><div class="kpi-v2-lbl">Lucro real</div></div>
 </div>
 
 <div style="height:16px"></div>
@@ -574,6 +609,7 @@ body::-webkit-scrollbar,
     Sair
   </button>
 </div>
+
 </div>
 
 <div id="view-clientes" style="display:none">
@@ -602,16 +638,30 @@ body::-webkit-scrollbar,
     <button data-modo="semana" class="active" onclick="avSetModo('semana')">Semana</button>
   </div>
 </div>
-<div class="av-top">
-  <div class="av-nav">
-    <button class="av-nav-btn" onclick="avNavegar(-1)" title="Anterior">‹</button>
-    <button class="av-nav-btn" onclick="avHoje()" title="Hoje" style="font-size:10px">HOJE</button>
-    <button class="av-nav-btn" onclick="avNavegar(1)" title="Próximo">›</button>
-    <span class="av-titulo" id="avTitulo">carregando...</span>
+<div class="av-top" style="flex-direction:column;align-items:stretch;gap:10px">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <div class="av-nav">
+      <button class="av-nav-btn" onclick="avNavegar(-1)" title="Anterior">‹</button>
+      <button class="av-nav-btn" onclick="avHoje()" title="Hoje" style="font-size:10px">HOJE</button>
+      <button class="av-nav-btn" onclick="avNavegar(1)" title="Próximo">›</button>
+      <span class="av-titulo" id="avTitulo">carregando...</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button onclick="blqAbrir()" style="padding:8px 14px;border-radius:10px;border:1.5px solid #fecaca;background:#fef2f2;color:#dc2626;font-weight:800;font-size:11.5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px">🚫 Bloquear</button>
+      <button id="lmbBtnAgenda" onclick="lmbAbrir()" style="padding:8px 14px;border-radius:10px;border:1.5px solid #bbf7d0;background:#f0fdf4;color:#166534;font-weight:800;font-size:11.5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px">📲 Lembrar amanhã</button>
+    </div>
   </div>
 </div>
 <div class="av-grid-outer">
   <div id="avWrap" class="av-empty">Abra a aba Agenda para carregar.</div>
+</div>
+
+<div style="margin-top:16px;padding-top:14px;border-top:1.5px dashed #f5e6cc">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
+    <div style="font-size:11px;font-weight:900;text-transform:uppercase;color:#1c3d38">🚫 Bloqueios do mês</div>
+    <span id="blqCount" style="font-size:11px;background:#fef2f2;padding:4px 10px;border-radius:20px;font-weight:800;color:#dc2626">0</span>
+  </div>
+  <div id="blqLista"><p class="empty-state">Nenhum bloqueio</p></div>
 </div>
 </div>
 
@@ -639,10 +689,35 @@ body::-webkit-scrollbar,
 </div>
 <canvas id="chartFinanceiro" height="120" style="margin-top:16px"></canvas>
 <div id="listaFinanceiro" style="margin-top:14px"></div>
+<div style="margin-top:18px;padding-top:14px;border-top:1.5px dashed #f5e6cc">
+  <div style="font-size:11px;font-weight:900;text-transform:uppercase;color:#1c3d38;margin-bottom:10px">💳 Cobranças — quem me deve</div>
+  <div id="listaAtrasadosFin"><p class="empty-state">Carregando…</p></div>
+</div>
+
+<div style="margin-top:18px;padding-top:14px;border-top:1.5px dashed #f5e6cc">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
+    <div style="font-size:11px;font-weight:900;text-transform:uppercase;color:#1c3d38">💸 Despesas do mês</div>
+    <input type="month" id="despMesFiltro" onchange="carregarDespesas()" style="padding:6px 10px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:inherit;font-size:11px;background:#fff;cursor:pointer">
+  </div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr 1.2fr 1.5fr auto;gap:6px;margin-bottom:10px">
+    <input id="despDescricao" placeholder="Descrição" class="input" style="margin:0">
+    <input id="despValor" type="number" placeholder="R$" class="input" style="margin:0">
+    <input id="despData" type="date" class="input" style="margin:0">
+    <select id="despCategoria" class="input" style="margin:0" onchange="despCategoriaChange()"><option value="">Sem categoria</option></select>
+    <button onclick="criarDespesa()" class="btn" style="margin:0;width:auto;padding:0 18px;font-size:16px">+</button>
+  </div>
+  <input id="despCategoriaOutra" placeholder="Nome da categoria" class="input" style="display:none;margin:0 0 10px 0">
+
+  <div id="despLista"><p class="empty-state">Nenhuma despesa neste mês</p></div>
+  <div id="despTotal" style="margin-top:10px;padding:10px 14px;background:#fef2f2;border-radius:10px;text-align:right;font-size:13px"></div>
 </div>
 </div>
 </div>
 
+</div>
+
+<!-- ============ DOCK FLUTUANTE ============ -->
 <div class="floating-dock-wrap">
 <div class="floating-dock" id="floatingDock">
 <button class="dock-btn active" data-tab="visao" onclick="nav('visao')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="dock-label-float">Visão</span></button>
@@ -653,12 +728,15 @@ body::-webkit-scrollbar,
 </div>
 </div>
 
+<!-- ============ FICHA MODAL ============ -->
 <div id="fichaModal" class="modal-overlay" onclick="if(event.target===this) fecharFicha()">
 <div class="modal-card">
-<!-- ficha-header-v3 -->
 <div class="ficha-band">
   <div style="flex:1;min-width:0">
-    <div id="fichaNome" class="ficha-band-nome">Nome</div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div id="fichaNome" class="ficha-band-nome">Nome</div>
+      <span id="fichaSemaforo" style="display:none;width:14px;height:14px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px rgba(255,255,255,.5)"></span>
+    </div>
     <div id="fichaSub" class="ficha-band-sub">email</div>
   </div>
   <button onclick="fecharFicha()" class="ficha-band-close" title="Fechar">✕</button>
@@ -678,6 +756,7 @@ body::-webkit-scrollbar,
 <button class="tab-btn" onclick="switchFichaTab('anamnese')">🧠 Anamnese</button>
 <button class="tab-btn" onclick="switchFichaTab('agendamentos')">📅 Agenda</button>
 <button class="tab-btn" onclick="switchFichaTab('pacotes')">💰 Pacotes</button>
+<button class="tab-btn" onclick="switchFichaTab('historico'); abrirTimelineCliente();">📜 Histórico</button>
 </div>
 
 <div id="ftab-prontuario">
@@ -690,17 +769,51 @@ body::-webkit-scrollbar,
 <div id="ftab-agendamentos" style="display:none"><input id="fichaAgData" type="datetime-local" class="input"><button class="btn" onclick="criarAgendamentoFicha()">Agendar sessão</button><div id="listaAgendamentosFicha" style="margin-top:12px"></div></div>
 
 <div id="ftab-pacotes" style="display:none">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-<div><label style="font-size:10px;font-weight:800">Tipo de pacote</label><select id="pacoteTipo" class="input" onchange="atualizarPacotePreco()"><option value="2">2 sessões</option><option value="4" selected>4 sessões</option><option value="6">6 sessões</option><option value="8">8 sessões</option></select></div>
-<div><label style="font-size:10px;font-weight:800">Valor por sessão</label><input id="pacoteValorSessao" type="number" class="input" value="150" oninput="atualizarPacotePreco()"></div>
+<div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px">
+  <div>
+    <label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#7c5a3c;margin-bottom:8px">Sessões</label>
+    <div style="display:flex;gap:6px;align-items:stretch;height:48px">
+      <button type="button" onclick="pacoteTipoDelta(-1)" class="pkg-arrow" aria-label="Diminuir">−</button>
+      <div id="pacoteTipoDisplay" contenteditable="true" inputmode="numeric" oninput="pacoteTipoInput(this)" onblur="pacoteTipoBlur(this)" class="pkg-number">4</div>
+      <button type="button" onclick="pacoteTipoDelta(1)" class="pkg-arrow" aria-label="Aumentar">+</button>
+    </div>
+    <div style="font-size:10px;color:#8a6a68;margin-top:6px;text-align:center;font-weight:600">1 a 52 sessões</div>
+  </div>
+  <div>
+    <label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#7c5a3c;margin-bottom:8px">Valor por sessão</label>
+    <input id="pacoteValorSessao" type="number" class="input" value="150" oninput="atualizarPacotePreco()" style="margin:0;height:48px;font-weight:800;text-align:center;font-size:17px;color:#1c3d38">
+    <div style="font-size:10px;color:#8a6a68;margin-top:6px;text-align:center;font-weight:600">em reais</div>
+  </div>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-<input id="pacoteDesc" placeholder="Descrição auto" class="input">
-<input id="pacoteValor" type="number" placeholder="Total auto" class="input">
+<input id="pacoteDesc" type="hidden">
+<input id="pacoteValor" type="hidden">
+<input id="pacoteTipo" type="hidden" value="4">
+<div id="pacoteResumo" style="margin-bottom:14px;padding:14px 16px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #bbf7d0;border-radius:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+  <div>
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#166534">Pacote</div>
+    <div id="pacoteResumoDesc" style="font-size:14px;font-weight:800;color:#1c3d38;margin-top:3px">4 sessões</div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#166534">Total</div>
+    <div id="pacoteResumoValor" style="font-size:20px;font-weight:900;color:#15803d;margin-top:2px">R$ 600</div>
+  </div>
 </div>
 <select id="pacotePagamento" class="input"><option value="pix">PIX</option><option value="cartao">Cartão</option><option value="dinheiro">Dinheiro</option><option value="parcelado">Parcelado</option></select>
 <button class="btn" onclick="criarPacote()">Registrar pacote</button>
 <div id="listaPacotesFicha" style="margin-top:12px"></div>
+<div style="margin-top:16px;padding-top:14px;border-top:1.5px dashed #f5e6cc">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
+    <div style="font-size:11px;font-weight:900;text-transform:uppercase;color:#1c3d38">💳 Cobranças em aberto</div>
+    <button onclick="abrirModalAvulsa()" style="padding:6px 12px;border-radius:10px;border:1.5px solid #bbf7d0;background:#f0fdf4;color:#166534;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">💸 Avulsa</button>
+  </div>
+  <div id="listaContasReceber"><p class="empty-state">Carregando…</p></div>
+</div>
+</div>
+
+<div id="ftab-historico" style="display:none">
+<div id="listaHistorico" style="margin-top:12px">
+<p class="empty-state">Carregando histórico…</p>
+</div>
 </div>
 
 </div>
@@ -783,7 +896,7 @@ async function carregarDados(){
   // Guard multi-tenant: nunca buscar sem slug definido
   if(!THERAPIST_SLUG || typeof THERAPIST_SLUG !== 'string' || THERAPIST_SLUG.trim() === ''){
     console.error('❌ carregarDados abortado: THERAPIST_SLUG vazio. Faça login novamente.');
-    alert('Sessão inválida. Faça login novamente.');
+    window.modal.alert('Sessão inválida. Faça login novamente.');
     logout();
     return;
   }
@@ -804,15 +917,32 @@ async function carregarDados(){
     }
 
     const _setKpi = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
-    _setKpi('kpiTotal', leads.length);
-    const hojeISO=new Date().toISOString().slice(0,10);
-    _setKpi('kpiNovos', leads.filter(l=>(l.data||'').slice(0,10)===hojeISO).length);
-    _setKpi('kpiNovos30d', leads.filter(l=>(l.data||'').slice(0,10)===hojeISO).length);
-    _setKpi('countClientes', leads.length);
 
+    // ── 1) RPC primeiro: preenche TUDO que ela sabe (amanhã, semana,
+    //      receita prevista, sessões pendentes, inativos, realce visual)
+    await carregarKPIs();
+    await carregarAlertas();
+
+    // ── 2) Cálculos locais DEPOIS: sobrescrevem o que já é confiável
     renderAtencao(); paginaClientes=1; renderClientesCards();
-    await carregarAgendaHoje(); await carregarAgendaCompleta(); await renderFinanceiro(); renderGrafico(); preencherSelectClientes();
-    await carregarKPIs(); await carregarAlertas();
+
+    // Total + count + novos 30d (janela real de 30 dias)
+    const hojeISO  = new Date().toISOString().slice(0,10);
+    const dias30   = new Date(Date.now() - 30*24*60*60*1000).toISOString().slice(0,10);
+    // kpiTotal = não arquivados (bate com label 'Clientes (carteira)')
+    _setKpi('kpiTotal', leads.filter(l => !l.arquivado).length);
+    _setKpi('countClientes', leads.length);
+    _setKpi('kpiNovos30d', leads.filter(l => {
+      const d = (l.data||'').slice(0,10);
+      return d && d >= dias30 && d <= hojeISO;
+    }).length);
+
+    // Agenda + financeiro (sobrescrevem os KPIs de agenda/receita da RPC)
+    await carregarAgendaHoje();
+    await carregarAgendaCompleta();
+    await renderFinanceiro();
+    renderGrafico();
+    preencherSelectClientes();
   }catch(e){ console.error('Erro carregarDados:', e); }
 }
 
@@ -828,7 +958,7 @@ function renderAtencao(){
     return `<div class="ag-card">
       <div class="ag-header-band" onclick="abrirFicha('${escapeJs(id)}')">
         <div class="band-info">
-          <div class="band-nome">${escapeHtml(l.nome||'Sem nome')}</div>
+          <div class="band-nome" style="display:flex;align-items:center;gap:6px"><span>${escapeHtml(l.nome||'Sem nome')}</span>${typeof _semaforoDot==='function'?_semaforoDot(l):''}</div>
           ${whats?`<div class="band-line">${ICON_PHONE}<span class="txt">${escapeHtml(l.whatsapp||'')}</span></div>`:''}
           ${l.email?`<div class="band-line">${ICON_MAIL}<span class="txt">${escapeHtml(l.email)}</span></div>`:''}
         </div>
@@ -882,10 +1012,12 @@ function renderClientesCards(){
     const acaoDelete = `<button onclick="deletarCliente('${escapeJs(id)}', event)" class="btn-round btn-round-delete" title="Deletar cliente">${ICON_TRASH}</button>`;
     const acaoWa = whats ? `<a href="${waLink}" target="_blank" onclick="event.stopPropagation()" class="btn-round btn-round-wa" title="WhatsApp">${ICON_WA_SOLID}</a>` : '';
 
+    const ehNovo = ['novo','novo_questionario'].includes(String(l.status||'').toLowerCase());
+    const badgeNovo = ehNovo ? `<span title="Cliente novo — ainda sem interação" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-size:11px;flex-shrink:0;box-shadow:0 2px 6px rgba(245,158,11,.4)">✨</span>` : '';
     return `<div class="ag-card ${arquivado?'arquivado':''}">
       <div class="ag-header-band" onclick="abrirFicha('${escapeJs(id)}')">
         <div class="band-info">
-          <div class="band-nome">${escapeHtml(l.nome||'Sem nome')}</div>
+          <div class="band-nome" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span>${escapeHtml(l.nome||'Sem nome')}</span>${badgeNovo}${typeof _semaforoDot==='function'?_semaforoDot(l):''}</div>
           ${whats?`<div class="band-line">${ICON_PHONE}<span class="txt">${escapeHtml(l.whatsapp||'')}</span></div>`:''}
           ${l.email?`<div class="band-line">${ICON_MAIL}<span class="txt">${escapeHtml(l.email)}</span></div>`:''}
         </div>
@@ -944,12 +1076,14 @@ function renderGrafico(){
 async function carregarAgendaHoje(){
   try{
     const hoje=new Date().toISOString().slice(0,10);
-    // Multi-tenant: filtra SEMPRE por terapeuta_slug. Sem fallback "fetch all".
+    const amanha=new Date(Date.now()+86400000).toISOString().slice(0,10);
+    // fix-ag-hoje-v2: conta SÓ hoje (range hoje 00:00 → amanhã 00:00)
     let {data} = await supabaseClient
       .from('agendamentos')
       .select('*')
       .eq('terapeuta_slug', THERAPIST_SLUG)
-      .gte('data_agendamento', hoje)
+      .gte('data_agendamento', hoje + 'T00:00:00')
+      .lt('data_agendamento',  amanha + 'T00:00:00')
       .order('data_agendamento',{ascending:true})
       .limit(200);
     agendamentosCache=(data||[]).filter(a=>(a.status||'').toLowerCase()!=='cancelado');
@@ -1062,6 +1196,7 @@ async function renderFinanceiro(){
       try{ const r2=await supabaseClient.from('pacotes_financeiro').select('*').eq('terapeuta_slug', THERAPIST_SLUG).order('created_at',{ascending:false}).limit(300); dataPac=r2.data; }catch(e){}
     }
     dataPac=dataPac||[];
+    window._pacotesCache = dataPac;  // fix-kpis-local-v2 — cache global pra carregarKPIs usar
     const total=dataPac.filter(p=>['pago','ativo','concluido'].includes(p.status)).reduce((s,p)=>s+Number(p.valor_total||0),0);
     const agora=new Date(); const mesAtual=agora.getMonth(); const anoAtual=agora.getFullYear();
     const totalMes=dataPac.filter(p=>{ const d=new Date(p.created_at||p.data_venda); return d.getMonth()===mesAtual && d.getFullYear()===anoAtual && ['pago','ativo','concluido'].includes(p.status); }).reduce((s,p)=>s+Number(p.valor_total||0),0);
@@ -1117,6 +1252,7 @@ async function renderFinanceiro(){
     try{
       const ctx=document.getElementById('chartFinanceiro'); if(ctx){ if(charts.fin) charts.fin.destroy(); const labels=mesesOrdenados.slice(0,6).reverse().map(k=>porMes[k].label); const valores=mesesOrdenados.slice(0,6).reverse().map(k=>porMes[k].total); charts.fin=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Faturamento',data:valores,backgroundColor:'#1c3d38',borderRadius:8}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}}); }
     }catch(e){}
+    if(typeof carregarAtrasadosFinanceiro === 'function') carregarAtrasadosFinanceiro();
   }catch(e){ console.error(e); }
 }
 
@@ -1135,13 +1271,7 @@ function nav(tab){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function atualizarPacotePreco(){
-  const tipo=Number(document.getElementById('pacoteTipo')?.value||4);
-  const valorSessao=Number(document.getElementById('pacoteValorSessao')?.value||150);
-  const total=tipo*valorSessao;
-  const totalEl=document.getElementById('pacoteValor'); if(totalEl) totalEl.value=total;
-  const descEl=document.getElementById('pacoteDesc'); if(descEl){ if(!descEl.value||descEl.value.includes('sessões')) descEl.value=`Pacote de ${tipo} sessões`; }
-}
+
 
 async function abrirFicha(ident){
   if(!ident || ident==='undefined' || ident==='null'){ console.warn('abrirFicha: identificador inválido'); return; }
@@ -1239,6 +1369,8 @@ async function abrirFicha(ident){
   carregarAnamneses().catch(e=>console.warn(e));
   carregarAgendamentosFicha().catch(e=>console.warn(e));
   carregarPacotesFicha().catch(e=>console.warn(e));
+  if(typeof carregarContasReceber === 'function') carregarContasReceber(lead.origemid || lead.id).catch(e=>console.warn(e));
+  if(typeof calcularSemaforoAtual === 'function') calcularSemaforoAtual().catch(e=>console.warn(e));
 }
 function fecharFicha(){ document.getElementById('fichaModal').classList.remove('show'); pacienteAtual=null; }
 function switchFichaTab(tab){ document.querySelectorAll('[id^="ftab-"]').forEach(d=>d.style.display='none'); const t=document.getElementById('ftab-'+tab); if(t) t.style.display='block'; document.querySelectorAll('#fichaModal .tab-btn').forEach(b=>b.classList.remove('active')); const btn=document.querySelector(`#fichaModal [onclick="switchFichaTab('${tab}')"]`); if(btn) btn.classList.add('active'); }
@@ -1258,8 +1390,8 @@ async function carregarAnamneses(){
 }
 async function criarAnamnese(){
   if(!pacienteAtual) return;
-  const estado=prompt('Estado do problema / queixa principal?'); if(!estado) return;
-  const obs=prompt('Observações / histórico (opcional):')||'';
+  const estado=await window.modal.prompt('Estado do problema / queixa principal?'); if(!estado) return;
+  const obs=await window.modal.prompt('Observações / histórico (opcional):')||'';
   try{
     const {error}=await supabaseClient.from('anamneses').insert([{
       client_id:pacienteAtual.origemid,
@@ -1272,9 +1404,9 @@ async function criarAnamnese(){
       comprometimento:5
     }]);
     if(error) throw error;
-    alert('✅ Anamnese salva!');
+    window.modal.alert('✅ Anamnese salva!');
     carregarAnamneses();
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){ window.modal.alert('Erro: '+e.message); }
 }
 async function carregarAgendamentosFicha(){
   if(!pacienteAtual) return;
@@ -1305,17 +1437,17 @@ async function carregarAgendamentosFicha(){
 async function criarAgendamentoFicha(){
   if(!pacienteAtual) return;
   const data = document.getElementById('fichaAgData').value;
-  if(!data) return alert('Selecione data');
+  if(!data) return window.modal.alert('Selecione data');
 
   const inicio = new Date(data);
-  if(isNaN(inicio.getTime())) return alert('Data inválida');
+  if(isNaN(inicio.getTime())) return window.modal.alert('Data inválida');
   const fim    = new Date(inicio.getTime() + 60*60*1000);
   const check  = await _checarConflito(inicio.toISOString(), fim.toISOString());
   if(!check.disponivel){
     const tipo = check.conflito?.tipo === 'bloqueio'
       ? 'um bloqueio na sua agenda'
       : 'outro agendamento';
-    if(!confirm(`⚠️ Conflito detectado: já existe ${tipo} neste horário.\n\nMarcar mesmo assim?`)){
+    if(!await window.modal.confirm(`⚠️ Conflito detectado: já existe ${tipo} neste horário.\n\nMarcar mesmo assim?`)){
       return;
     }
   }
@@ -1331,14 +1463,14 @@ async function criarAgendamentoFicha(){
       tipo: 'sessao',
       status: 'confirmado'
     }]);
-    alert('✅ Agendado!');
+    window.modal.alert('✅ Agendado!');
     document.getElementById('fichaAgData').value = '';
     await carregarAgendamentosFicha();
     await carregarAgendaHoje();
     await carregarAgendaCompleta();
     await renderAgendaVisual(true);
     if(typeof carregarKPIs === 'function') carregarKPIs();
-  }catch(e){ alert('Erro: ' + e.message); }
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
 }
 async function carregarPacotesFicha(){
   if(!pacienteAtual) return;
@@ -1425,60 +1557,85 @@ async function criarPacote(){
   const total       = Number(document.getElementById('pacoteValor')?.value || tipo*valorSessao);
   const desc        = document.getElementById('pacoteDesc').value.trim() || `Pacote de ${tipo} sessões`;
   const pag         = document.getElementById('pacotePagamento')?.value || 'pix';
-  if(!total) return alert('Preencha valor');
+  if(!total) return window.modal.alert('Preencha valor');
 
-  // 🆕 Se parcelado, gera 3 parcelas via RPC
+  const tenantId = await getTenantId();
+  if(!tenantId) return window.modal.alert('Não consegui obter o tenant_id. Faça login de novo.');
+
+  const hoje = new Date().toISOString().slice(0,10);
   let parcelas = [];
   if(pag === 'parcelado'){
     try{
-      const hoje = new Date().toISOString().slice(0,10);
-      const { data, error } = await supabaseClient.rpc('generate_installments', {
-        total: total,
-        start_date: hoje
-      });
+      const { data, error } = await supabaseClient.rpc('generate_installments', { total, start_date: hoje });
       if(error) throw error;
       parcelas = data || [];
-    }catch(e){
-      console.warn('[parcelas] falhou, seguindo sem parcelar:', e.message);
+    }catch(e){ console.warn('[parcelas] falhou:', e.message); }
+    if(!parcelas.length){
+      const v = total/3;
+      parcelas = [
+        {numero:1, valor:v, vencimento: hoje},
+        {numero:2, valor:v, vencimento: new Date(Date.now()+30*86400000).toISOString().slice(0,10)},
+        {numero:3, valor:v, vencimento: new Date(Date.now()+60*86400000).toISOString().slice(0,10)},
+      ];
     }
   }
 
+  const origemid = pacienteAtual.origemid || pacienteAtual.id;
+  const nome     = pacienteAtual.nome || '';
+
   try{
     if(window._pacoteEditandoId){
-      const { error } = await supabaseClient.from('pacotes_financeiro').update({
-        descricao: desc,
-        valor_total: total,
-        valor_sessao: valorSessao,
-        sessoes_total: tipo,
-        forma_pagamento: pag,
-        parcelas: parcelas
-      }).eq('id', window._pacoteEditandoId);
-      if(error) throw error;
-      alert('✅ Pacote atualizado!' + (parcelas.length ? `\n📅 ${parcelas.length} parcelas geradas` : ''));
+      const pacoteId = window._pacoteEditandoId;
+      await supabaseClient.from('contas_receber').delete().eq('pacote_id', pacoteId).eq('status', 'pendente');
+      const { error: eUpd } = await supabaseClient.from('pacotes_financeiro').update({
+        descricao: desc, valor_total: total, valor_sessao: valorSessao,
+        sessoes_total: tipo, forma_pagamento: pag, parcelas: parcelas
+      }).eq('id', pacoteId);
+      if(eUpd) throw eUpd;
+
+      const novas = (pag === 'parcelado' && parcelas.length) ? parcelas : [{numero:1, valor: total, vencimento: hoje}];
+      for(const p of novas){
+        await supabaseClient.from('contas_receber').insert([{
+          tenant_id: tenantId,
+          cliente_origemid: origemid, cliente_nome: nome, terapeuta_slug: THERAPIST_SLUG,
+          pacote_id: String(pacoteId),
+          descricao: `${desc} - ${novas.length>1 ? 'P'+p.numero+'/'+novas.length : 'Pagamento'}`,
+          numero_parcela: p.numero || 1, total_parcelas: novas.length,
+          valor: Number(p.valor || total), vencimento: p.vencimento || hoje, status: 'pendente'
+        }]);
+      }
+      window.modal.alert('✅ Pacote atualizado!');
       cancelarEdicaoPacote();
     } else {
-      const { error } = await supabaseClient.from('pacotes_financeiro').insert([{
-        therapist_slug: THERAPIST_SLUG,
-        terapeuta_slug: THERAPIST_SLUG,
-        paciente_id: pacienteAtual.id,
-        paciente_origemid: pacienteAtual.origemid,
-        descricao: desc,
-        valor_total: total,
-        valor_sessao: valorSessao,
-        sessoes_total: tipo,
-        sessoes_usadas: 0,
-        status: 'ativo',
-        forma_pagamento: pag,
-        parcelas: parcelas
-      }]);
+      const { data: pacoteData, error } = await supabaseClient.from('pacotes_financeiro').insert([{
+        tenant_id: tenantId,
+        therapist_slug: THERAPIST_SLUG, terapeuta_slug: THERAPIST_SLUG,
+        paciente_id: pacienteAtual.id, paciente_origemid: pacienteAtual.origemid,
+        descricao: desc, valor_total: total, valor_sessao: valorSessao,
+        sessoes_total: tipo, sessoes_usadas: 0, status: 'ativo',
+        forma_pagamento: pag, parcelas: parcelas
+      }]).select().single();
       if(error) throw error;
-      alert(`✅ Pacote ${tipo} sessões - R$ ${total} registrado!` +
-            (parcelas.length ? `\n📅 ${parcelas.length} parcelas geradas` : ''));
+
+      const contas = (pag === 'parcelado' && parcelas.length) ? parcelas : [{numero:1, valor: total, vencimento: hoje}];
+      for(const p of contas){
+        await supabaseClient.from('contas_receber').insert([{
+          tenant_id: tenantId,
+          cliente_origemid: origemid, cliente_nome: nome, terapeuta_slug: THERAPIST_SLUG,
+          pacote_id: String(pacoteData.id),
+          descricao: `${desc} - ${contas.length>1 ? 'P'+p.numero+'/'+contas.length : 'Pagamento'}`,
+          numero_parcela: p.numero || 1, total_parcelas: contas.length,
+          valor: Number(p.valor || total), vencimento: p.vencimento || hoje, status: 'pendente'
+        }]);
+      }
+      window.modal.alert(`✅ Pacote ${tipo} sessões · R$ ${total} registrado!\n💳 ${contas.length} cobrança(s) gerada(s)`);
       document.getElementById('pacoteDesc').value = '';
     }
     carregarPacotesFicha();
-    renderFinanceiro();
-  }catch(e){ alert('Erro: ' + e.message); }
+    if(typeof carregarContasReceber === 'function') carregarContasReceber(origemid);
+    if(typeof renderFinanceiro === 'function') renderFinanceiro();
+    if(typeof carregarKPIs === 'function') carregarKPIs();
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
 }
 async function salvarProntuarioSessao(){
   if(!pacienteAtual) return;
@@ -1487,8 +1644,8 @@ async function salvarProntuarioSessao(){
     const {error}=await supabaseClient.from('leads').update({prontuario:texto}).eq('origemid', pacienteAtual.origemid);
     if(error) throw error;
     pacienteAtual.prontuario=texto;
-    alert('✅ Prontuário salvo!');
-  }catch(e){ alert('Erro: '+e.message); }
+    window.modal.alert('✅ Prontuário salvo!');
+  }catch(e){ window.modal.alert('Erro: '+e.message); }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1519,20 +1676,20 @@ async function criarAgendamento(){
   const clienteId = document.getElementById('agendaCliente').value;
   const data      = document.getElementById('agendaDataHora').value;
   const obs       = document.getElementById('agendaObs').value;
-  if(!clienteId || !data){ alert('Selecione cliente e data'); return; }
+  if(!clienteId || !data){ window.modal.alert('Selecione cliente e data'); return; }
   const cli = leads.find(l => l.id===clienteId || l.origemid===clienteId);
-  if(!cli){ alert('Cliente não encontrado'); return; }
+  if(!cli){ window.modal.alert('Cliente não encontrado'); return; }
 
   // 🕒 Converte "YYYY-MM-DDTHH:MM" (local) -> ISO UTC
   const inicio = new Date(data);
-  if(isNaN(inicio.getTime())){ alert('Data inválida'); return; }
+  if(isNaN(inicio.getTime())){ window.modal.alert('Data inválida'); return; }
   const fim    = new Date(inicio.getTime() + 60*60*1000);
   const check  = await _checarConflito(inicio.toISOString(), fim.toISOString());
   if(!check.disponivel){
     const tipo = check.conflito?.tipo === 'bloqueio'
       ? 'um bloqueio na sua agenda'
       : 'outro agendamento';
-    if(!confirm(`⚠️ Conflito detectado: já existe ${tipo} neste horário.\n\nMarcar mesmo assim?`)){
+    if(!await window.modal.confirm(`⚠️ Conflito detectado: já existe ${tipo} neste horário.\n\nMarcar mesmo assim?`)){
       return;
     }
   }
@@ -1548,8 +1705,8 @@ async function criarAgendamento(){
     status: 'confirmado',
     tipo: 'sessao'
   }]);
-  if(error){ alert(error.message); return; }
-  alert('✅ Agendamento criado!');
+  if(error){ window.modal.alert(error.message); return; }
+  window.modal.alert('✅ Agendamento criado!');
   document.getElementById('agendaObs').value = '';
   // 🔄 Refresh imediato em TODAS as views
   await carregarAgendaCompleta();
@@ -1561,7 +1718,7 @@ async function criarAgendamento(){
 async function cancelarAgendamento(id, event){
   if(event){ event.preventDefault(); event.stopPropagation(); }
   if(!id){ return; }
-  if(!confirm('Cancelar este agendamento?\n\nEle sairá da agenda ativa, mas ficará no histórico como "cancelado".')) return;
+  if(!await window.modal.confirm('Cancelar este agendamento?\n\nEle sairá da agenda ativa, mas ficará no histórico como "cancelado".')) return;
   try{
     const {error}=await supabaseClient.from('agendamentos').update({status:'cancelado'}).eq('id', id);
     if(error) throw error;
@@ -1570,14 +1727,14 @@ async function cancelarAgendamento(id, event){
       carregarAgendaCompleta(),
       pacienteAtual ? carregarAgendamentosFicha() : Promise.resolve()
     ]);
-  }catch(e){ alert('Erro ao cancelar: '+e.message); }
+  }catch(e){ window.modal.alert('Erro ao cancelar: '+e.message); }
 }
 
 async function deletarAgendamento(id, event){
   if(event){ event.preventDefault(); event.stopPropagation(); }
   if(!id){ return; }
-  if(!confirm('⚠️ DELETAR DEFINITIVAMENTE este agendamento?\n\nEssa ação NÃO pode ser desfeita e remove o registro do banco.')) return;
-  if(!confirm('Tem CERTEZA absoluta? Esta é a última confirmação.')) return;
+  if(!await window.modal.confirm('⚠️ DELETAR DEFINITIVAMENTE este agendamento?\n\nEssa ação NÃO pode ser desfeita e remove o registro do banco.')) return;
+  if(!await window.modal.confirm('Tem CERTEZA absoluta? Esta é a última confirmação.')) return;
   try{
     const {error}=await supabaseClient.from('agendamentos').delete().eq('id', id);
     if(error) throw error;
@@ -1586,7 +1743,7 @@ async function deletarAgendamento(id, event){
       carregarAgendaCompleta(),
       pacienteAtual ? carregarAgendamentosFicha() : Promise.resolve()
     ]);
-  }catch(e){ alert('Erro ao deletar: '+e.message); }
+  }catch(e){ window.modal.alert('Erro ao deletar: '+e.message); }
 }
 
 // ============================================================
@@ -1595,14 +1752,14 @@ async function deletarAgendamento(id, event){
 async function arquivarCliente(id, event){
   if(event){ event.preventDefault(); event.stopPropagation(); }
   if(!id) return;
-  if(!confirm('Arquivar este cliente?\n\nEle sai da lista principal, mas continua salvo no banco. Você pode restaurar depois marcando "Mostrar arquivados".')) return;
+  if(!await window.modal.confirm('Arquivar este cliente?\n\nEle sai da lista principal, mas continua salvo no banco. Você pode restaurar depois marcando "Mostrar arquivados".')) return;
   try{
     const lead = leads.find(l=>l.origemid===id||l.id===id);
     const campo = (lead && lead.origemid) ? 'origemid' : 'id';
     const {error} = await supabaseClient.from('leads').update({arquivado:true, status:'arquivado'}).eq(campo, id);
     if(error) throw error;
     await carregarDados();
-  }catch(e){ alert('Erro ao arquivar: '+e.message); }
+  }catch(e){ window.modal.alert('Erro ao arquivar: '+e.message); }
 }
 
 async function desarquivarCliente(id, event){
@@ -1614,21 +1771,21 @@ async function desarquivarCliente(id, event){
     const {error} = await supabaseClient.from('leads').update({arquivado:false, status:'novo'}).eq(campo, id);
     if(error) throw error;
     await carregarDados();
-  }catch(e){ alert('Erro ao restaurar: '+e.message); }
+  }catch(e){ window.modal.alert('Erro ao restaurar: '+e.message); }
 }
 
 async function deletarCliente(id, event){
   if(event){ event.preventDefault(); event.stopPropagation(); }
   if(!id) return;
-  if(!confirm('⚠️ DELETAR DEFINITIVAMENTE este cliente?\n\nTodos os dados (anamnese, prontuário, histórico) serão apagados. Essa ação NÃO pode ser desfeita.')) return;
-  if(!confirm('Tem CERTEZA absoluta? Esta é a última confirmação.')) return;
+  if(!await window.modal.confirm('⚠️ DELETAR DEFINITIVAMENTE este cliente?\n\nTodos os dados (anamnese, prontuário, histórico) serão apagados. Essa ação NÃO pode ser desfeita.')) return;
+  if(!await window.modal.confirm('Tem CERTEZA absoluta? Esta é a última confirmação.')) return;
   try{
     const lead = leads.find(l=>l.origemid===id||l.id===id);
     const campo = (lead && lead.origemid) ? 'origemid' : 'id';
     const {error}=await supabaseClient.from('leads').delete().eq(campo, id);
     if(error) throw error;
     await carregarDados();
-  }catch(e){ alert('Erro ao deletar: '+e.message); }
+  }catch(e){ window.modal.alert('Erro ao deletar: '+e.message); }
 }
 
 // Wrappers usados pela ficha (só conhece pacienteAtual)
@@ -1667,8 +1824,8 @@ async function trocarFotoTerapeuta(input){
       s.foto = dataUrl;
       localStorage.setItem('terapeuta_sessao', JSON.stringify(s));
     }catch(e){}
-    alert('✅ Foto atualizada!');
-  }catch(e){ alert('Erro: '+e.message); }
+    window.modal.alert('✅ Foto atualizada!');
+  }catch(e){ window.modal.alert('Erro: '+e.message); }
   input.value = '';
 }
 
@@ -1798,7 +1955,7 @@ async function copiarLinkTeste(modo, btn){
     }, 1800);
   } else {
     // Último recurso: mostra o link
-    prompt('Copie o link abaixo:', url);
+    await window.modal.prompt('Copie o link abaixo:', 'Digite', {value: url});
   }
 }
 
@@ -1892,7 +2049,7 @@ async function abrirFichaEPacotes(id){
 // ============================================================
 async function cancelarPacote(id){
   if(!id) return;
-  if(!confirm('Cancelar este pacote?\n\nEle sai da lista ativa, mas fica no histórico como "cancelado". Você pode reativar depois.')) return;
+  if(!await window.modal.confirm('Cancelar este pacote?\n\nEle sai da lista ativa, mas fica no histórico como "cancelado". Você pode reativar depois.')) return;
   try{
     const {error} = await supabaseClient.from('pacotes_financeiro').update({status:'cancelado'}).eq('id', id);
     if(error) throw error;
@@ -1900,7 +2057,7 @@ async function cancelarPacote(id){
     if(pacienteAtual && document.getElementById('fichaModal').classList.contains('show')){
       carregarPacotesFicha();
     }
-  }catch(e){ alert('Erro ao cancelar: '+e.message); }
+  }catch(e){ window.modal.alert('Erro ao cancelar: '+e.message); }
 }
 
 async function reativarPacote(id){
@@ -1912,13 +2069,13 @@ async function reativarPacote(id){
     if(pacienteAtual && document.getElementById('fichaModal').classList.contains('show')){
       carregarPacotesFicha();
     }
-  }catch(e){ alert('Erro ao reativar: '+e.message); }
+  }catch(e){ window.modal.alert('Erro ao reativar: '+e.message); }
 }
 
 async function deletarPacote(id){
   if(!id) return;
-  if(!confirm('⚠️ DELETAR DEFINITIVAMENTE este pacote?\n\nEssa ação NÃO pode ser desfeita e remove o registro do banco.')) return;
-  if(!confirm('Tem CERTEZA absoluta? Esta é a última confirmação.')) return;
+  if(!await window.modal.confirm('⚠️ DELETAR DEFINITIVAMENTE este pacote?\n\nEssa ação NÃO pode ser desfeita e remove o registro do banco.')) return;
+  if(!await window.modal.confirm('Tem CERTEZA absoluta? Esta é a última confirmação.')) return;
   try{
     const {error} = await supabaseClient.from('pacotes_financeiro').delete().eq('id', id);
     if(error) throw error;
@@ -1926,7 +2083,7 @@ async function deletarPacote(id){
     if(pacienteAtual && document.getElementById('fichaModal').classList.contains('show')){
       carregarPacotesFicha();
     }
-  }catch(e){ alert('Erro ao deletar: '+e.message); }
+  }catch(e){ window.modal.alert('Erro ao deletar: '+e.message); }
 }
 
 async function editarPacote(id){
@@ -1935,9 +2092,9 @@ async function editarPacote(id){
   // Lá a terapeuta tem o form completo com descrição, valor, sessões, pagamento
   try{
     const {data} = await supabaseClient.from('pacotes_financeiro').select('*').eq('id', id).maybeSingle();
-    if(!data){ alert('Pacote não encontrado'); return; }
+    if(!data){ window.modal.alert('Pacote não encontrado'); return; }
     const cliId = data.paciente_origemid || data.paciente_id;
-    if(!cliId){ alert('Sem vínculo com cliente'); return; }
+    if(!cliId){ window.modal.alert('Sem vínculo com cliente'); return; }
     // Navega e abre a ficha na aba Pacotes
     if(typeof abrirFichaEPacotes === 'function'){
       await abrirFichaEPacotes(cliId);
@@ -1955,7 +2112,7 @@ async function editarPacote(id){
       set('pacoteTipo', data.sessoes_total);
       set('pacotePagamento', data.forma_pagamento || 'pix');
     }, 450);
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){ window.modal.alert('Erro: '+e.message); }
 }
 
 // ============================================================
@@ -1964,7 +2121,7 @@ async function editarPacote(id){
 function editarPacoteInline(id, event){
   if(event){ event.preventDefault(); event.stopPropagation(); }
   const pkg = (window._pacotesFichaCache || []).find(p => p.id === id);
-  if(!pkg){ alert('Pacote não encontrado'); return; }
+  if(!pkg){ window.modal.alert('Pacote não encontrado'); return; }
   const set = (elId, v) => { const el = document.getElementById(elId); if(el && v!=null) el.value = v; };
   set('pacoteDesc', pkg.descricao || '');
   set('pacoteValorSessao', pkg.valor_sessao || 150);
@@ -2013,7 +2170,7 @@ function setupBotaoCopiarIA(){
 }
 
 async function copiarFichaParaIA(){
-  if(!pacienteAtual){ alert('Nenhum paciente carregado'); return; }
+  if(!pacienteAtual){ window.modal.alert('Nenhum paciente carregado'); return; }
   const lead = pacienteAtual;
   const L = [];
 
@@ -2116,9 +2273,9 @@ async function copiarFichaParaIA(){
     ta.select();
     try {
       document.execCommand('copy');
-      alert('✅ Ficha copiada!');
+      window.modal.alert('✅ Ficha copiada!');
     } catch(err){
-      prompt('Copie o texto abaixo:', texto);
+      await window.modal.prompt('Copie o texto abaixo:', 'Digite', {value: texto});
     }
     document.body.removeChild(ta);
   }
@@ -2166,8 +2323,8 @@ setTimeout(() => {
 // ============================================================
 // LOGOUT — limpa sessão e volta pro login
 // ============================================================
-function logout(){
-  if(!confirm('Sair da conta? Você precisará logar novamente.')) return;
+async function logout(){
+  if(!await window.modal.confirm('Sair da conta? Você precisará logar novamente.')) return;
   try{
     localStorage.removeItem('terapeuta_sessao');
     localStorage.removeItem('therapist_slug');
@@ -2181,30 +2338,152 @@ function logout(){
 // FASE 3 — KPIs + Alertas (via RPC)
 // ============================================================
 async function carregarKPIs(){
+  // fix-kpis-self-v4 — fetch próprio, independe de cache/ordem
   try{
-    const {data, error} = await supabaseClient.rpc('get_kpis', { p_slug: THERAPIST_SLUG });
-    if(error) throw error;
-    const k = Array.isArray(data) ? data[0] : data;
-    if(!k) return;
+    // 1) Fetch direto (multi-tenant obrigatório)
+    const [rAg, rPac, rRec, rCR, rDesp] = await Promise.all([
+      supabaseClient.from('agendamentos').select('*').eq('terapeuta_slug', THERAPIST_SLUG).limit(500),
+      supabaseClient.from('pacotes_financeiro').select('*').eq('therapist_slug', THERAPIST_SLUG).limit(500),
+      supabaseClient.from('receitas').select('*').eq('terapeuta_slug', THERAPIST_SLUG).limit(1000),
+      supabaseClient.from('contas_receber').select('*').eq('terapeuta_slug', THERAPIST_SLUG).limit(1000),
+      supabaseClient.from('despesas').select('*').or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`).limit(1000),
+    ]);
+
+    let ag = rAg.data || [];
+    if(!ag.length){
+      const r = await supabaseClient.from('agendamentos').select('*').eq('therapist_slug', THERAPIST_SLUG).limit(500);
+      ag = r.data || [];
+    }
+    let pac = rPac.data || [];
+    if(!pac.length){
+      const r = await supabaseClient.from('pacotes_financeiro').select('*').eq('terapeuta_slug', THERAPIST_SLUG).limit(500);
+      pac = r.data || [];
+    }
+
+    console.log('[KPIs v4] fetched:', { leads: leads.length, agendamentos: ag.length, pacotes: pac.length });
+
+    // 2) Datas de referência
+    const hoje       = new Date();
+    const hojeISO    = hoje.toISOString().slice(0,10);
+    const amanhaISO  = new Date(Date.now() + 86400000).toISOString().slice(0,10);
+    const semanaISO  = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
+    const dias30     = new Date(Date.now() - 30*86400000).toISOString().slice(0,10);
+    const mesAtual   = hoje.getMonth();
+    const anoAtual   = hoje.getFullYear();
+
     const set = (id, v) => { const el = document.getElementById(id); if(el) el.innerText = v; };
-    set('kpiTotal',        k.clientes_ativos ?? 0);
-    set('kpiNovos30d',     k.clientes_novos_30d ?? 0);
-    set('kpiAgendaHoje',   k.consultas_hoje ?? 0);
-    set('kpiAmanha',       k.consultas_amanha ?? 0);
-    set('kpiSemana',       k.consultas_semana ?? 0);
-    set('kpiFat',          'R$ ' + Number(k.receita_mes||0).toLocaleString('pt-BR'));
-    set('kpiReceitaPrev',  'R$ ' + Number(k.receita_prevista||0).toLocaleString('pt-BR'));
-    set('kpiPacotesAtivos',k.pacotes_ativos ?? 0);
-    set('kpiSessoesPend',  k.sessoes_pendentes ?? 0);
-    set('kpiInativos',     k.clientes_inativos ?? 0);
-    // realce visual
+    const naoCancelado = a => (a.status||'').toLowerCase() !== 'cancelado';
+
+    // 3) Leads
+    const ativos = leads.filter(l => !l.arquivado);
+    const novos30d = leads.filter(l => {
+      const d = (l.data||'').slice(0,10);
+      return d && d >= dias30 && d <= hojeISO;
+    }).length;
+    const inativos = ativos.filter(l => {
+      if(!l.data) return false;
+      const diff = (Date.now() - new Date(l.data).getTime()) / 86400000;
+      return diff > 60;
+    }).length;
+
+    // 4) Agendamentos
+    const agValidos   = ag.filter(naoCancelado);
+    const countHoje   = agValidos.filter(a => a.data_agendamento && a.data_agendamento.slice(0,10) === hojeISO).length;
+    const countAmanha = agValidos.filter(a => a.data_agendamento && a.data_agendamento.slice(0,10) === amanhaISO).length;
+    const countSemana = agValidos.filter(a => {
+      const d = (a.data_agendamento||'').slice(0,10);
+      return d && d >= hojeISO && d <= semanaISO;
+    }).length;
+
+    // 5) Pacotes
+    const pacAtivos   = pac.filter(p => p.status === 'ativo');
+    const sessoesPend = pacAtivos.reduce((s,p) => {
+      const usadas = Number(p.sessoes_usadas||0);
+      const total  = Number(p.sessoes_total||0);
+      return s + Math.max(0, total - usadas);
+    }, 0);
+
+    const pacMes = pac.filter(p => {
+      const d = new Date(p.created_at || p.data_venda || 0);
+      return d.getMonth() === mesAtual && d.getFullYear() === anoAtual
+        && ['pago','ativo','concluido'].includes(p.status);
+    });
+    const receitaMes  = pacMes.reduce((s,p) => s + Number(p.valor_total||0), 0);
+    const receitaPrev = pacAtivos.reduce((s,p) => {
+      const usadas = Number(p.sessoes_usadas||0);
+      const total  = Number(p.sessoes_total||0);
+      const rest   = Math.max(0, total - usadas);
+      const vSess  = Number(p.valor_sessao || (total ? p.valor_total/total : 0) || 0);
+      return s + (rest * vSess);
+    }, 0);
+
+    // 6) Seta os KPIs
+    set('kpiTotal',         ativos.length);
+    set('kpiNovos30d',      novos30d);
+    set('kpiAgendaHoje',    countHoje);
+    set('kpiAmanha',        countAmanha);
+    set('kpiSemana',        countSemana);
+    set('kpiFat',           'R$ ' + receitaMes.toLocaleString('pt-BR'));
+    set('kpiReceitaPrev',   'R$ ' + receitaPrev.toLocaleString('pt-BR'));
+    set('kpiPacotesAtivos', pacAtivos.length);
+    set('kpiSessoesPend',   sessoesPend);
+    set('kpiInativos',      inativos);
+
     const cardInativos = document.getElementById('kpiInativosCard');
     if(cardInativos){
       cardInativos.classList.remove('kpi-alerta','kpi-ok');
-      if((k.clientes_inativos||0) > 0) cardInativos.classList.add('kpi-alerta');
-      else cardInativos.classList.add('kpi-ok');
+      if(inativos > 0) cardInativos.classList.add('kpi-alerta');
+      else             cardInativos.classList.add('kpi-ok');
     }
-  }catch(e){ console.warn('carregarKPIs falhou:', e.message); }
+    // Ativos recentes = total não arquivados − inativos
+    const ativosReais = Math.max(0, ativos.length - inativos);
+    set('kpiAtivosReais', ativosReais);
+    const cardAR = document.getElementById('kpiAtivosReaisCard');
+    if(cardAR){
+      cardAR.classList.remove('kpi-alerta','kpi-ok');
+      if(ativosReais > 0) cardAR.classList.add('kpi-ok');
+      else                cardAR.classList.add('kpi-alerta');
+    }
+
+    const receitasKpi = rRec.data || [];
+    const contasKpi   = rCR.data || [];
+    const inicioMesK  = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0,10);
+    const recebidoMes = receitasKpi.filter(r => String(r.status||'').toLowerCase()==='recebido' && (r.data_receita||'') >= inicioMesK).reduce((s,r)=>s+Number(r.valor||0),0);
+    const aReceberKpi = contasKpi.filter(c => String(c.status||'').toLowerCase()==='pendente' && c.vencimento && c.vencimento >= hojeISO).reduce((s,c)=>s+Number(c.valor||0),0);
+    const atrasadoKpi = contasKpi.filter(c => String(c.status||'').toLowerCase()==='pendente' && c.vencimento && c.vencimento < hojeISO).reduce((s,c)=>s+Number(c.valor||0),0);
+    set('kpiRecebidoMes', 'R$ ' + recebidoMes.toLocaleString('pt-BR'));
+    set('kpiAReceber',    'R$ ' + aReceberKpi.toLocaleString('pt-BR'));
+    set('kpiAtrasado',    'R$ ' + atrasadoKpi.toLocaleString('pt-BR'));
+    const cardAt = document.getElementById('kpiAtrasadoCard');
+    if(cardAt){
+      cardAt.classList.remove('kpi-alerta','kpi-ok');
+      if(atrasadoKpi > 0) cardAt.classList.add('kpi-alerta');
+      else                cardAt.classList.add('kpi-ok');
+    }
+
+    // ── LUCRO REAL = recebido no mês − despesas do mês ──
+    const despesasKpi = (rDesp && rDesp.data) || [];
+    const inicioMesL  = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0,10);
+    const despesasMes = despesasKpi
+      .filter(d => (d.data_despesa || '') >= inicioMesL)
+      .reduce((s,d) => s + Number(d.valor||0), 0);
+    const lucroReal = recebidoMes - despesasMes;
+    set('kpiLucro', 'R$ ' + lucroReal.toLocaleString('pt-BR'));
+    const cardLc = document.getElementById('kpiLucroCard');
+    if(cardLc){
+      cardLc.classList.remove('kpi-alerta','kpi-ok');
+      if(lucroReal < 0) cardLc.classList.add('kpi-alerta');
+      else              cardLc.classList.add('kpi-ok');
+    }
+
+    console.log('[KPIs v4] calculado:', {
+      ativos: ativos.length, novos30d, inativos,
+      hoje: countHoje, amanha: countAmanha, semana: countSemana,
+      receitaMes, receitaPrev, pacotes: pacAtivos.length, sessPend: sessoesPend
+    });
+  }catch(e){
+    console.warn('carregarKPIs (v4) falhou:', e.message);
+  }
 }
 
 async function carregarAlertas(){
@@ -2312,7 +2591,7 @@ async function confirmarBaixaSessao(){
     if(error) throw error;
     const r = Array.isArray(data) ? data[0] : data;
     if(!r || r.ok !== true){
-      alert('Erro: ' + (r?.erro || 'desconhecido'));
+      window.modal.alert('Erro: ' + (r?.erro || 'desconhecido'));
       btn.disabled = false;
       btn.textContent = '▶ Confirmar baixa';
       return;
@@ -2333,7 +2612,7 @@ async function confirmarBaixaSessao(){
       toastMsg(`✅ Sessão registrada · ${r.restantes} restante(s)`);
     }
   }catch(e){
-    alert('Erro ao registrar sessão: ' + e.message);
+    window.modal.alert('Erro ao registrar sessão: ' + e.message);
     btn.disabled = false;
     btn.textContent = '▶ Confirmar baixa';
   }
@@ -2341,7 +2620,7 @@ async function confirmarBaixaSessao(){
 
 async function renovarPacoteInline(pacoteId, ev){
   if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-  if(!confirm('Renovar este pacote?\n\nVai criar um NOVO pacote igual a este, com todas as sessões disponíveis e status ativo.')) return;
+  if(!await window.modal.confirm('Renovar este pacote?\n\nVai criar um NOVO pacote igual a este, com todas as sessões disponíveis e status ativo.')) return;
   try{
     const {data, error} = await supabaseClient.rpc('renovar_pacote', {
       p_pacote_id: pacoteId
@@ -2349,16 +2628,16 @@ async function renovarPacoteInline(pacoteId, ev){
     if(error) throw error;
     const r = Array.isArray(data) ? data[0] : data;
     if(!r || r.ok !== true){
-      alert('Erro: ' + (r?.erro || 'desconhecido'));
+      window.modal.alert('Erro: ' + (r?.erro || 'desconhecido'));
       return;
     }
     if(typeof carregarPacotesFicha === 'function') carregarPacotesFicha();
     if(typeof renderFinanceiro === 'function') renderFinanceiro();
     if(typeof carregarKPIs === 'function') carregarKPIs();
     if(typeof carregarAlertas === 'function') carregarAlertas();
-    alert('✅ Pacote renovado!');
+    window.modal.alert('✅ Pacote renovado!');
   }catch(e){
-    alert('Erro ao renovar: ' + e.message);
+    window.modal.alert('Erro ao renovar: ' + e.message);
   }
 }
 
@@ -2402,24 +2681,39 @@ async function _avCarregar() {
   const { ini, fim } = _avInicioFim();
   avState.carregando = true;
   try {
-    const { data, error } = await supabaseClient
-      .from('agendamentos')
-      .select('*')
-      .eq('terapeuta_slug', THERAPIST_SLUG)
-      .gte('data_agendamento', ini.toISOString())
-      .lt('data_agendamento', fim.toISOString());
-    if (error) throw error;
-    // Enriquecer com nome/whatsapp do lead já carregado em memória
-    avState.eventos = (data||[]).map(a => {
-      const l = (typeof leads !== 'undefined' && leads) ? leads.find(x =>
-        x.origemid === a.paciente_origemid || x.id === a.paciente_id
-      ) : null;
-      return {
-        ...a,
-        _nome: l?.nome || 'Sem nome',
-        _whats: l?.whatsapp || ''
-      };
-    });
+    const [rAg, rBl] = await Promise.all([
+      supabaseClient.from('agendamentos').select('*')
+        .or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`)
+        .gte('data_agendamento', ini.toISOString())
+        .lt('data_agendamento', fim.toISOString()),
+      supabaseClient.from('bloqueios_horario').select('*')
+        .or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`)
+        .gte('data_fim', ini.toISOString())
+        .lt('data_inicio', fim.toISOString()),
+    ]);
+    const ags = rAg.data || [];
+    const bls = rBl.data || [];
+
+    avState.eventos = [
+      ...ags.map(a => {
+        const l = (typeof leads !== 'undefined' && leads) ? leads.find(x =>
+          x.origemid === a.paciente_origemid || x.id === a.paciente_id
+        ) : null;
+        return {
+          ...a,
+          _tipo: 'agendamento',
+          _nome: l?.nome || 'Sem nome',
+          _whats: l?.whatsapp || ''
+        };
+      }),
+      ...bls.map(b => ({
+        ...b,
+        _tipo: 'bloqueio',
+        _nome: b.titulo || 'Bloqueado',
+        data_agendamento: b.data_inicio,
+        _cor: b.cor || '#6b7280'
+      }))
+    ];
   } catch(e) {
     console.warn('Agenda visual: erro ao carregar', e.message);
     avState.eventos = [];
@@ -2551,7 +2845,7 @@ async function _avMudarStatus(novo) {
     if (typeof carregarAgendaHoje === 'function') carregarAgendaHoje();
     if (typeof carregarKPIs === 'function')       carregarKPIs();
     if (typeof toastMsg === 'function')           toastMsg('✅ Status atualizado');
-  } catch(e) { alert('Erro: ' + e.message); }
+  } catch(e) { window.modal.alert('Erro: ' + e.message); }
 }
 
 function avConfirmar() { _avMudarStatus('confirmado'); }
@@ -2559,19 +2853,19 @@ function avRealizado() { _avMudarStatus('realizado'); }
 function avFaltou()    { _avMudarStatus('faltou');    }
 async function avCancelar() {
   if (!avState.selecionado) return;
-  if (!confirm('Cancelar este agendamento?')) return;
+  if (!await window.modal.confirm('Cancelar este agendamento?')) return;
   _avMudarStatus('cancelado');
 }
 
-function avReagendar() {
+async function avReagendar() {
   if (!avState.selecionado) return;
   const dt = new Date(avState.selecionado.data_agendamento);
   const iso = dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0')
     + 'T' + String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
-  const novo = prompt('Nova data e hora (AAAA-MM-DD HH:MM):', iso.replace('T',' '));
+  const novo = await window.modal.prompt('Nova data e hora (AAAA-MM-DD HH:MM):', 'Digite', {value: iso.replace('T',' ')});
   if (!novo) return;
   const novaData = new Date(novo.replace(' ','T'));
-  if (isNaN(novaData.getTime())) { alert('Formato inválido. Use AAAA-MM-DD HH:MM'); return; }
+  if (isNaN(novaData.getTime())) { window.modal.alert('Formato inválido. Use AAAA-MM-DD HH:MM'); return; }
   _avAplicarReagendamento(novaData);
 }
 
@@ -2583,7 +2877,7 @@ async function _avAplicarReagendamento(novaData) {
     const tipo = check.conflito?.tipo === 'bloqueio'
       ? 'um bloqueio na sua agenda'
       : 'outro agendamento';
-    if(!confirm(`⚠️ Conflito no novo horário: já existe ${tipo}.\n\nReagendar mesmo assim?`)){
+    if(!await window.modal.confirm(`⚠️ Conflito no novo horário: já existe ${tipo}.\n\nReagendar mesmo assim?`)){
       avFecharActions();
       return;
     }
@@ -2598,13 +2892,13 @@ async function _avAplicarReagendamento(novaData) {
     _avDesenhar();
     if (typeof carregarAgendaHoje === 'function') carregarAgendaHoje();
     if (typeof toastMsg === 'function')           toastMsg('✅ Reagendado');
-  } catch(e) { alert('Erro: ' + e.message); }
+  } catch(e) { window.modal.alert('Erro: ' + e.message); }
 }
 
 async function avDeletar() {
   if (!avState.selecionado) return;
-  if (!confirm('⚠️ DELETAR DEFINITIVAMENTE este agendamento?')) return;
-  if (!confirm('Tem certeza absoluta? Esta é a última confirmação.')) return;
+  if (!await window.modal.confirm('⚠️ DELETAR DEFINITIVAMENTE este agendamento?')) return;
+  if (!await window.modal.confirm('Tem certeza absoluta? Esta é a última confirmação.')) return;
   try {
     const { error } = await supabaseClient.from('agendamentos')
       .delete().eq('id', avState.selecionado.id);
@@ -2614,7 +2908,7 @@ async function avDeletar() {
     _avDesenhar();
     if (typeof carregarAgendaHoje === 'function') carregarAgendaHoje();
     if (typeof toastMsg === 'function')           toastMsg('🗑 Deletado');
-  } catch(e) { alert('Erro: ' + e.message); }
+  } catch(e) { window.modal.alert('Erro: ' + e.message); }
 }
 
 function avAbrirFicha() {
@@ -2660,6 +2954,1026 @@ document.addEventListener('keydown', (e) => {
     avFecharActions();
   }
 });
+
+
+
+// ═══════════════════════════════════════════════════════════
+// TENANT HELPER — busca e cacheia o tenant_id do terapeuta logado
+// ═══════════════════════════════════════════════════════════
+async function getTenantId(){
+  if(window._tenantId) return window._tenantId;
+  // 1) tenta do cache do localStorage
+  try{
+    const s = JSON.parse(localStorage.getItem('terapeuta_sessao')||'{}');
+    if(s.tenant_id){ window._tenantId = s.tenant_id; return window._tenantId; }
+    if(s.id && /^[0-9a-f]{8}-/i.test(s.id)){ window._tenantId = s.id; return window._tenantId; }
+  }catch(e){}
+  // 2) busca do banco
+  try{
+    const { data, error } = await supabaseClient
+      .from('terapeutas')
+      .select('id, tenant_id')
+      .eq('slug', THERAPIST_SLUG)
+      .maybeSingle();
+    if(error) throw error;
+    if(data){
+      window._tenantId = data.tenant_id || data.id || null;
+      return window._tenantId;
+    }
+  }catch(e){ console.warn('getTenantId falhou:', e.message); }
+  return null;
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// TIMELINE DO CLIENTE — aba 📜 Histórico
+// ═══════════════════════════════════════════════════════════
+function abrirTimelineCliente(){
+  if(!pacienteAtual){ return; }
+  const ident = pacienteAtual.origemid || pacienteAtual.id;
+  if(!ident){ return; }
+  carregarTimeline(ident);
+}
+
+async function carregarTimeline(ident){
+  const div = document.getElementById('listaHistorico');
+  if(!div) return;
+  div.innerHTML = '<p class="empty-state">Carregando histórico…</p>';
+
+  try{
+    // ── Resolver lead real (aceita id OU origemid) ──
+    let lead = (typeof leads !== 'undefined' && leads || []).find(l => l.id===ident || l.origemid===ident);
+    if(!lead){
+      const { data } = await supabaseClient
+        .from('leads')
+        .select('*')
+        .or(`id.eq.${ident},origemid.eq.${ident}`)
+        .limit(1)
+        .maybeSingle();
+      lead = data;
+    }
+    if(!lead){
+      div.innerHTML = '<p class="empty-state">Cliente não encontrado</p>';
+      return;
+    }
+
+    const origemid_real = lead.origemid || lead.id;
+    const slug = THERAPIST_SLUG;
+    const isUUID = s => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s||''));
+    const id_real = isUUID(lead.id) ? lead.id : null;
+
+    // ── OR composta ──
+    // O PostgREST aceita uma única or() combinando and()/or() internos.
+    // Encadear duas .or() no supabase-js SUBSTITUI — então montamos UMA só.
+
+    // agendamentos / pacotes: tem paciente_origemid (text) e paciente_id (uuid)
+    //   → filtra só por paciente_origemid. Se id_real for UUID, inclui paciente_id também.
+    const orClienteComum = id_real
+      ? `or(paciente_origemid.eq.${origemid_real},paciente_id.eq.${id_real})`
+      : `paciente_origemid.eq.${origemid_real}`;
+
+    // anamneses: tem client_id, paciente_origemid, paciente_id (todos text)
+    const orClienteAnamnese = id_real
+      ? `or(client_id.eq.${origemid_real},paciente_origemid.eq.${origemid_real},paciente_id.eq.${id_real})`
+      : `or(client_id.eq.${origemid_real},paciente_origemid.eq.${origemid_real})`;
+
+    const orSlug = `or(terapeuta_slug.eq.${slug},therapist_slug.eq.${slug})`;
+
+    const orAg      = `and(${orClienteComum},${orSlug})`;
+    const orPac     = `and(${orClienteComum},${orSlug})`;
+    const orAnamnese= `and(${orClienteAnamnese},${orSlug})`;
+
+    // ── 3 queries paralelas ──
+    const [rAg, rPac, rAn] = await Promise.all([
+      supabaseClient.from('agendamentos').select('*').or(orAg).limit(500),
+      supabaseClient.from('pacotes_financeiro').select('*').or(orPac).limit(500),
+      supabaseClient.from('anamneses').select('*').or(orAnamnese).limit(500),
+    ]);
+
+    const eventos = [];
+
+    // ── 1. Cadastro (do lead) ──
+    const dtCad = lead.data || lead.created_at;
+    if(dtCad){
+      eventos.push({
+        data: new Date(dtCad),
+        icone: '👤',
+        titulo: 'Cliente cadastrado',
+        detalhe: lead.nome ? `Nome: ${lead.nome}` : '',
+      });
+    }
+
+    // ── 2. Agendamentos ──
+    (rAg.data || []).forEach(a => {
+      const dt = a.data_agendamento || a.created_at;
+      if(!dt) return;
+      const st = String(a.status||'agendado').toLowerCase();
+      const tp = a.tipo || 'sessão';
+      const statusLabel = ({
+        confirmado:'confirmada', pendente:'pendente', cancelado:'cancelada',
+        realizado:'realizada', faltou:'falta', agendado:'agendada'
+      })[st] || st;
+      eventos.push({
+        data: new Date(dt),
+        icone: st === 'realizado' ? '✅' : st === 'cancelado' ? '❌' : st === 'faltou' ? '⚠️' : '📅',
+        titulo: `Sessão ${statusLabel} — ${tp}`,
+        detalhe: a.observacoes ? String(a.observacoes).slice(0,200) : '',
+      });
+    });
+
+    // ── 3. Pacotes ──
+    (rPac.data || []).forEach(p => {
+      const dt = p.created_at || p.data_venda;
+      if(!dt) return;
+      const valor = Number(p.valor_total || 0);
+      const usadas = Number(p.sessoes_usadas || 0);
+      const total = Number(p.sessoes_total || 0);
+      const valorFmt = valor.toLocaleString('pt-BR');
+      const detalhePartes = [];
+      if(valor) detalhePartes.push(`R$ ${valorFmt}`);
+      if(total) detalhePartes.push(`${usadas}/${total} sessões`);
+      if(p.forma_pagamento) detalhePartes.push(p.forma_pagamento);
+      if(p.status) detalhePartes.push(`status: ${p.status}`);
+      eventos.push({
+        data: new Date(dt),
+        icone: '💰',
+        titulo: `Pacote — ${p.descricao || 'sem descrição'}`,
+        detalhe: detalhePartes.join(' · '),
+      });
+    });
+
+    // ── 4. Anamneses ──
+    (rAn.data || []).forEach(an => {
+      const dt = an.created_at || an.data;
+      if(!dt) return;
+      eventos.push({
+        data: new Date(dt),
+        icone: '📝',
+        titulo: 'Anamnese preenchida',
+        detalhe: an.estado_problema ? String(an.estado_problema).slice(0,200) : '',
+      });
+    });
+
+    // ── Ordenar DESC ──
+    eventos.sort((a,b) => b.data - a.data);
+
+    if(!eventos.length){
+      div.innerHTML = '<p class="empty-state">Nenhum histórico ainda</p>';
+      return;
+    }
+
+    // ── Render ──
+    const fmtData = d => {
+      try{
+        const dd = new Date(d);
+        const dia = dd.toLocaleDateString('pt-BR');
+        const hora = dd.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+        return `${dia} às ${hora}`;
+      }catch(e){ return String(d); }
+    };
+
+    div.innerHTML = `
+      <div style="position:relative;padding-left:36px">
+        <div style="position:absolute;left:12px;top:6px;bottom:6px;width:2px;background:repeating-linear-gradient(to bottom,#e9d5ff 0,#e9d5ff 4px,transparent 4px,transparent 8px)"></div>
+        ${eventos.map(ev => `
+          <div style="position:relative;margin-bottom:14px">
+            <div style="position:absolute;left:-36px;top:6px;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid #7c3aed;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 6px rgba(124,58,237,.15)">${ev.icone}</div>
+            <div style="background:#fff;border:1.5px solid #f5e6cc;border-radius:12px;padding:11px 14px">
+              <div style="font-size:10.5px;color:#8a6a68;font-weight:800;letter-spacing:.3px;text-transform:uppercase">${fmtData(ev.data)}</div>
+              <div style="font-size:13px;font-weight:800;color:#1c3d38;margin-top:3px;line-height:1.3">${escapeHtml(ev.titulo)}</div>
+              ${ev.detalhe ? `<div style="font-size:11.5px;color:#8a6a68;margin-top:5px;line-height:1.45;word-break:break-word">${escapeHtml(ev.detalhe)}</div>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }catch(e){
+    console.error('carregarTimeline erro:', e);
+    div.innerHTML = `<p class="empty-state">Erro ao carregar histórico: ${escapeHtml(e.message||'desconhecido')}</p>`;
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// FIN-V7 — contas_receber, avulsa, semáforo, atrasados
+// ═══════════════════════════════════════════════════════════
+
+async function carregarContasReceber(ident){
+  const div = document.getElementById('listaContasReceber');
+  if(!div) return;
+  div.innerHTML = '<p class="empty-state">Carregando…</p>';
+  try{
+    const lead = (leads || []).find(l => l.id===ident || l.origemid===ident);
+    const origemid = (lead && lead.origemid) || ident;
+    if(!origemid){ div.innerHTML = '<p class="empty-state">Sem identificador</p>'; return; }
+    const {data, error} = await supabaseClient.from('contas_receber')
+      .select('*').eq('terapeuta_slug', THERAPIST_SLUG).eq('cliente_origemid', origemid)
+      .order('vencimento', {ascending:true});
+    if(error) throw error;
+    window._contasCliente = data || [];
+    renderContasReceber();
+  }catch(e){ div.innerHTML = `<p class="empty-state">Erro: ${escapeHtml(e.message)}</p>`; }
+}
+
+function renderContasReceber(){
+  const div = document.getElementById('listaContasReceber');
+  if(!div) return;
+  const lista = window._contasCliente || [];
+  if(!lista.length){ div.innerHTML = '<p class="empty-state">Nenhuma cobrança em aberto 💚</p>'; return; }
+  const hoje = new Date().toISOString().slice(0,10);
+  div.innerHTML = lista.map(c => {
+    const venc = c.vencimento;
+    const recebido = String(c.status||'').toLowerCase() === 'recebido';
+    const vencido = !recebido && venc && venc < hoje;
+    const venceHoje = !recebido && venc === hoje;
+    let cor='#f5e6cc', txtCor='#7c5a3c', label='PENDENTE';
+    if(recebido){ cor='#dcfce7'; txtCor='#166534'; label='RECEBIDO'; }
+    else if(vencido){ cor='#fee2e2'; txtCor='#991b1b'; label='ATRASADO'; }
+    else if(venceHoje){ cor='#fef3c7'; txtCor='#92400e'; label='VENCE HOJE'; }
+    const dtFmt = venc ? new Date(venc+'T00:00').toLocaleDateString('pt-BR') : '—';
+    const valor = Number(c.valor||0).toLocaleString('pt-BR');
+    const parc = (c.numero_parcela && c.total_parcelas) ? ` · P${c.numero_parcela}/${c.total_parcelas}` : '';
+    const btnCobrar = (!recebido && (vencido || venceHoje))
+      ? `<button onclick="xvAbrirCobrar('${escapeJs(c.id)}')" class="fin-mini-btn" title="Cobrar no WhatsApp" style="border-color:#bbf7d0;color:#16a34a">📲</button>`
+      : '';
+    const btn = recebido
+      ? `<button onclick="desfazerRecebimento('${escapeJs(c.id)}', event)" class="fin-mini-btn fin-mini-btn-reactivate" title="Desfazer">↩ Desfazer</button>`
+      : `<button onclick="receberParcela('${escapeJs(c.id)}', event)" class="btn-baixa" title="Marcar recebido">✓ Recebi</button>`;
+    return `<div class="fin-mini-card" style="margin-bottom:8px">
+      <div class="fin-mini-head"><span class="fin-mini-title">${escapeHtml(c.descricao||'Cobrança')}</span><span class="fin-mini-value">R$ ${valor}</span></div>
+      <div class="fin-mini-line"><span class="fin-mini-ico">📅</span>Vence ${dtFmt}${parc}</div>
+      <div class="fin-mini-pills" style="margin-top:6px"><span class="fin-pill" style="background:${cor};color:${txtCor}">${label}</span>${c.forma_pagamento?`<span class="fin-pill fin-pill-pay">${escapeHtml(c.forma_pagamento)}</span>`:''}</div>
+      <div class="fin-mini-actions">${btnCobrar}${btn}</div>
+    </div>`;
+  }).join('');
+}
+
+async function receberParcela(contaId, event){
+  if(event){ event.preventDefault(); event.stopPropagation(); }
+  if(!contaId) return;
+  const {data: conta, error: errC} = await supabaseClient.from('contas_receber').select('*').eq('id', contaId).maybeSingle();
+  if(errC || !conta){ window.modal.alert('Cobrança não encontrada'); return; }
+
+  const forma = await window.modal.prompt(
+    'Qual a forma de pagamento? (pix / cartao / dinheiro)',
+    'Forma de pagamento',
+    {value: conta.forma_pagamento || 'pix'}
+  );
+  if(forma === null) return;
+
+  const valorOriginal = Number(conta.valor||0);
+  const valorStr = await window.modal.prompt(
+    'Valor recebido (deixe vazio pra R$ ' + valorOriginal.toFixed(2) + '):',
+    'Valor recebido',
+    {value: ''}
+  );
+  if(valorStr === null) return;
+  let valorRecebido = valorOriginal;
+  if(valorStr && String(valorStr).trim()){
+    const v = Number(String(valorStr).replace(',','.').trim());
+    if(!isNaN(v) && v > 0) valorRecebido = v;
+  }
+
+  const ficouDevendo = valorRecebido < valorOriginal - 0.01;
+  const saldo = ficouDevendo ? (valorOriginal - valorRecebido) : 0;
+
+  // Se ficou devendo → pergunta o vencimento do saldo
+  let vencSaldo = null;
+  if(ficouDevendo){
+    vencSaldo = await xvEscolherVencimento(saldo);
+    if(!vencSaldo){
+      // usuário cancelou → aborta
+      return;
+    }
+  }
+
+  const tenantId = await getTenantId();
+  if(!tenantId) return window.modal.alert('Não consegui obter o tenant_id. Faça login de novo.');
+
+  const hoje = new Date().toISOString().slice(0,10);
+  let obs = null;
+  if(valorRecebido !== valorOriginal){
+    obs = `Original R$ ${valorOriginal.toFixed(2)} · recebido R$ ${valorRecebido.toFixed(2)}`;
+    if(ficouDevendo) obs += ` · saldo R$ ${saldo.toFixed(2)} vence em ${vencSaldo}`;
+  }
+
+  try{
+    // 1. Marca a conta como recebida com o valor efetivo
+    const {error: e1} = await supabaseClient.from('contas_receber').update({
+      status: 'recebido',
+      data_recebimento: hoje,
+      forma_pagamento: forma,
+      valor: valorRecebido
+    }).eq('id', contaId);
+    if(e1) throw e1;
+
+    // 2. Cria receita (caixa) com o valor recebido
+    const {data: recData, error: e2} = await supabaseClient.from('receitas').insert([{
+      tenant_id: tenantId,
+      cliente_origemid: conta.cliente_origemid, cliente_nome: conta.cliente_nome,
+      terapeuta_slug: THERAPIST_SLUG,
+      descricao: (conta.descricao||'Cobrança') + ' - Recebido',
+      valor: valorRecebido, data_receita: hoje, status: 'recebido', origem: 'parcela',
+      pacote_id: conta.pacote_id, forma_pagamento: forma, observacoes: obs
+    }]).select().single();
+    if(e2) throw e2;
+
+    // 3. Linka receita na conta
+    await supabaseClient.from('contas_receber').update({ receita_id: recData.id }).eq('id', contaId);
+
+    // 4. Se ficou saldo → cria nova cobrança com o vencimento escolhido
+    if(ficouDevendo && vencSaldo){
+      await supabaseClient.from('contas_receber').insert([{
+        tenant_id: tenantId,
+        cliente_origemid: conta.cliente_origemid, cliente_nome: conta.cliente_nome,
+        terapeuta_slug: THERAPIST_SLUG, pacote_id: conta.pacote_id,
+        descricao: (conta.descricao||'Cobrança') + ' - Saldo restante',
+        numero_parcela: conta.numero_parcela, total_parcelas: conta.total_parcelas,
+        valor: saldo, vencimento: vencSaldo, status: 'pendente'
+      }]);
+    }
+
+    if(pacienteAtual) await carregarContasReceber(pacienteAtual.origemid || pacienteAtual.id);
+    if(typeof carregarKPIs === 'function') carregarKPIs();
+    if(typeof renderFinanceiro === 'function') renderFinanceiro();
+    if(typeof calcularSemaforoAtual === 'function') calcularSemaforoAtual();
+    if(typeof carregarSemaforosClientes === 'function') carregarSemaforosClientes();
+
+    if(ficouDevendo){
+      const vencFmt = new Date(vencSaldo+'T00:00').toLocaleDateString('pt-BR');
+      await window.modal.alert(
+        `Recebido R$ ${valorRecebido.toFixed(2)}.\n\nSaldo de R$ ${saldo.toFixed(2)} foi reagendado pra ${vencFmt}.`,
+        'Recebimento parcial'
+      );
+    }
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
+}
+
+async function desfazerRecebimento(contaId, event){
+  if(event){ event.preventDefault(); event.stopPropagation(); }
+  if(!contaId) return;
+  if(!await window.modal.confirm('Desfazer este recebimento?')) return;
+  try{
+    const {data: conta} = await supabaseClient.from('contas_receber').select('receita_id').eq('id', contaId).maybeSingle();
+    if(conta && conta.receita_id){
+      await supabaseClient.from('receitas').delete().eq('id', conta.receita_id);
+    }
+    const {error} = await supabaseClient.from('contas_receber').update({status:'pendente', data_recebimento:null, receita_id:null, forma_pagamento:null}).eq('id', contaId);
+    if(error) throw error;
+    if(pacienteAtual) await carregarContasReceber(pacienteAtual.origemid || pacienteAtual.id);
+    if(typeof carregarKPIs === 'function') carregarKPIs();
+    if(typeof renderFinanceiro === 'function') renderFinanceiro();
+    if(typeof calcularSemaforoAtual === 'function') calcularSemaforoAtual();
+    if(typeof carregarSemaforosClientes === 'function') carregarSemaforosClientes();
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
+}
+
+async function abrirModalAvulsa(){
+  if(!pacienteAtual) return;
+  const vStr = await window.modal.prompt('Valor da sessão avulsa (R$):');
+  if(!vStr) return;
+  const v = Number(String(vStr).replace(',','.'));
+  if(isNaN(v) || v <= 0){ window.modal.alert('Valor inválido'); return; }
+  const recebidoAgora = await window.modal.confirm('Cliente pagou agora?\n\nOK = recebido agora\nCancelar = a receber');
+  let vencimento = null;
+  if(!recebidoAgora){
+    const venc = await window.modal.prompt('Vencimento (AAAA-MM-DD):', 'Digite', {value: new Date(Date.now()+7*86400000).toISOString().slice(0,10)});
+    if(!venc) return;
+    vencimento = venc;
+  }
+  const forma = recebidoAgora ? (await window.modal.prompt('Forma de pagamento? (pix/cartao/dinheiro)', 'Digite', {value: 'pix'}) || 'pix') : null;
+  const tenantId = await getTenantId();
+  if(!tenantId) return window.modal.alert('Não consegui obter o tenant_id. Faça login de novo.');
+  const hoje = new Date().toISOString().slice(0,10);
+  const origemid = pacienteAtual.origemid || pacienteAtual.id;
+  const nome = pacienteAtual.nome || '';
+  try{
+    if(recebidoAgora){
+      const {error} = await supabaseClient.from('receitas').insert([{
+        tenant_id: tenantId,
+        cliente_origemid: origemid, cliente_nome: nome, terapeuta_slug: THERAPIST_SLUG,
+        descricao: `Sessão avulsa - ${new Date().toLocaleDateString('pt-BR')}`,
+        valor: v, data_receita: hoje, status:'recebido', origem:'sessao_avulsa', forma_pagamento: forma
+      }]);
+      if(error) throw error;
+    } else {
+      const {error} = await supabaseClient.from('contas_receber').insert([{
+        tenant_id: tenantId,
+        cliente_origemid: origemid, cliente_nome: nome, terapeuta_slug: THERAPIST_SLUG,
+        descricao: 'Sessão avulsa', valor: v, vencimento, status:'pendente'
+      }]);
+      if(error) throw error;
+    }
+    window.modal.alert('✅ Registrado!');
+    await carregarContasReceber(origemid);
+    if(typeof carregarKPIs === 'function') carregarKPIs();
+    if(typeof renderFinanceiro === 'function') renderFinanceiro();
+    if(typeof calcularSemaforoAtual === 'function') calcularSemaforoAtual();
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
+}
+
+async function calcularSemaforo(origemid){
+  if(!origemid) return null;
+  try{
+    const {data, error} = await supabaseClient.from('contas_receber')
+      .select('status,vencimento').eq('terapeuta_slug', THERAPIST_SLUG)
+      .eq('cliente_origemid', origemid).eq('status','pendente');
+    if(error) throw error;
+    if(!data || !data.length) return 'verde';
+    const hoje = new Date().toISOString().slice(0,10);
+    return data.some(c => c.vencimento && c.vencimento < hoje) ? 'vermelho' : 'amarelo';
+  }catch(e){ return null; }
+}
+
+async function calcularSemaforoAtual(){
+  if(!pacienteAtual) return;
+  const span = document.getElementById('fichaSemaforo');
+  if(!span) return;
+  const cor = await calcularSemaforo(pacienteAtual.origemid || pacienteAtual.id);
+  if(!cor){ span.style.display='none'; return; }
+  const m = { verde:'#22c55e', amarelo:'#f59e0b', vermelho:'#ef4444' };
+  span.style.display = 'inline-block';
+  span.style.background = m[cor];
+}
+
+async function carregarSemaforosClientes(){
+  try{
+    const {data, error} = await supabaseClient.from('contas_receber')
+      .select('cliente_origemid,vencimento,status')
+      .eq('terapeuta_slug', THERAPIST_SLUG).eq('status','pendente');
+    if(error) throw error;
+    const hoje = new Date().toISOString().slice(0,10);
+    const mapa = {};
+    (data || []).forEach(c => {
+      const id = c.cliente_origemid;
+      if(!id) return;
+      const vencido = c.vencimento && c.vencimento < hoje;
+      if(!mapa[id] || vencido) mapa[id] = vencido ? 'vermelho' : 'amarelo';
+    });
+    window._semaforos = mapa;
+  }catch(e){ window._semaforos = {}; }
+}
+
+function _semaforoDot(lead){
+  const id = lead.origemid || lead.id;
+  const cor = (window._semaforos || {})[id];
+  if(!cor) return '';
+  const m = { verde:'#22c55e', amarelo:'#f59e0b', vermelho:'#ef4444' };
+  return `<span style="width:10px;height:10px;border-radius:50%;background:${m[cor]};flex-shrink:0;box-shadow:0 0 0 2px rgba(255,255,255,.35)" title="Financeiro: ${cor}"></span>`;
+}
+
+async function carregarAtrasadosFinanceiro(){
+  const div = document.getElementById('listaAtrasadosFin');
+  if(!div) return;
+  div.innerHTML = '<p class="empty-state">Carregando…</p>';
+  try{
+    const {data, error} = await supabaseClient.from('contas_receber')
+      .select('*').eq('terapeuta_slug', THERAPIST_SLUG).eq('status','pendente')
+      .order('vencimento', {ascending:true});
+    if(error) throw error;
+    const hoje = new Date().toISOString().slice(0,10);
+    const atrasadas = (data || []).filter(c => c.vencimento && c.vencimento < hoje);
+    const futuras   = (data || []).filter(c => c.vencimento && c.vencimento >= hoje);
+    if(!atrasadas.length && !futuras.length){ div.innerHTML = '<p class="empty-state">Nada em aberto 💚</p>'; return; }
+    const bloco = (titulo, lista, cor) => {
+      if(!lista.length) return '';
+      return `<div style="margin-top:10px"><div style="font-size:11px;font-weight:900;text-transform:uppercase;color:${cor};letter-spacing:.5px;margin-bottom:6px">${titulo} · ${lista.length}</div>${lista.map(c => {
+        const dt = c.vencimento ? new Date(c.vencimento+'T00:00').toLocaleDateString('pt-BR') : '—';
+        const valor = Number(c.valor||0).toLocaleString('pt-BR');
+        const idCli = c.cliente_origemid ? escapeJs(c.cliente_origemid) : '';
+        const nome = c.cliente_nome || 'Cliente';
+        const linkNome = idCli ? `<a href="#" onclick="event.preventDefault();abrirFichaEPacotes('${idCli}');return false;" class="fin-cli-link">${escapeHtml(nome)}</a>` : escapeHtml(nome);
+        return `<div class="fin-mini-card" style="margin-bottom:6px"><div class="fin-mini-head"><span class="fin-mini-title">${escapeHtml(c.descricao||'Cobrança')}</span><span class="fin-mini-value">R$ ${valor}</span></div><div class="fin-mini-line">👤 ${linkNome} · vence ${dt}</div></div>`;
+      }).join('')}</div>`;
+    };
+    div.innerHTML = bloco('🔴 Atrasado', atrasadas, '#dc2626') + bloco('📅 A receber', futuras, '#2563eb');
+  }catch(e){ div.innerHTML = `<p class="empty-state">Erro: ${escapeHtml(e.message)}</p>`; }
+}
+
+
+// modal-v1 — delta do spinner
+
+
+
+// form-v3 — spinner harmonioso
+
+
+
+
+
+function atualizarPacotePreco(){
+  const tipo=Number(document.getElementById('pacoteTipo')?.value||4);
+  const valorSessao=Number(document.getElementById('pacoteValorSessao')?.value||150);
+  const total=tipo*valorSessao;
+  const totalEl=document.getElementById('pacoteValor'); if(totalEl) totalEl.value=total;
+  const descEl=document.getElementById('pacoteDesc'); if(descEl){ if(!descEl.value||descEl.value.includes('sessões')) descEl.value=`Pacote de ${tipo} sessões`; }
+  // fix-spinner — atualiza o resumo visual verde
+  const rd=document.getElementById('pacoteResumoDesc');
+  if(rd) rd.textContent = tipo + (tipo===1 ? ' sessão' : ' sessões');
+  const rv=document.getElementById('pacoteResumoValor');
+  if(rv) rv.textContent = 'R$ ' + total.toLocaleString('pt-BR');
+}
+
+// fix-spinner — funções do spinner (reinseridas)
+function _pacoteTipoSet(n){
+  n = Math.max(1, Math.min(52, parseInt(n,10) || 1));
+  const hid = document.getElementById('pacoteTipo');
+  if(hid) hid.value = n;
+  const disp = document.getElementById('pacoteTipoDisplay');
+  if(disp && disp.textContent.trim() !== String(n)) disp.textContent = n;
+  if(typeof atualizarPacotePreco === 'function') atualizarPacotePreco();
+  return n;
+}
+function pacoteTipoDelta(delta){
+  const hid = document.getElementById('pacoteTipo');
+  const atual = parseInt((hid && hid.value) || '4', 10);
+  _pacoteTipoSet(atual + delta);
+}
+function pacoteTipoInput(el){
+  const limpo = String(el.textContent||'').replace(/[^0-9]/g,'').slice(0,2);
+  if(el.textContent !== limpo) el.textContent = limpo;
+  const n = parseInt(limpo,10);
+  if(!isNaN(n) && n >= 1 && n <= 52){
+    const hid = document.getElementById('pacoteTipo');
+    if(hid) hid.value = n;
+    if(typeof atualizarPacotePreco === 'function') atualizarPacotePreco();
+  }
+}
+function pacoteTipoBlur(el){
+  const n = parseInt(el.textContent,10);
+  _pacoteTipoSet(isNaN(n) ? 4 : n);
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// FECHAMENTO MVP — bloqueios + despesas + lembrete 24h
+// ═══════════════════════════════════════════════════════════
+
+// ─── BLOQUEIOS ───
+function _blqCorPorTipo(tipo){
+  const mapa = {
+    ferias: '#3b82f6',
+    folga: '#9ca3af',
+    pessoal: '#a855f7',
+    evento: '#f59e0b',
+    curso: '#06b6d4',
+    viagem: '#10b981',
+    compromisso: '#6b7280'
+  };
+  return mapa[tipo] || '#6b7280';
+}
+
+function blqAbrir(){
+  const hoje = new Date().toISOString().slice(0,10);
+  document.getElementById('blqTitulo').value = '';
+  document.getElementById('blqTipo').value = 'compromisso';
+  document.getElementById('blqInicio').value = hoje + 'T09:00';
+  document.getElementById('blqFim').value = hoje + 'T10:00';
+  document.getElementById('blqDiaInteiro').checked = false;
+  document.getElementById('blqCor').value = _blqCorPorTipo('compromisso');
+  document.getElementById('blqModal').classList.add('show');
+  setTimeout(()=>document.getElementById('blqTitulo').focus(), 250);
+}
+
+function blqFechar(){ document.getElementById('blqModal').classList.remove('show'); }
+
+function blqAtualizarCor(){
+  const tipo = document.getElementById('blqTipo').value;
+  document.getElementById('blqCor').value = _blqCorPorTipo(tipo);
+}
+
+function blqToggleDiaInteiro(){
+  const on = document.getElementById('blqDiaInteiro').checked;
+  const ini = document.getElementById('blqInicio');
+  const fim = document.getElementById('blqFim');
+  if(on){
+    const d1 = ini.value.split('T')[0] || new Date().toISOString().slice(0,10);
+    const d2 = fim.value.split('T')[0] || d1;
+    ini.value = d1 + 'T00:00';
+    fim.value = d2 + 'T23:59';
+  }
+}
+
+async function blqSalvar(){
+  const titulo = document.getElementById('blqTitulo').value.trim();
+  const tipo = document.getElementById('blqTipo').value;
+  const inicioStr = document.getElementById('blqInicio').value;
+  const fimStr = document.getElementById('blqFim').value;
+  const diaInteiro = document.getElementById('blqDiaInteiro').checked;
+  const cor = document.getElementById('blqCor').value;
+
+  if(!titulo) return window.modal.alert('Preencha o título');
+  if(!inicioStr || !fimStr) return window.modal.alert('Preencha início e fim');
+
+  const ini = new Date(inicioStr);
+  const fim = new Date(fimStr);
+  if(isNaN(ini.getTime()) || isNaN(fim.getTime())) return window.modal.alert('Data inválida');
+  if(fim <= ini) return window.modal.alert('Fim precisa ser depois do início');
+
+  // Se dia inteiro, força 00:00 → 23:59
+  let dataIni = ini, dataFim = fim;
+  if(diaInteiro){
+    dataIni = new Date(ini); dataIni.setHours(0,0,0,0);
+    dataFim = new Date(fim); dataFim.setHours(23,59,59,0);
+  }
+
+  const tenantId = await getTenantId();
+  if(!tenantId) return window.modal.alert('Erro: tenant_id não encontrado. Faça login novamente.');
+
+  try{
+    const {error} = await supabaseClient.from('bloqueios_horario').insert([{
+      tenant_id: tenantId,
+      terapeuta_slug: THERAPIST_SLUG,
+      titulo: titulo,
+      tipo: tipo,
+      data_inicio: dataIni.toISOString(),
+      data_fim: dataFim.toISOString(),
+      dia_inteiro: diaInteiro,
+      cor: cor
+    }]);
+    if(error) throw error;
+    blqFechar();
+    await carregarBloqueios();
+    await renderAgendaVisual(true);
+    if(typeof toastMsg === 'function') toastMsg('✅ Bloqueio criado');
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
+}
+
+async function carregarBloqueios(){
+  const div = document.getElementById('blqLista');
+  if(!div) return;
+  try{
+    const agora = new Date();
+    const iniMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
+    const fimMes = new Date(agora.getFullYear(), agora.getMonth()+1, 1).toISOString();
+
+    const {data, error} = await supabaseClient.from('bloqueios_horario')
+      .select('*')
+      .or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`)
+      .gte('data_fim', iniMes)
+      .lt('data_inicio', fimMes)
+      .order('data_inicio', {ascending: true});
+    if(error) throw error;
+    window._bloqueios = data || [];
+    renderBloqueios();
+  }catch(e){
+    console.warn('carregarBloqueios:', e.message);
+    div.innerHTML = '<p class="empty-state">Erro: ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+function renderBloqueios(){
+  const div = document.getElementById('blqLista');
+  const cnt = document.getElementById('blqCount');
+  if(!div) return;
+  const lista = window._bloqueios || [];
+  if(cnt) cnt.innerText = lista.length;
+
+  if(!lista.length){
+    div.innerHTML = '<p class="empty-state">Nenhum bloqueio neste mês</p>';
+    return;
+  }
+  div.innerHTML = lista.map(b => {
+    const ini = new Date(b.data_inicio);
+    const fim = new Date(b.data_fim);
+    const dtIni = ini.toLocaleDateString('pt-BR');
+    const dtFim = fim.toLocaleDateString('pt-BR');
+    const hIni = String(ini.getHours()).padStart(2,'0') + ':' + String(ini.getMinutes()).padStart(2,'0');
+    const hFim = String(fim.getHours()).padStart(2,'0') + ':' + String(fim.getMinutes()).padStart(2,'0');
+    const mesmoDia = dtIni === dtFim;
+    const quando = b.dia_inteiro
+      ? (mesmoDia ? dtIni + ' (dia inteiro)' : dtIni + ' → ' + dtFim + ' (dia inteiro)')
+      : (mesmoDia ? dtIni + ' ' + hIni + ' → ' + hFim : dtIni + ' ' + hIni + ' → ' + dtFim + ' ' + hFim);
+    const c = b.cor || '#6b7280';
+    return `<div class="fin-mini-card" style="margin-bottom:6px;border-left:4px solid ${c}">
+      <div class="fin-mini-head">
+        <span class="fin-mini-title">${escapeHtml(b.titulo)}</span>
+        <span class="fin-pill" style="background:${c}22;color:${c}">${escapeHtml(b.tipo||'')}</span>
+      </div>
+      <div class="fin-mini-line"><span class="fin-mini-ico">📅</span>${escapeHtml(quando)}</div>
+      <div class="fin-mini-actions">
+        <button class="fin-mini-btn fin-mini-btn-delete" onclick="deletarBloqueio('${escapeJs(b.id)}', event)">🗑 Deletar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deletarBloqueio(id, event){
+  if(event){ event.preventDefault(); event.stopPropagation(); }
+  const ok = await window.modal.confirm('Deletar este bloqueio?\n\nA agenda vai ficar livre nesse horário.', 'Confirmar', {danger: true});
+  if(!ok) return;
+  try{
+    const {error} = await supabaseClient.from('bloqueios_horario').delete().eq('id', id);
+    if(error) throw error;
+    await carregarBloqueios();
+    await renderAgendaVisual(true);
+    if(typeof toastMsg === 'function') toastMsg('🗑 Bloqueio removido');
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
+}
+
+async function blqVerDetalhes(id){
+  const b = (avState.eventos || []).find(x => x._tipo === 'bloqueio' && x.id === id);
+  if(!b) return;
+  const ini = new Date(b.data_inicio);
+  const fim = new Date(b.data_fim);
+  const msg = `🚫 ${b.titulo}\n\nTipo: ${b.tipo}\nDe: ${ini.toLocaleString('pt-BR')}\nAté: ${fim.toLocaleString('pt-BR')}\n\nDeseja deletar este bloqueio?`;
+  const ok = await window.modal.confirm(msg, 'Bloqueio', {danger: true});
+  if(ok) deletarBloqueio(b.id, null);
+}
+
+// ─── DESPESAS ───
+async function carregarCategoriasDespesas(){
+  try{
+    const {data} = await supabaseClient.from('categorias_financeiras')
+      .select('id, nome')
+      .or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`)
+      .eq('tipo', 'despesa')
+      .order('nome');
+    window._categoriasDesp = data || [];
+  }catch(e){
+    window._categoriasDesp = [];
+  }
+  const sel = document.getElementById('despCategoria');
+  if(!sel) return;
+  const cats = window._categoriasDesp;
+  sel.innerHTML = '<option value="">Sem categoria</option>' +
+    cats.map(c => `<option value="${escapeHtml(c.nome)}">${escapeHtml(c.nome)}</option>`).join('') +
+    '<option value="__outra">➕ Outra…</option>';
+}
+
+function despCategoriaChange(){
+  const sel = document.getElementById('despCategoria');
+  const inp = document.getElementById('despCategoriaOutra');
+  if(!sel || !inp) return;
+  inp.style.display = sel.value === '__outra' ? 'block' : 'none';
+  if(sel.value === '__outra') setTimeout(()=>inp.focus(), 100);
+}
+
+function _despMesAtual(){
+  const el = document.getElementById('despMesFiltro');
+  if(el && el.value) return el.value;
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+async function carregarDespesas(){
+  const div = document.getElementById('despLista');
+  if(!div) return;
+  const mes = _despMesAtual();
+  const [anoS, mesS] = mes.split('-');
+  const ano = parseInt(anoS, 10);
+  const mesN = parseInt(mesS, 10);
+  const ini = new Date(ano, mesN-1, 1).toISOString().slice(0,10);
+  const fim = new Date(ano, mesN, 0).toISOString().slice(0,10);
+
+  try{
+    const {data, error} = await supabaseClient.from('despesas')
+      .select('*')
+      .or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`)
+      .gte('data_despesa', ini)
+      .lte('data_despesa', fim)
+      .order('data_despesa', {ascending: false});
+    if(error) throw error;
+    window._despesas = data || [];
+    renderDespesas();
+  }catch(e){
+    console.warn('carregarDespesas:', e.message);
+    div.innerHTML = '<p class="empty-state">Erro: ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+function renderDespesas(){
+  const div = document.getElementById('despLista');
+  const totalEl = document.getElementById('despTotal');
+  if(!div) return;
+  const lista = window._despesas || [];
+  const total = lista.reduce((s,d) => s + Number(d.valor||0), 0);
+
+  if(totalEl){
+    const fmt = total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    totalEl.innerHTML = `<span style="font-weight:900;color:#dc2626">Total do mês: R$ ${fmt}</span>`;
+  }
+
+  if(!lista.length){
+    div.innerHTML = '<p class="empty-state">Nenhuma despesa neste mês</p>';
+    return;
+  }
+
+  div.innerHTML = lista.map(d => {
+    const dt = d.data_despesa ? new Date(d.data_despesa + 'T00:00').toLocaleDateString('pt-BR') : '—';
+    const valor = Number(d.valor||0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    return `<div class="fin-mini-card" style="margin-bottom:6px">
+      <div class="fin-mini-head">
+        <span class="fin-mini-title">${escapeHtml(d.descricao)}</span>
+        <span class="fin-mini-value" style="color:#dc2626">R$ ${valor}</span>
+      </div>
+      <div class="fin-mini-line"><span class="fin-mini-ico">📅</span>${dt}${d.categoria ? ' · ' + escapeHtml(d.categoria) : ''}</div>
+      <div class="fin-mini-actions">
+        <button class="fin-mini-btn fin-mini-btn-delete" onclick="deletarDespesa('${escapeJs(d.id)}', event)">🗑 Deletar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function criarDespesa(){
+  const descricao = document.getElementById('despDescricao')?.value.trim();
+  const valor = Number(document.getElementById('despValor')?.value || 0);
+  const data = document.getElementById('despData')?.value;
+  let categoria = document.getElementById('despCategoria')?.value;
+  const categoriaOutra = document.getElementById('despCategoriaOutra')?.value.trim();
+
+  if(!descricao) return window.modal.alert('Preencha a descrição');
+  if(!valor || valor <= 0) return window.modal.alert('Preencha um valor maior que zero');
+  if(!data) return window.modal.alert('Preencha a data');
+  if(categoria === '__outra') categoria = categoriaOutra || 'Outros';
+
+  const tenantId = await getTenantId();
+  if(!tenantId) return window.modal.alert('Erro: tenant_id não encontrado');
+
+  try{
+    const {error} = await supabaseClient.from('despesas').insert([{
+      tenant_id: tenantId,
+      terapeuta_slug: THERAPIST_SLUG,
+      descricao: descricao,
+      valor: valor,
+      data_despesa: data,
+      status: 'pago',
+      categoria: categoria || null
+    }]);
+    if(error) throw error;
+
+    document.getElementById('despDescricao').value = '';
+    document.getElementById('despValor').value = '';
+    document.getElementById('despCategoria').value = '';
+    document.getElementById('despCategoriaOutra').value = '';
+    document.getElementById('despCategoriaOutra').style.display = 'none';
+
+    await carregarDespesas();
+    if(typeof carregarKPIs === 'function') carregarKPIs();
+    if(typeof toastMsg === 'function') toastMsg('✅ Despesa registrada');
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
+}
+
+async function deletarDespesa(id, event){
+  if(event){ event.preventDefault(); event.stopPropagation(); }
+  const ok = await window.modal.confirm('Deletar esta despesa?', 'Confirmar', {danger: true});
+  if(!ok) return;
+  try{
+    const {error} = await supabaseClient.from('despesas').delete().eq('id', id);
+    if(error) throw error;
+    await carregarDespesas();
+    if(typeof carregarKPIs === 'function') carregarKPIs();
+  }catch(e){ window.modal.alert('Erro: ' + e.message); }
+}
+
+// ─── LEMBRETE 24H ───
+function _normalizarWhats(whats){
+  const nums = String(whats||'').replace(/\D/g,'');
+  if(!nums) return '';
+  if(nums.length === 13) return nums;
+  if(nums.length === 12) return nums;
+  if(nums.length === 11) return '55' + nums;
+  if(nums.length === 10) return '55' + nums;
+  return nums;
+}
+
+async function lmbAbrir(){
+  const overlay = document.getElementById('lmbOverlay');
+  const sub = document.getElementById('lmbSub');
+  const lista = document.getElementById('lmbLista');
+  if(!overlay) return;
+  sub.textContent = 'Carregando consultas…';
+  lista.innerHTML = '';
+  document.getElementById('lmbAbrirTodos').style.display = 'none';
+  overlay.classList.add('show');
+
+  try{
+    const amanha = new Date();
+    amanha.setDate(amanha.getDate() + 1);
+    const amanhaIso = amanha.toISOString().slice(0,10);
+
+    const {data, error} = await supabaseClient.from('agendamentos')
+      .select('*')
+      .or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`)
+      .gte('data_agendamento', amanhaIso + 'T00:00:00')
+      .lt('data_agendamento', amanhaIso + 'T23:59:59')
+      .order('data_agendamento', {ascending: true});
+    if(error) throw error;
+
+    const ags = (data || []).filter(a => (a.status||'').toLowerCase() !== 'cancelado');
+    window._lmbAgs = ags;
+
+    if(!ags.length){
+      sub.innerHTML = 'Nenhuma consulta amanhã ✨';
+      return;
+    }
+
+    sub.innerHTML = `<b>${ags.length}</b> consulta${ags.length>1?'s':''} amanhã — confere a mensagem e clica em abrir:`;
+    document.getElementById('lmbAbrirTodos').style.display = 'inline-block';
+    renderLembreteLista(ags);
+  }catch(e){
+    sub.textContent = 'Erro: ' + e.message;
+  }
+}
+
+function renderLembreteLista(ags){
+  const lista = document.getElementById('lmbLista');
+  if(!lista) return;
+  const terapeutaNome = (typeof TERAPEUTA_DATA !== 'undefined' && TERAPEUTA_DATA && TERAPEUTA_DATA.nome)
+    ? TERAPEUTA_DATA.nome.split(' ')[0] : 'sua terapeuta';
+
+  lista.innerHTML = ags.map(a => {
+    const lead = (leads||[]).find(l => l.origemid === a.paciente_origemid || l.id === a.paciente_id || l.id === a.paciente_origemid);
+    const nome = lead ? lead.nome : (a.paciente_nome || 'Cliente');
+    const whats = lead ? (lead.whatsapp || '') : '';
+    const dt = new Date(a.data_agendamento);
+    const hora = String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+    const dataFmt = dt.toLocaleDateString('pt-BR');
+
+    const msg = `Olá ${nome.split(' ')[0]}! 😊\n\nPassando pra confirmar nossa sessão amanhã (${dataFmt} às ${hora}).\n\nVocê pode me confirmar?\n\n— ${terapeutaNome}`;
+    const whatsOk = _normalizarWhats(whats);
+    const semWhats = !whatsOk;
+
+    return `<div class="fin-mini-card" style="margin-bottom:10px">
+      <div class="fin-mini-head">
+        <span class="fin-mini-title">${escapeHtml(nome)}</span>
+        <span class="fin-pill fin-pill-ok">${hora}</span>
+      </div>
+      <div class="fin-mini-line">${whatsOk ? '📱 ' + escapeHtml(whatsOk) : '⚠️ Sem WhatsApp cadastrado na ficha'}</div>
+      <textarea data-lmb-msg="${escapeHtml(a.id)}" style="width:100%;margin-top:8px;padding:10px 12px;border-radius:10px;border:1.5px solid #e9d5ff;background:#fef9f6;font-family:inherit;font-size:12px;line-height:1.45;outline:none;color:#1c3d38;resize:vertical;min-height:100px">${escapeHtml(msg)}</textarea>
+      <div class="fin-mini-actions" style="margin-top:8px">
+        ${semWhats
+          ? '<span style="font-size:11px;color:#dc2626;font-weight:700">Cadastre o WhatsApp na ficha primeiro</span>'
+          : `<button class="fin-mini-btn fin-mini-btn-reactivate" onclick="lmbAbrirUm('${escapeJs(a.id)}', '${escapeJs(whatsOk)}')">📲 Abrir WhatsApp</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function lmbFechar(){
+  document.getElementById('lmbOverlay').classList.remove('show');
+}
+
+function lmbAbrirUm(agId, whats){
+  const ta = document.querySelector(`[data-lmb-msg="${agId}"]`);
+  const msg = ta ? ta.value : '';
+  const url = 'https://wa.me/' + whats + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
+async function lmbAbrirTodos(){
+  const ags = window._lmbAgs || [];
+  let abertos = 0;
+  let pulados = 0;
+
+  for(let i = 0; i < ags.length; i++){
+    const a = ags[i];
+    const lead = (leads||[]).find(l => l.origemid === a.paciente_origemid || l.id === a.paciente_id || l.id === a.paciente_origemid);
+    const whats = _normalizarWhats(lead ? lead.whatsapp : '');
+    if(!whats){ pulados++; continue; }
+
+    const ta = document.querySelector(`[data-lmb-msg="${a.id}"]`);
+    const msg = ta ? ta.value : '';
+    const url = 'https://wa.me/' + whats + '?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
+    abertos++;
+
+    // Delay pra não tomar block de popup
+    await new Promise(r => setTimeout(r, 700));
+  }
+
+  if(abertos === 0){
+    await window.modal.alert('Nenhum cliente com WhatsApp cadastrado.');
+  } else if(pulados > 0){
+    await window.modal.alert(`Abri ${abertos} WhatsApp(s). ${pulados} cliente(s) sem WhatsApp cadastrado foram ignorados.`);
+  }
+}
+
+async function lmbAtualizarContador(){
+  const btn = document.getElementById('lmbBtnAgenda');
+  if(!btn) return;
+  try{
+    const amanha = new Date();
+    amanha.setDate(amanha.getDate() + 1);
+    const amanhaIso = amanha.toISOString().slice(0,10);
+    const {data} = await supabaseClient.from('agendamentos')
+      .select('id, status')
+      .or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`)
+      .gte('data_agendamento', amanhaIso + 'T00:00:00')
+      .lt('data_agendamento', amanhaIso + 'T23:59:59');
+    const ags = (data || []).filter(a => (a.status||'').toLowerCase() !== 'cancelado');
+    const n = ags.length;
+    if(n > 0){
+      btn.textContent = `📲 Lembrar amanhã (${n})`;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    } else {
+      btn.textContent = `📲 Lembrar amanhã`;
+      btn.disabled = true;
+      btn.style.opacity = '.4';
+    }
+  }catch(e){}
+}
 
 window.addEventListener('load',()=>{ checkAuth() && carregarDados(); });
 </script>
@@ -2758,6 +4072,404 @@ window.addEventListener('load',()=>{ checkAuth() && carregarDados(); });
     <button class="av-close" onclick="avFecharActions()">Fechar</button>
   </div>
 </div>
+
+
+
+<!-- ===== modal-v1 ===== -->
+<style>
+.mv1-overlay{
+  position:fixed;inset:0;z-index:99999;
+  background:rgba(28,61,56,.55);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;opacity:0;pointer-events:none;
+  transition:opacity .25s ease;
+}
+.mv1-overlay.show{opacity:1;pointer-events:auto}
+.mv1-card{
+  background:#fff;border-radius:24px;padding:26px 24px 20px;
+  max-width:420px;width:100%;
+  box-shadow:0 24px 60px rgba(0,0,0,.25);
+  transform:scale(.9);transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  border:1.5px solid #f5e6cc;
+}
+.mv1-overlay.show .mv1-card{transform:scale(1)}
+.mv1-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:24px;font-weight:700;color:#1c3d38;
+  margin-bottom:8px;line-height:1.15;
+}
+.mv1-msg{
+  font-size:13.5px;color:#5a2a28;line-height:1.55;
+  margin-bottom:16px;white-space:pre-wrap;word-break:break-word;
+}
+.mv1-input{
+  width:100%;padding:12px 14px;border-radius:12px;
+  border:1.5px solid #e9d5ff;background:#fef9f6;
+  font-family:inherit;font-size:14px;outline:none;
+  color:#1c3d38;margin-bottom:16px;transition:.2s;
+}
+.mv1-input:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.mv1-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.mv1-btn{
+  padding:11px 20px;border-radius:12px;border:none;
+  font-family:inherit;font-weight:800;font-size:13px;
+  cursor:pointer;transition:.2s;min-width:90px;
+}
+.mv1-btn:hover{transform:translateY(-1px)}
+.mv1-btn:active{transform:scale(.97)}
+.mv1-btn-cancel{background:#fff;color:#6b7280;border:1.5px solid #e5e7eb}
+.mv1-btn-cancel:hover{background:#f9fafb;color:#374151}
+.mv1-btn-ok{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 12px rgba(124,58,237,.3)}
+.mv1-btn-ok:hover{box-shadow:0 6px 16px rgba(124,58,237,.45)}
+.mv1-btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.mv1-btn-danger:hover{box-shadow:0 6px 16px rgba(239,68,68,.45)}
+.mv1-btn-ok:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+</style>
+
+<div id="mv1Overlay" class="mv1-overlay">
+  <div class="mv1-card">
+    <div id="mv1Title" class="mv1-title">Confirmação</div>
+    <div id="mv1Msg" class="mv1-msg"></div>
+    <input id="mv1Input" class="mv1-input" type="text" style="display:none">
+    <div class="mv1-actions">
+      <button id="mv1BtnCancel" class="mv1-btn mv1-btn-cancel" style="display:none">Cancelar</button>
+      <button id="mv1BtnOk" class="mv1-btn mv1-btn-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// modal-v1
+(function(){
+  const ov = document.getElementById('mv1Overlay');
+  const elTitle = document.getElementById('mv1Title');
+  const elMsg = document.getElementById('mv1Msg');
+  const elInput = document.getElementById('mv1Input');
+  const btnOk = document.getElementById('mv1BtnOk');
+  const btnCancel = document.getElementById('mv1BtnCancel');
+
+  let _resolver = null;
+  let _tipo = 'alert';
+
+  function _fechar(valor){
+    ov.classList.remove('show');
+    const r = _resolver; _resolver = null;
+    // pequeno delay pra animação
+    setTimeout(()=>{ if(r) r(valor); }, 150);
+  }
+
+  btnOk.addEventListener('click', ()=>{
+    if(_tipo === 'prompt') _fechar(elInput.value);
+    else _fechar(true);
+  });
+  btnCancel.addEventListener('click', ()=>{
+    if(_tipo === 'prompt') _fechar(null);
+    else _fechar(false);
+  });
+  elInput.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); btnOk.click(); }
+    if(e.key === 'Escape'){ e.preventDefault(); btnCancel.click(); }
+  });
+  document.addEventListener('keydown', e=>{
+    if(!ov.classList.contains('show')) return;
+    if(e.key === 'Escape'){ e.preventDefault(); btnCancel.click(); }
+  });
+
+  function _abrir(tipo, titulo, msg, opts){
+    opts = opts || {};
+    _tipo = tipo;
+    elTitle.textContent = titulo || (tipo==='alert'?'Aviso':tipo==='confirm'?'Confirmar':'Digite');
+    elMsg.textContent = msg || '';
+    elMsg.style.display = msg ? 'block' : 'none';
+
+    if(tipo === 'prompt'){
+      elInput.style.display = 'block';
+      elInput.type = opts.password ? 'password' : 'text';
+      elInput.placeholder = opts.placeholder || '';
+      elInput.value = opts.value || '';
+      setTimeout(()=>{ elInput.focus(); elInput.select(); }, 250);
+    } else {
+      elInput.style.display = 'none';
+    }
+
+    btnCancel.style.display = (tipo === 'alert') ? 'none' : 'inline-block';
+    btnOk.textContent = opts.okText || (tipo==='confirm'?'Confirmar':tipo==='prompt'?'Enviar':'OK');
+    btnOk.className = 'mv1-btn ' + (opts.danger ? 'mv1-btn-danger' : 'mv1-btn-ok');
+    if(opts.cancelText) btnCancel.textContent = opts.cancelText;
+
+    ov.classList.add('show');
+    return new Promise(res => { _resolver = res; });
+  }
+
+  // API global
+  window.modal = {
+    alert:   (msg, titulo, opts)  => _abrir('alert',   titulo || 'Aviso',       msg,    opts),
+    confirm: (msg, titulo, opts)  => _abrir('confirm', titulo || 'Confirmar',   msg,    opts),
+    prompt:  (msg, titulo, opts)  => _abrir('prompt',  titulo || 'Digite',      msg,    opts || {}),
+  };
+})();
+</script>
+<!-- ===== /modal-v1 ===== -->
+
+
+<!-- ===== cobranca-vencimento-v1 ===== -->
+<style>
+.xv-overlay{
+  position:fixed;inset:0;z-index:99998;
+  background:rgba(28,61,56,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .25s ease;
+}
+.xv-overlay.show{opacity:1;pointer-events:auto}
+.xv-card{
+  background:#fff;border-radius:24px;padding:26px 24px 20px;
+  max-width:460px;width:100%;border:1.5px solid #f5e6cc;
+  box-shadow:0 24px 60px rgba(0,0,0,.25);
+  transform:scale(.9);transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.xv-overlay.show .xv-card{transform:scale(1)}
+.xv-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#1c3d38;margin-bottom:8px;line-height:1.15}
+.xv-msg{font-size:13.5px;color:#5a2a28;line-height:1.55;margin-bottom:14px;white-space:pre-wrap;word-break:break-word}
+.xv-msg b{color:#15803d;font-weight:900}
+.xv-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.xv-shortcut{
+  padding:12px 6px;border-radius:12px;border:1.5px solid #e9d5ff;
+  background:#faf5ff;color:#7c3aed;font-family:inherit;font-weight:800;
+  font-size:12px;cursor:pointer;transition:.15s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+}
+.xv-shortcut small{font-size:9px;opacity:.7;font-weight:700;letter-spacing:.3px}
+.xv-shortcut:hover{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.xv-shortcut:hover small{opacity:.85}
+.xv-outra{
+  width:100%;padding:12px;border-radius:12px;border:1.5px dashed #e9d5ff;
+  background:#fff;color:#7c3aed;font-family:inherit;font-weight:800;font-size:12px;
+  cursor:pointer;transition:.15s;margin-bottom:14px;
+}
+.xv-outra:hover{background:#faf5ff;border-style:solid}
+.xv-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.xv-btn{padding:11px 20px;border-radius:12px;border:none;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;transition:.2s;min-width:90px}
+.xv-btn:hover{transform:translateY(-1px)}
+.xv-btn-cancel{background:#fff;color:#6b7280;border:1.5px solid #e5e7eb}
+.xv-btn-cancel:hover{background:#f9fafb}
+
+.xc-textarea{
+  width:100%;min-height:120px;padding:12px 14px;border-radius:12px;
+  border:1.5px solid #e9d5ff;background:#fef9f6;font-family:inherit;font-size:13px;
+  line-height:1.5;outline:none;color:#1c3d38;resize:vertical;margin-bottom:14px;
+}
+.xc-textarea:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.xc-btn-send{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 12px rgba(34,197,94,.3)}
+.xc-btn-send:hover{box-shadow:0 6px 16px rgba(34,197,94,.45)}
+.xc-hint{font-size:11px;color:#8a6a68;margin-top:8px;font-style:italic}
+</style>
+
+<!-- Modal: escolher vencimento do saldo restante -->
+<div id="xvVencOverlay" class="xv-overlay">
+  <div class="xv-card">
+    <div class="xv-title">Quando vence o restante?</div>
+    <div class="xv-msg" id="xvVencMsg">Saldo em aberto: <b>R$ 0,00</b></div>
+    <div class="xv-row">
+      <button class="xv-shortcut" onclick="xvEscolherVenc(1)">Amanhã<small>+1 dia</small></button>
+      <button class="xv-shortcut" onclick="xvEscolherVenc(7)">Semana<small>+7 dias</small></button>
+      <button class="xv-shortcut" onclick="xvEscolherVenc(15)">Quinzena<small>+15 dias</small></button>
+      <button class="xv-shortcut" onclick="xvEscolherVenc(30)">Mês<small>+30 dias</small></button>
+    </div>
+    <button class="xv-outra" onclick="xvOutraData()">📅 Outra data…</button>
+    <div class="xv-actions">
+      <button class="xv-btn xv-btn-cancel" onclick="xvCancelarVenc()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: cobrar via WhatsApp -->
+<div id="xvCobrarOverlay" class="xv-overlay">
+  <div class="xv-card">
+    <div class="xv-title">Cobrar via WhatsApp</div>
+    <div class="xv-msg">Confere a mensagem antes de abrir o WhatsApp:</div>
+    <textarea id="xvCobrarMsg" class="xc-textarea"></textarea>
+    <div class="xv-actions">
+      <button class="xv-btn xv-btn-cancel" onclick="xvCancelarCobrar()">Cancelar</button>
+      <button class="xv-btn xc-btn-send" onclick="xvEnviarCobrar()">📲 Abrir WhatsApp</button>
+    </div>
+    <div class="xc-hint">A mensagem abre no WhatsApp já pronta. Você decide se envia.</div>
+  </div>
+</div>
+
+<script>
+// cobranca-vencimento-v1
+let _xvVencResolver = null;
+let _xvCobrarConta = null;
+
+// ── VENCIMENTO ──
+function xvEscolherVencimento(valorSaldo){
+  return new Promise(resolve => {
+    _xvVencResolver = resolve;
+    const msgEl = document.getElementById('xvVencMsg');
+    if(msgEl){
+      const fmt = Number(valorSaldo||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+      msgEl.innerHTML = 'Saldo em aberto: <b>R$ ' + fmt + '</b><br><span style="color:#8a6a68;font-size:12px">Escolhe quando o cliente vai pagar o restante:</span>';
+    }
+    document.getElementById('xvVencOverlay').classList.add('show');
+  });
+}
+
+function _xvFecharVenc(valor){
+  const r = _xvVencResolver; _xvVencResolver = null;
+  document.getElementById('xvVencOverlay').classList.remove('show');
+  if(r) r(valor);
+}
+
+function xvEscolherVenc(dias){
+  const d = new Date();
+  d.setDate(d.getDate() + dias);
+  _xvFecharVenc(d.toISOString().slice(0,10));
+}
+
+function xvCancelarVenc(){
+  _xvFecharVenc(null);
+}
+
+async function xvOutraData(){
+  const hoje = new Date().toISOString().slice(0,10);
+  // Esconde o modal de vencimento temporariamente (sem resolver ainda)
+  document.getElementById('xvVencOverlay').classList.remove('show');
+  await new Promise(r => setTimeout(r, 200));
+  const dt = await window.modal.prompt('Digite a data (AAAA-MM-DD):', 'Outra data', {value: hoje});
+  if(dt && /^\d{4}-\d{2}-\d{2}$/.test(dt)){
+    // Data válida → resolve com ela
+    _xvFecharVenc(dt);
+  } else {
+    // Cancelou ou inválido → reabre o modal de vencimento
+    document.getElementById('xvVencOverlay').classList.add('show');
+  }
+}
+
+// ── COBRAR ──
+function xvAbrirCobrar(contaId){
+  const conta = (window._contasCliente || []).find(c => String(c.id) === String(contaId));
+  if(!conta){ window.modal.alert('Cobrança não encontrada'); return; }
+
+  const lead = (leads||[]).find(l => l.origemid === conta.cliente_origemid || l.id === conta.cliente_origemid);
+  const whats = lead ? String(lead.whatsapp||'').replace(/\D/g,'') : '';
+  if(!whats){ window.modal.alert('Esse cliente não tem WhatsApp cadastrado na ficha.'); return; }
+
+  const nomeCompleto = (conta.cliente_nome || lead?.nome || '').trim();
+  const primeiroNome = nomeCompleto.split(' ')[0] || 'olá';
+  const nomeTerapeuta = (typeof TERAPEUTA_DATA !== 'undefined' && TERAPEUTA_DATA && TERAPEUTA_DATA.nome)
+    ? TERAPEUTA_DATA.nome.split(' ')[0] : 'sua terapeuta';
+  const vencFmt = conta.vencimento ? new Date(conta.vencimento+'T00:00').toLocaleDateString('pt-BR') : '';
+  const valorFmt = Number(conta.valor||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const descricao = conta.descricao || 'sessão';
+
+  const msg = `Oi ${primeiroNome}! 💜\n\nPassando pra lembrar da cobrança de R$ ${valorFmt} (${descricao}) que venceu em ${vencFmt}.\n\nQuando puder, me avisa — a gente combina a forma de pagamento.\n\n— ${nomeTerapeuta}`;
+
+  document.getElementById('xvCobrarMsg').value = msg;
+  _xvCobrarConta = conta;
+  document.getElementById('xvCobrarOverlay').classList.add('show');
+  setTimeout(()=>{ const ta = document.getElementById('xvCobrarMsg'); if(ta){ ta.focus(); ta.setSelectionRange(0,0); } }, 250);
+}
+
+function xvCancelarCobrar(){
+  _xvCobrarConta = null;
+  document.getElementById('xvCobrarOverlay').classList.remove('show');
+}
+
+function xvEnviarCobrar(){
+  const conta = _xvCobrarConta;
+  if(!conta){ xvCancelarCobrar(); return; }
+  const lead = (leads||[]).find(l => l.origemid === conta.cliente_origemid || l.id === conta.cliente_origemid);
+  const whats = lead ? String(lead.whatsapp||'').replace(/\D/g,'') : '';
+  if(!whats){ window.modal.alert('Sem WhatsApp cadastrado'); return; }
+  const msg = document.getElementById('xvCobrarMsg').value || '';
+  const url = 'https://wa.me/' + whats + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+  xvCancelarCobrar();
+}
+
+// ESC fecha qualquer um
+document.addEventListener('keydown', (e) => {
+  if(e.key !== 'Escape') return;
+  if(document.getElementById('xvVencOverlay')?.classList.contains('show')) xvCancelarVenc();
+  if(document.getElementById('xvCobrarOverlay')?.classList.contains('show')) xvCancelarCobrar();
+});
+</script>
+<!-- ===== /cobranca-vencimento-v1 ===== -->
+
+
+<!-- ===== fechamento-mvp-v1 ===== -->
+<style>
+/* fechamento-mvp-v1 */
+.xv-input{
+  width:100%;padding:11px 13px;border-radius:11px;
+  border:1.5px solid #e9d5ff;background:#fef9f6;
+  font-family:inherit;font-size:13px;outline:none;
+  color:#1c3d38;transition:.2s;
+}
+.xv-input:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.xv-btn-ok{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 12px rgba(124,58,237,.3)}
+.xv-btn-ok:hover{box-shadow:0 6px 16px rgba(124,58,237,.45)}
+</style>
+
+<!-- Modal: Bloqueio de Horário -->
+<div id="blqModal" class="xv-overlay">
+  <div class="xv-card" style="max-width:480px">
+    <div class="xv-title">🚫 Novo bloqueio</div>
+    <div class="xv-msg" style="margin-bottom:14px">Bloqueia um horário na sua agenda. Se alguém tentar agendar no mesmo horário, o sistema avisa.</div>
+
+    <label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7c5a3c;margin-bottom:6px">Título</label>
+    <input id="blqTitulo" class="xv-input" placeholder="Ex: Dentista, Almoço, Viagem..." maxlength="60">
+
+    <label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7c5a3c;margin:12px 0 6px">Tipo</label>
+    <select id="blqTipo" class="xv-input" onchange="blqAtualizarCor()">
+      <option value="compromisso">Compromisso</option>
+      <option value="pessoal">Pessoal</option>
+      <option value="folga">Folga</option>
+      <option value="ferias">Férias</option>
+      <option value="evento">Evento</option>
+      <option value="curso">Curso</option>
+      <option value="viagem">Viagem</option>
+    </select>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7c5a3c;margin-bottom:6px">Início</label>
+        <input id="blqInicio" type="datetime-local" class="xv-input">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7c5a3c;margin-bottom:6px">Fim</label>
+        <input id="blqFim" type="datetime-local" class="xv-input">
+      </div>
+    </div>
+
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#1c3d38;margin-top:14px;cursor:pointer">
+      <input id="blqDiaInteiro" type="checkbox" style="width:18px;height:18px;accent-color:#7c3aed;cursor:pointer" onchange="blqToggleDiaInteiro()">
+      Dia inteiro (00:00 → 23:59)
+    </label>
+
+    <input id="blqCor" type="hidden" value="#6b7280">
+
+    <div class="xv-actions" style="margin-top:20px">
+      <button class="xv-btn xv-btn-cancel" onclick="blqFechar()">Cancelar</button>
+      <button class="xv-btn xv-btn-ok" onclick="blqSalvar()">Criar bloqueio</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Lembrete 24h WhatsApp -->
+<div id="lmbOverlay" class="xv-overlay">
+  <div class="xv-card" style="max-width:620px">
+    <div class="xv-title">📲 Lembrar amanhã</div>
+    <div class="xv-msg" id="lmbSub">Carregando consultas…</div>
+    <div id="lmbLista" style="max-height:440px;overflow-y:auto;margin-bottom:14px;padding-right:4px"></div>
+    <div class="xv-actions">
+      <button class="xv-btn xv-btn-cancel" onclick="lmbFechar()">Fechar</button>
+      <button class="xv-btn xv-btn-ok" id="lmbAbrirTodos" onclick="lmbAbrirTodos()" style="display:none">📲 Abrir todos</button>
+    </div>
+  </div>
+</div>
+<!-- ===== /fechamento-mvp-v1 ===== -->
 
 </body>
 </html>
