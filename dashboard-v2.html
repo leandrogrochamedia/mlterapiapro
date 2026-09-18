@@ -1160,7 +1160,7 @@ function renderClientesCards(){
     const acaoWa = whats ? `<a href="${waLink}" target="_blank" onclick="marcarEmContato('${escapeJs(id)}', event)" class="btn-round btn-round-wa" title="WhatsApp">${ICON_WA_SOLID}</a>` : '';
 
     const ehNovo = ['novo','novo_questionario'].includes(String(l.status||'').toLowerCase());
-    const badgeNovo = ehNovo ? `<span title="Cliente novo — ainda sem interação" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-size:11px;flex-shrink:0;box-shadow:0 2px 6px rgba(245,158,11,.4)">✨</span>` : '';
+    const badgeNovo = ehNovo ? `<span title="Cliente novo — respondeu o quiz mas você ainda não entrou em contato. Clique pra saber mais." onclick="event.stopPropagation(); _explicarBadge('novo')" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-size:11px;flex-shrink:0;box-shadow:0 2px 6px rgba(245,158,11,.4);cursor:pointer">✨</span>` : '';
     const badgeDup = _badgeDuplicata(id);
     return `<div class="ag-card ${arquivado?'arquivado':''}">
       <div class="ag-header-band" onclick="abrirFicha('${escapeJs(id)}')">
@@ -2530,8 +2530,36 @@ function _detectarDuplicatas(lista){
 function _badgeDuplicata(id){
   const msg = (window._duplicatas || {})[id];
   if(!msg) return '';
-  return `<span class="badge-dup" title="⚠️ ${escapeHtml(msg)}">⚠️</span>`;
+  return `<span class="badge-dup" title="⚠️ Possível duplicata: ${escapeHtml(msg)}. Clique pra saber mais." onclick="event.stopPropagation(); _explicarBadge('dup', '${escapeJs(msg)}')" style="cursor:pointer">⚠️</span>`;
 }
+
+// === BADGES-HELP-v1 ===
+function _explicarBadge(tipo, msgExtra){
+  if(tipo === 'novo'){
+    if(typeof window.modal !== 'undefined' && window.modal.alert){
+      window.modal.alert(
+        '✨ Cliente Novo\n\n' +
+        'Essa pessoa respondeu o quiz de travas mas você ainda não entrou em contato.\n\n' +
+        'Quando você clicar no WhatsApp dela, o sistema marca automaticamente como 🟡 Em contato e o ✨ some.',
+        'O que significa o ✨?'
+      );
+    } else {
+      alert('✨ Cliente novo — respondeu o quiz, aguardando contato.\n\nClique no WhatsApp dele pra marcar como em contato.');
+    }
+  } else if(tipo === 'dup'){
+    if(typeof window.modal !== 'undefined' && window.modal.alert){
+      window.modal.alert(
+        '⚠️ Possível duplicata\n\n' +
+        (msgExtra || 'Esse cadastro parece repetido com outro.') + '\n\n' +
+        'Recomendamos conferir antes de deletar. Se for a mesma pessoa, pode arquivar um dos cadastros.',
+        'O que significa o ⚠️?'
+      );
+    } else {
+      alert('⚠️ Possível duplicata:\n\n' + (msgExtra || 'Cadastro repetido.'));
+    }
+  }
+}
+// === /BADGES-HELP-v1 ===
 
 // ─── EDITAR CLIENTE ───
 function abrirEdicaoCliente(event){
