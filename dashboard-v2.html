@@ -167,7 +167,7 @@ body{font-family:Inter,sans-serif;background:#fef9f6;color:#2d1211;min-height:10
 .test-modal-close:hover{background:#1c3d38;color:#fff;border-color:#1c3d38}
 
 /* --- Boas-vindas pós-login --- */
-.welcome-overlay{position:fixed;inset:0;z-index:200;background:rgba(28,61,56,.45);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.welcome-overlay{position:fixed;inset:0;z-index:200;background:rgba(28,61,56,.45);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .5s ease;cursor:pointer}
 .welcome-overlay.show{opacity:1;pointer-events:auto}
 .welcome-card{background:#fff;border-radius:28px;padding:30px 38px 26px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.3);transform:scale(.85);transition:transform .5s cubic-bezier(.34,1.56,.64,1);max-width:340px}
 .welcome-overlay.show .welcome-card{transform:scale(1)}
@@ -1988,12 +1988,21 @@ function saudacaoHora(){
   return 'Boa noite';
 }
 
+let _welcomeMostrado = false;
+
 function mostrarBoasVindas(){
-  if(sessionStorage.getItem('ml_welcome_shown')) return;
+  if(_welcomeMostrado) return;
   const ov = document.getElementById('welcomeOverlay');
   if(!ov) return;
 
-  sessionStorage.setItem('ml_welcome_shown', '1');
+  _welcomeMostrado = true;
+
+  // Clique em qualquer lugar pula a animacao (igual splash)
+  const skip = () => {
+    ov.classList.remove('show');
+    clearTimeout(ov._mlWelcomeTimer);
+  };
+  ov.addEventListener('click', skip, { once: true });
 
   // Saudação
   const saudEl = document.getElementById('welcomeSaudacao');
@@ -2017,9 +2026,9 @@ function mostrarBoasVindas(){
     }
   }
 
-  // Mostra + esconde com fade
+  // Mostra + esconde com fade (cancelavel pelo clique)
   ov.classList.add('show');
-  setTimeout(() => {
+  ov._mlWelcomeTimer = setTimeout(() => {
     ov.classList.remove('show');
   }, 2000);
 }
@@ -4028,7 +4037,7 @@ window.addEventListener('load',()=>{ checkAuth() && carregarDados(); });
 <div id="welcomeOverlay" class="welcome-overlay">
   <div class="welcome-card">
     <div class="welcome-avatar" id="welcomeAvatar">M</div>
-    <div class="welcome-saudacao" id="welcomeSaudacao">Bom dia ✨</div>
+    <div class="welcome-saudacao" id="welcomeSaudacao">✨</div>
     <div class="welcome-nome" id="welcomeNome">Mariland</div>
     <div class="welcome-sub">Pronta pra transformar vidas hoje?</div>
   </div>

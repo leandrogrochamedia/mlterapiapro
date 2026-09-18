@@ -42,10 +42,11 @@ textarea{resize:vertical;min-height:90px;line-height:1.5}
 .foto-row{display:flex;gap:16px;align-items:center;margin-bottom:16px}
 .foto-preview{width:86px;height:86px;border-radius:22px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:32px;overflow:hidden;flex-shrink:0;box-shadow:0 8px 20px rgba(124,58,237,.25)}
 .foto-preview img{width:100%;height:100%;object-fit:cover;display:block}
-.foto-actions{flex:1;min-width:0}
-.btn-mini{padding:10px 16px;border-radius:11px;border:1.5px solid #7c3aed;background:#fff;color:#7c3aed;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;transition:.2s}
+.foto-actions{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.foto-buttons-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-mini{padding:8px 14px;border-radius:10px;border:1.5px solid #7c3aed;background:#fff;color:#7c3aed;font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1;min-height:34px;white-space:nowrap;flex:0 0 auto}
 .btn-mini:hover{background:#7c3aed;color:#fff;transform:translateY(-1px)}
-.btn-mini.ghost{border-color:#e9d5ff;color:#8b5cf6;margin-left:6px}
+.btn-mini.ghost{border-color:#e9d5ff;color:#8b5cf6}
 .btn-mini.ghost:hover{background:#faf5ff;color:#7c3aed;border-color:#7c3aed}
 
 .msg{padding:12px 14px;border-radius:12px;font-size:12.5px;font-weight:700;margin-bottom:16px;display:none}
@@ -99,11 +100,13 @@ textarea{resize:vertical;min-height:90px;line-height:1.5}
       <div class="foto-row">
         <div class="foto-preview" id="fotoPreview">M</div>
         <div class="foto-actions">
-          <label style="margin-bottom:6px">Foto de perfil <span class="opt">(opcional)</span></label>
-          <button type="button" class="btn-mini" onclick="document.getElementById('inputFoto').click()">📷 Escolher</button>
-          <button type="button" class="btn-mini ghost" onclick="removerFoto()">Remover</button>
+          <label style="margin-bottom:0">Foto de perfil <span class="opt">(opcional)</span></label>
+          <div class="foto-buttons-row">
+            <button type="button" class="btn-mini" onclick="document.getElementById('inputFoto').click()">📷 Escolher</button>
+            <button type="button" class="btn-mini ghost" onclick="removerFoto()">Remover</button>
+          </div>
           <input id="inputFoto" type="file" accept="image/*" style="display:none" onchange="carregarFoto(this)">
-          <div class="hint">JPG/PNG · redimensionada pra 240×240</div>
+          <div class="hint" style="margin-top:0">JPG/PNG · redimensionada pra 240×240</div>
         </div>
       </div>
 
@@ -311,14 +314,18 @@ let fotoBase64 = null;
       mostrarMsg('Não foi possível carregar os dados.', 'error');
       return;
     }
+    const cfg = data.config || {};
     const F = {
       nome: data.nome, email: data.email, slug: data.slug,
-      whatsapp: data.whatsapp, instagram: data.instagram, cpf: data.cpf,
-      cnpj: data.cnpj, data_nascimento: data.data_nascimento, telefone: data.telefone,
-      cep: data.cep, endereco: data.endereco, numero: data.numero, complemento: data.complemento,
-      bairro: data.bairro, cidade: data.cidade, estado: data.estado,
-      profissao: data.profissao, formacao: data.formacao, registro_profissional: data.registro_profissional,
-      bio: data.bio, especialidades: data.especialidades, site: data.site
+      whatsapp: data.whatsapp,
+      instagram: cfg.instagram, cpf: cfg.cpf,
+      cnpj: cfg.cnpj, data_nascimento: cfg.data_nascimento,
+      cep: cfg.cep, endereco: cfg.endereco, numero: cfg.numero,
+      complemento: cfg.complemento, bairro: cfg.bairro,
+      cidade: cfg.cidade, estado: cfg.estado,
+      profissao: cfg.profissao, formacao: cfg.formacao,
+      registro_profissional: cfg.registro_profissional,
+      bio: cfg.bio, especialidades: cfg.especialidades, site: cfg.site
     };
     Object.entries(F).forEach(([k, v]) => {
       const el = document.getElementById(k);
@@ -459,12 +466,18 @@ async function salvar(){
   const btn = document.getElementById('btnSalvar');
   const btnLabel = document.getElementById('btnLabel');
 
+  // ═════ Colunas REAIS da tabela terapeutas ═════
   const dados = {
-    nome:      document.getElementById('nome').value.trim(),
-    email:     document.getElementById('email').value.trim(),
+    nome:          document.getElementById('nome').value.trim(),
+    email:         document.getElementById('email').value.trim(),
     password_hash: document.getElementById('senha').value,
-    slug:      document.getElementById('slug').value.trim(),
-    whatsapp:  document.getElementById('whatsapp').value.replace(/\D/g, ''),
+    slug:          document.getElementById('slug').value.trim(),
+    whatsapp:      document.getElementById('whatsapp').value.replace(/\D/g, ''),
+    foto:          fotoBase64
+  };
+
+  // ═════ Campos extras vão pra config (jsonb) ═════
+  const cfg = {
     instagram: document.getElementById('instagram').value.trim() || null,
     site:      document.getElementById('site').value.trim() || null,
     cpf:       document.getElementById('cpf').value.trim() || null,
@@ -481,9 +494,11 @@ async function salvar(){
     formacao:  document.getElementById('formacao').value.trim() || null,
     registro_profissional: document.getElementById('registro_profissional').value.trim() || null,
     especialidades: document.getElementById('especialidades').value.trim() || null,
-    bio:       document.getElementById('bio').value.trim() || null,
-    foto:      fotoBase64
+    bio:       document.getElementById('bio').value.trim() || null
   };
+  // Limpa nulos do config
+  Object.keys(cfg).forEach(k => { if (cfg[k] === null) delete cfg[k]; });
+  dados.config = cfg;
 
   const senha2 = document.getElementById('senha2').value;
 
@@ -491,16 +506,16 @@ async function salvar(){
   const faltando = [];
   if (!dados.nome) faltando.push('Nome');
   if (!dados.email) faltando.push('Email');
-  if (!dados.password) faltando.push('Senha');
+  if (!editando && !dados.password_hash) faltando.push('Senha');
   if (!dados.slug) faltando.push('Slug');
   if (!dados.whatsapp) faltando.push('WhatsApp');
-  if (!dados.cep) faltando.push('CEP');
-  if (!dados.endereco) faltando.push('Logradouro');
-  if (!dados.numero) faltando.push('Número');
-  if (!dados.bairro) faltando.push('Bairro');
-  if (!dados.cidade) faltando.push('Cidade');
-  if (!dados.estado) faltando.push('UF');
-  if (!dados.profissao) faltando.push('Profissão');
+  if (!cfg.cep) faltando.push('CEP');
+  if (!cfg.endereco) faltando.push('Logradouro');
+  if (!cfg.numero) faltando.push('Número');
+  if (!cfg.bairro) faltando.push('Bairro');
+  if (!cfg.cidade) faltando.push('Cidade');
+  if (!cfg.estado) faltando.push('UF');
+  if (!cfg.profissao) faltando.push('Profissão');
 
   if (faltando.length) {
     mostrarMsg('Preencha: ' + faltando.join(', '), 'error');
@@ -540,7 +555,7 @@ async function salvar(){
       Object.assign(sess, safe);
       localStorage.setItem('terapeuta_sessao', JSON.stringify(sess));
       localStorage.setItem('therapist_slug', dados.slug);
-      showSuccess('Perfil atualizado!', 'Redirecionando pro painel...');
+      showSuccess('Perfil atualizado!', 'Tudo certo ✨');
     } else {
       const { data: dupEmail } = await sb.from('terapeutas').select('id').eq('email', dados.email).maybeSingle();
       if (dupEmail) throw new Error('Este e-mail já está cadastrado.');
@@ -559,7 +574,7 @@ async function salvar(){
       localStorage.setItem('mlterapiapro_last_email', data.email);
       localStorage.setItem('mlterapiapro_last_password', dados.password);
       localStorage.setItem('mlterapiapro_last_login_at', new Date().toISOString());
-      showSuccess('Conta criada! 🎉', 'Preparando seu painel...');
+      showSuccess('Conta criada! 🎉', 'Bem-vinda ✨');
     }
   } catch (e) {
     mostrarMsg(e.message || 'Erro inesperado.', 'error');
@@ -580,8 +595,27 @@ function showSuccess(titulo, sub){
   document.getElementById('successMsg').textContent = sub;
   const ov = document.getElementById('successOverlay');
   ov.classList.add('show');
-  setTimeout(() => { document.getElementById('successBar').style.width = '100%'; }, 80);
-  setTimeout(() => { window.location.href = 'dashboard.html'; }, 1600);
+
+  // Zera barra e reanima do zero
+  const bar = document.getElementById('successBar');
+  if (bar) {
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    setTimeout(() => {
+      bar.style.transition = 'width 1.2s ease';
+      bar.style.width = '100%';
+    }, 80);
+  }
+
+  // Fecha o modal sozinho apos 1.6s e volta pro topo (SEM redirect)
+  setTimeout(() => {
+    ov.classList.remove('show');
+    const btn = document.getElementById('btnSalvar');
+    const lbl = document.getElementById('btnLabel');
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = editando ? 'Salvar alterações' : 'Criar minha conta';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 1600);
 }
 </script>
 </body>
