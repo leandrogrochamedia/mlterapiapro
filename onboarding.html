@@ -309,7 +309,10 @@ let fotoBase64 = null;
     document.getElementById('ctaSub').textContent = 'Suas alterações aparecem na hora no painel.';
     document.getElementById('successTitle').textContent = 'Perfil atualizado!';
 
-    const { data, error } = await sb.from('terapeutas').select('*').eq('slug', slugOriginal).maybeSingle();
+    const { data, error } = await sb.from('terapeutas')
+      .select('id, nome, email, slug, whatsapp, foto, config')
+      .eq('slug', slugOriginal)
+      .maybeSingle();
     if (error || !data) {
       mostrarMsg('Não foi possível carregar os dados.', 'error');
       return;
@@ -572,7 +575,6 @@ async function salvar(){
       localStorage.setItem('terapeuta_sessao', JSON.stringify(data));
       localStorage.setItem('therapist_slug', data.slug);
       localStorage.setItem('mlterapiapro_last_email', data.email);
-      localStorage.setItem('mlterapiapro_last_password', dados.password);
       localStorage.setItem('mlterapiapro_last_login_at', new Date().toISOString());
       showSuccess('Conta criada! 🎉', 'Bem-vinda ✨');
     }
