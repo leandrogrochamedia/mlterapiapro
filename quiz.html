@@ -123,6 +123,18 @@ label{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercas
 .erro-404-hint{color:#8a6a68 !important;font-size:12.5px !important;margin-top:14px !important}
 
 </style>
+<!-- PWA-SETUP-v1 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ML Terapia">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1c3d38">
+<link rel="apple-touch-icon" href="images/icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="images/icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="images/icon-120.png">
+<link rel="manifest" href="manifest.json">
+<!-- /PWA-SETUP-v1 -->
+
 </head>
 <body>
 <div class="page">
@@ -462,7 +474,8 @@ async function finalizarQuiz(){
   };
 
   try{
-    let {data, error} = await supabaseClient.from('leads').insert([lead]).select();
+    const { error } = await supabaseClient.from('leads').insert([lead]);
+    const data = null;
     // FIX: se coluna prioridade for INTEGER no banco, tenta com número
     if(error && error.message && error.message.toLowerCase().includes('prioridade')){
       console.warn('Prioridade falhou (talvez integer), tentando com valor numérico...', error.message);
@@ -487,7 +500,7 @@ async function finalizarQuiz(){
     }
     if(error) throw error;
     document.getElementById('saveStatus').innerText = '✅ Vinculado a '+TERAPEUTA_SLUG+' com sucesso - Status novo_questionario';
-    console.log('✅ Novo questionário salvo - MEGA POWER:', data[0]);
+    console.log('✅ Novo questionário salvo - MEGA POWER');
     
     // ===== ENVIO AUTOMÁTICO PARA TERAPEUTA - SEM MODAL =====
     // Roda em background, não trava o fluxo do paciente
