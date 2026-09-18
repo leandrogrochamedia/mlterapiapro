@@ -1913,9 +1913,9 @@ function ajustarFonteNome(){
 // LINKS DE TESTES (aberto / fechado / retorno)
 // ============================================================
 function buildTestUrl(modo){
-  // Pasta atual + Quiz.html
+  // Pasta atual + quiz.html
   const dir  = window.location.pathname.replace(/[^/]*$/, '');
-  const quiz = window.location.origin + dir + 'Quiz.html';
+  const quiz = window.location.origin + dir + 'quiz.html';
   const params = new URLSearchParams();
   params.set('slug', THERAPIST_SLUG || '');
   if (modo && modo !== 'aberto') params.set('modo', modo);
