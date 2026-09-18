@@ -1,24 +1,23 @@
-# Backups locais
+*
+!.gitignore
+!images/
+!images/**
+!content/
+!content/**
+!*.html
+!*.js
+!*.css
+*.py
+*.pyc
+__pycache__/
 _backups/
-
-# Python
 .venv/
 venv/
-__pycache__/
-*.pyc
-*.pyo
-
-# Node
 node_modules/
-
-# SO / Editor
 .DS_Store
-Thumbs.db
-.vscode/
-.idea/
-*.swp
-
-# Logs / temp
+*.bak
 *.log
-tmp/
-temp/
+LOCAL TEST/
+LOCAL TEST/**
+BASE DE DADOS/
+BASE DE DADOS/**
