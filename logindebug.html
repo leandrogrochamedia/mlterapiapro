@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ML Terapia Pro — Login</title>
+<title>ML Terapia Pro — Login (DEBUG)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -50,7 +50,15 @@ input:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,5
 .msg.ok{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
 .register-pane{text-align:center;padding:20px 0}
 .register-pane h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:8px;color:#1c3d38}
-
+/* ═════ DEBUG-LOGIN-REMOVER ═════ */
+.debug-links{margin-top:22px;padding-top:16px;border-top:1px dashed #e9d5ff}
+.debug-links-title{font-size:9.5px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#c4b5fd;text-align:center;margin-bottom:10px}
+.debug-links-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.debug-link{flex:1;min-width:140px;padding:10px 12px;border-radius:11px;border:1.5px dashed #e9d5ff;background:#faf5ff;font-family:inherit;font-size:11px;font-weight:800;color:#7c3aed;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.debug-link:hover{background:#7c3aed;color:#fff;border-color:#7c3aed;border-style:solid;transform:translateY(-1px);box-shadow:0 6px 16px rgba(124,58,237,.3)}
+.debug-link:disabled{opacity:.5;cursor:wait;transform:none}
+.debug-dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.7;flex-shrink:0}
+/* ═════ /DEBUG-LOGIN-REMOVER ═════ */
 .register-pane p{font-size:12.5px;color:#7c3aed;line-height:1.55;margin-bottom:22px}
 </style>
 </head>
@@ -77,7 +85,22 @@ input:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,5
     <div class="msg" id="msg"></div>
     <button class="btn-primary" id="btnEntrar" onclick="fazerLogin()">Entrar <span style="font-size:16px">→</span></button>
 
-    
+    <!-- ═════ DEBUG-LOGIN-REMOVER — REMOVER ANTES DE PRODUCAO ═════ -->
+    <div class="debug-links">
+      <div class="debug-links-title">🔧 Acesso rápido (debug)</div>
+      <div class="debug-links-row">
+        <button type="button" class="debug-link" onclick="debugLogin('marilandrodrigues7@gmail.com','092824',this)">
+          <span class="debug-dot"></span> Mariland
+        </button>
+        <button type="button" class="debug-link" onclick="debugLogin('leandrogrocha@gmail.com','leandro123',this)">
+          <span class="debug-dot"></span> Leandro
+        </button>
+        <button type="button" class="debug-link" onclick="debugLogin('contato@roberleiacostacurta.com.br','1234567',this)">
+          <span class="debug-dot"></span> Roberléia
+        </button>
+      </div>
+    </div>
+    <!-- ═════ /DEBUG-LOGIN-REMOVER ═════ -->
 
     <div class="divider">ou</div>
     <button class="link-cadastro" onclick="window.location.href='onboarding.html'">Cadastrar novo terapeuta →</button>
@@ -173,6 +196,17 @@ async function fazerLogin(){
 document.getElementById('senha').addEventListener('keydown', e => {
   if (e.key === 'Enter') fazerLogin();
 });
+
+// ═════ DEBUG-LOGIN-REMOVER — REMOVER ANTES DE PRODUCAO ═════
+async function debugLogin(email, senha, btn){
+  if(btn) btn.disabled = true;
+  document.getElementById('email').value = email;
+  document.getElementById('senha').value = senha;
+  await fazerLogin();
+  if(btn) btn.disabled = false;
+}
+// ═════ /DEBUG-LOGIN-REMOVER ═════
+
 // Auto-login se já tem sessão ativa (pula se ?logout=1)
 (async function(){
   if (new URLSearchParams(window.location.search).get('logout') === '1') {

@@ -3,19 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MARILAND - Comparação Local vs GitHub</title>
+<title>MARILAND — Local vs GitHub Pages</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Inter,system-ui,-apple-system,sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
 .header{text-align:center;margin-bottom:24px}
 .header h1{font-size:22px;font-weight:800;letter-spacing:-0.5px}
 .header p{font-size:12px;opacity:.5;margin-top:6px}
-.phones{display:flex;gap:24px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.legend{display:flex;gap:20px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.legend-dot{width:14px;height:14px;border-radius:50%}
+.legend-dot.github{background:#8b5cf6;box-shadow:0 0 12px rgba(139,92,246,.6)}
+.legend-dot.local{background:#f97316;box-shadow:0 0 12px rgba(249,115,22,.6)}
+
+.phones{display:grid;grid-template-columns:repeat(2,1fr);gap:28px;justify-content:center;align-items:start;max-width:920px;margin:0 auto}
+@media(max-width:850px){
+  .phones{grid-template-columns:1fr;max-width:420px}
+  .iphone{width:360px;height:780px}
+}
+
 .iphone-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
 .iphone-label{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:6px 14px;border-radius:20px}
 .label-github{background:#24292f;color:#fff;border:1px solid #30363d}
 .label-local{background:#1c3d38;color:#a7f3d0;border:1px solid rgba(16,185,129,.3)}
-.iphone{width:390px;height:844px;background:#000;border-radius:56px;padding:12px;box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 0 0 3px #1a1a1a, 0 30px 80px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.1);position:relative}
+.label-debug{background:#7c2d12;color:#fed7aa;border:1px solid rgba(251,146,60,.4)}
+
+/* ═════ iPHONE ═════ */
+.iphone{
+  width:390px;height:844px;
+  background:#000;
+  border-radius:56px;
+  padding:12px;
+  position:relative;
+  transition:box-shadow .25s ease, transform .25s ease;
+}
+/* GitHub → stroke roxo */
+.iphone.iphone-github{
+  box-shadow:
+    0 0 0 4px #8b5cf6,
+    0 0 0 5px rgba(139,92,246,.35),
+    0 0 40px rgba(139,92,246,.45),
+    0 30px 80px rgba(0,0,0,.6);
+}
+/* Local → stroke laranja */
+.iphone.iphone-local{
+  box-shadow:
+    0 0 0 4px #f97316,
+    0 0 0 5px rgba(249,115,22,.35),
+    0 0 40px rgba(249,115,22,.45),
+    0 30px 80px rgba(0,0,0,.6);
+}
+.iphone:hover{transform:translateY(-4px)}
+
 .iphone-inner{width:100%;height:100%;background:#fff;border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column}
 .iphone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:28px;background:#000;border-radius:0 0 18px 18px;z-index:10;display:flex;align-items:center;justify-content:center;gap:6px}
 .notch-speaker{width:48px;height:5px;background:#1a1a1a;border-radius:10px}
@@ -23,107 +62,178 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;background:#0a0a0a;col
 .iphone-screen{flex:1;width:100%;height:100%;border:none;display:block;background:#fdf8f6}
 .iphone-home{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:132px;height:5px;background:#000;border-radius:10px;z-index:10;opacity:.8}
 .iphone-url{font-size:10px;background:#111;border:1px solid #222;color:#888;padding:6px 10px;border-radius:10px;max-width:390px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+
 .controls{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap;align-items:center}
-.ctrl-btn{padding:8px 14px;border-radius:10px;border:1px solid #222;background:#171717;color:#ccc;font-size:11px;font-weight:600;cursor:pointer}
+.ctrl-btn{padding:8px 14px;border-radius:10px;border:1px solid #222;background:#171717;color:#ccc;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
 .ctrl-btn:hover{background:#222;color:#fff}
+.ctrl-btn.active{background:#1c3d38;color:#a7f3d0;border-color:#1c3d38}
 .ctrl-input{padding:8px 12px;border-radius:10px;border:1px solid #222;background:#171717;color:#fff;font-size:11px;font-family:inherit;min-width:260px;outline:none}
 .ctrl-input:focus{border-color:#1c3d38;box-shadow:0 0 0 3px rgba(28,61,56,.3)}
-@media(max-width:850px){
-  .phones{flex-direction:column;align-items:center}
-  .iphone{width:360px;height:780px}
-}
+.section-title{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#666;margin:28px 0 12px;text-align:center}
+
+.row-title{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:16px}
+.row-title.github{color:#a78bfa}
+.row-title.local{color:#fb923c}
 </style>
 </head>
 <body>
 <div class="header">
   <h1>MARILAND. — Local vs GitHub Pages</h1>
-  <p>Edite o campo abaixo pra trocar a página local carregada no iPhone da direita</p>
+  <p>4 iPhones · 2 origens × 2 páginas</p>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot github"></span> GitHub Pages</div>
+    <div class="legend-item"><span class="legend-dot local"></span> Local (file://)</div>
+  </div>
 </div>
 
 <div class="phones">
-  <!-- iPhone GitHub -->
+
+  <!-- ═══════════════════════════════════════════
+       LINHA 1 — GITHUB PAGES (stroke roxo)
+       ═══════════════════════════════════════════ -->
+
+  <!-- GitHub · index -->
   <div class="iphone-wrap">
-    <div class="iphone-label label-github">● GITHUB PAGES</div>
-    <div class="iphone-url" id="urlGithub">https://leandrogrochamedia.github.io/mlterapiapro/</div>
-    <div class="iphone">
+    <div class="iphone-label label-github">● GITHUB · INDEX</div>
+    <div class="iphone-url" id="urlGithubIndex">https://leandrogrochamedia.github.io/mlterapiapro/</div>
+    <div class="iphone iphone-github">
       <div class="iphone-notch"><div class="notch-speaker"></div><div class="notch-cam"></div></div>
       <div class="iphone-inner">
-        <iframe id="frameGithub" class="iphone-screen" src="https://leandrogrochamedia.github.io/mlterapiapro/" allow="clipboard-read; clipboard-write" loading="lazy"></iframe>
+        <iframe id="frameGithubIndex" class="iphone-screen"
+          src="https://leandrogrochamedia.github.io/mlterapiapro/"
+          allow="clipboard-read; clipboard-write"
+          loading="lazy"></iframe>
       </div>
       <div class="iphone-home"></div>
     </div>
   </div>
 
-  <!-- iPhone Local -->
+  <!-- GitHub · logindebug -->
   <div class="iphone-wrap">
-    <div class="iphone-label label-local" id="labelLocal">● LOCAL</div>
-    <div class="iphone-url" id="urlLocal">./index.html (mesma pasta)</div>
-    <div class="iphone">
+    <div class="iphone-label label-debug">● GITHUB · LOGIN DEBUG</div>
+    <div class="iphone-url" id="urlGithubDebug">https://leandrogrochamedia.github.io/mlterapiapro/logindebug.html</div>
+    <div class="iphone iphone-github">
       <div class="iphone-notch"><div class="notch-speaker"></div><div class="notch-cam"></div></div>
       <div class="iphone-inner">
-        <iframe id="frameLocal" class="iphone-screen" src="./index.html" allow="clipboard-read; clipboard-write" loading="lazy"></iframe>
+        <iframe id="frameGithubDebug" class="iphone-screen"
+          src="https://leandrogrochamedia.github.io/mlterapiapro/logindebug.html"
+          allow="clipboard-read; clipboard-write"
+          loading="lazy"></iframe>
       </div>
       <div class="iphone-home"></div>
     </div>
   </div>
+
+  <!-- ═══════════════════════════════════════════
+       LINHA 2 — LOCAL (stroke laranja)
+       ═══════════════════════════════════════════ -->
+
+  <!-- Local · index -->
+  <div class="iphone-wrap">
+    <div class="iphone-label label-local" id="labelLocalIndex">● LOCAL · INDEX</div>
+    <div class="iphone-url" id="urlLocalIndex">./index.html</div>
+    <div class="iphone iphone-local">
+      <div class="iphone-notch"><div class="notch-speaker"></div><div class="notch-cam"></div></div>
+      <div class="iphone-inner">
+        <iframe id="frameLocalIndex" class="iphone-screen"
+          src="./index.html"
+          allow="clipboard-read; clipboard-write"
+          loading="lazy"></iframe>
+      </div>
+      <div class="iphone-home"></div>
+    </div>
+  </div>
+
+  <!-- Local · logindebug -->
+  <div class="iphone-wrap">
+    <div class="iphone-label label-debug">● LOCAL · LOGIN DEBUG</div>
+    <div class="iphone-url" id="urlLocalDebug">./logindebug.html</div>
+    <div class="iphone iphone-local">
+      <div class="iphone-notch"><div class="notch-speaker"></div><div class="notch-cam"></div></div>
+      <div class="iphone-inner">
+        <iframe id="frameLocalDebug" class="iphone-screen"
+          src="./logindebug.html"
+          allow="clipboard-read; clipboard-write"
+          loading="lazy"></iframe>
+      </div>
+      <div class="iphone-home"></div>
+    </div>
+  </div>
+
 </div>
+
+<div class="section-title">trocar página do iphone local · index</div>
 
 <div class="controls">
   <input id="localPath" class="ctrl-input" placeholder="./index.html" value="./index.html">
   <button class="ctrl-btn" onclick="loadLocal()">↻ Carregar</button>
-  <button class="ctrl-btn" onclick="reloadBoth()">↻ Recarregar ambos</button>
-  <button class="ctrl-btn" onclick="openGithub()">↗ Abrir GitHub</button>
+  <button class="ctrl-btn" onclick="reloadAll()">↻ Recarregar todos</button>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" onclick="openGithub('/')">↗ Abrir GitHub</button>
   <button class="ctrl-btn" onclick="openLocal()">↗ Abrir Local</button>
 </div>
 
-<div class="controls" style="margin-top:10px">
-  <button class="ctrl-btn" onclick="setLocal('./index.html')">Index</button>
-  <button class="ctrl-btn" onclick="setLocal('./dashboard-v2.html')">Dashboard-v2</button>
-  <button class="ctrl-btn" onclick="setLocal('./quiz.html')">Quiz</button>
-  <button class="ctrl-btn" onclick="setLocal('./onboarding.html')">Onboarding</button>
-  <button class="ctrl-btn" onclick="setLocal('./dashboard.html')">Dashboard (antigo)</button>
+<div class="section-title">atalhos rápidos (iphone local · index)</div>
+
+<div class="controls" id="atalhos">
+  <button class="ctrl-btn" onclick="setLocal('./index.html', this)">Index (splash)</button>
+  <button class="ctrl-btn" onclick="setLocal('./login.html', this)">Login</button>
+  <button class="ctrl-btn" onclick="setLocal('./logindebug.html', this)">Login Debug</button>
+  <button class="ctrl-btn" onclick="setLocal('./onboarding.html', this)">Onboarding</button>
+  <button class="ctrl-btn" onclick="setLocal('./dashboard-v2.html', this)">Dashboard v2</button>
+  <button class="ctrl-btn" onclick="setLocal('./quiz.html?slug=mariland-rodrigues', this)">Quiz (Mariland)</button>
+  <button class="ctrl-btn" onclick="setLocal('./auditoria.html', this)">Auditoria</button>
 </div>
 
 <script>
-function setLocal(path){
-  const input = document.getElementById('localPath');
-  input.value = path;
+// ═══════════════════════════════════════════════════════════
+// TROCAR PÁGINA DO IPHONE LOCAL (INDEX)
+// ═══════════════════════════════════════════════════════════
+function loadLocal(){
+  const path = document.getElementById('localPath').value.trim() || './index.html';
+  const frame = document.getElementById('frameLocalIndex');
+  frame.src = path;
+  document.getElementById('urlLocalIndex').textContent = path;
+  document.getElementById('labelLocalIndex').textContent = '● LOCAL · ' + path.toUpperCase();
+}
+
+function setLocal(path, btn){
+  document.getElementById('localPath').value = path;
+  document.querySelectorAll('#atalhos .ctrl-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
   loadLocal();
 }
 
-function loadLocal(){
-  const path = document.getElementById('localPath').value.trim() || './index.html';
-  const frame = document.getElementById('frameLocal');
-  frame.src = path;
-  document.getElementById('urlLocal').textContent = path + ' (mesma pasta)';
-  document.getElementById('labelLocal').textContent = '● LOCAL — ' + path;
+function reloadAll(){
+  ['frameGithubIndex','frameLocalIndex','frameGithubDebug','frameLocalDebug'].forEach(id => {
+    const f = document.getElementById(id);
+    if(f) f.src = f.src;
+  });
 }
 
-function reloadBoth(){
-  const fg = document.getElementById('frameGithub');
-  const fl = document.getElementById('frameLocal');
-  fg.src = fg.src;
-  fl.src = fl.src;
-}
-
-function openGithub(){
-  window.open('https://leandrogrochamedia.github.io/mlterapiapro/marilandapp.html','_blank');
+function openGithub(path){
+  window.open('https://leandrogrochamedia.github.io/mlterapiapro' + (path||'/'), '_blank');
 }
 
 function openLocal(){
   const path = document.getElementById('localPath').value.trim() || './index.html';
-  window.open(path,'_blank');
+  window.open(path, '_blank');
 }
 
-// Atualiza URL local sempre que o input mudar
-document.getElementById('localPath').addEventListener('keydown', (e) => {
+document.getElementById('localPath').addEventListener('keydown', e => {
   if(e.key === 'Enter') loadLocal();
 });
 
-// Detecta erro ao carregar o iframe
-document.getElementById('frameLocal').addEventListener('error', () => {
-  alert('Não encontrou o arquivo nesta pasta. Coloque o LOCAL-BROWSER.html junto dos HTMLs do sistema.');
+document.getElementById('frameLocalIndex').addEventListener('error', () => {
+  console.warn('[LOCAL TEST] erro ao carregar iframe local — arquivo existe?');
 });
+
+document.querySelector('#atalhos .ctrl-btn').classList.add('active');
+
+console.log('[LOCAL TEST] pronto. Linha 1 = GitHub (roxo) · Linha 2 = Local (laranja)');
 </script>
 </body>
 </html>
