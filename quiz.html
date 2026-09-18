@@ -487,14 +487,14 @@ async function finalizarQuiz(){
         // Se coluna não existe ou outro erro, remove prioridade e tenta sem ela
         delete leadFix.prioridade;
       }
-      const retry = await supabaseClient.from('leads').insert([leadFix]).select();
+      const retry = await supabaseClient.from('leads').insert([leadFix]);
       data = retry.data; error = retry.error;
       // Se ainda falhar, tenta sem prioridade (usa default do banco)
       if(error){
         console.warn('Ainda falhou, tentando sem prioridade...', error.message);
         const leadFix2 = {...lead};
         delete leadFix2.prioridade;
-        const retry2 = await supabaseClient.from('leads').insert([leadFix2]).select();
+        const retry2 = await supabaseClient.from('leads').insert([leadFix2]);
         data = retry2.data; error = retry2.error;
       }
     }
