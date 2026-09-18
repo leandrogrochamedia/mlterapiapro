@@ -146,27 +146,45 @@ async function fazerLogin(){
   btn.textContent = 'Entrando...';
 
   try {
-    // 🔒 RPC — senha nunca sai do banco em texto plano
-    const { data, error } = await sb.rpc('login_terapeuta', {
-      p_email: email,
-      p_senha: senha
+    // 🔐 Supabase Auth — o Supabase guarda token, renova sozinho
+    const { data: authData, error: authErr } = await sb.auth.signInWithPassword({
+      email: email,
+      password: senha
     });
 
-    if (error) throw error;
-    if (!data || data.length === 0) return mostrarMsg('E-mail ou senha incorretos.', 'error');
+    if (authErr) {
+      const msg = (authErr.message || '').toLowerCase();
+      if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
+        return mostrarMsg('E-mail ou senha incorretos.', 'error');
+      }
+      if (msg.includes('email not confirmed')) {
+        return mostrarMsg('Conta ainda não confirmada. Fale com o suporte.', 'error');
+      }
+      return mostrarMsg(authErr.message || 'Erro ao entrar.', 'error');
+    }
 
-    const terapeuta = data[0];
-    if (!terapeuta || !terapeuta.slug) return mostrarMsg('Cadastro incompleto. Fale com o suporte.', 'error');
+    if (!authData || !authData.user) {
+      return mostrarMsg('Erro inesperado. Tente novamente.', 'error');
+    }
 
-    localStorage.setItem('terapeuta_sessao', JSON.stringify(terapeuta));
+    // Busca dados completos da terapeuta logada (RPC autenticada)
+    const { data: terapeutaArr, error: terErr } = await sb.rpc('get_minha_terapeuta');
+    if (terErr) throw terErr;
+
+    const terapeuta = Array.isArray(terapeutaArr) ? terapeutaArr[0] : terapeutaArr;
+    if (!terapeuta || !terapeuta.slug) {
+      await sb.auth.signOut();
+      return mostrarMsg('Cadastro incompleto. Fale com o suporte.', 'error');
+    }
+
     localStorage.setItem('therapist_slug', terapeuta.slug);
     localStorage.setItem('mlterapiapro_last_email', email);
     localStorage.setItem('mlterapiapro_last_login_at', new Date().toISOString());
-    // 🔒 senha NAO vai pro localStorage
 
     window.location.href = 'dashboard-v2.html';
   } catch (e) {
-    mostrarMsg('Erro: ' + e.message, 'error');
+    console.error('[login]', e);
+    mostrarMsg('Erro: ' + (e.message || 'desconhecido'), 'error');
     btn.disabled = false;
     btn.innerHTML = 'Entrar <span style="font-size:16px">→</span>';
   }
@@ -186,12 +204,25 @@ async function debugLogin(email, senha, btn){
 }
 // ═════ /DEBUG-LOGIN-REMOVER ═════
 
-// Pre-preenche apenas o email. 🔒 Senha nunca e salva.
-(function(){
+// Auto-login: se já tem sessão ativa, vai direto pro dashboard
+(async function(){
+  try{
+    const { data: { session } } = await sb.auth.getSession();
+    if (session && session.user) {
+      const { data: terapeutaArr } = await sb.rpc('get_minha_terapeuta');
+      const terapeuta = Array.isArray(terapeutaArr) ? terapeutaArr[0] : terapeutaArr;
+      if (terapeuta && terapeuta.slug) {
+        localStorage.setItem('therapist_slug', terapeuta.slug);
+        window.location.href = 'dashboard-v2.html';
+        return;
+      }
+    }
+  }catch(e){ /* sem sessão, tudo bem */ }
+
   const email = localStorage.getItem('mlterapiapro_last_email');
   if (email) document.getElementById('email').value = email;
-  // Limpa senha de versoes antigas que ficou guardada
   try { localStorage.removeItem('mlterapiapro_last_password'); } catch(e) {}
+  try { localStorage.removeItem('terapeuta_sessao'); } catch(e) {}
 })();
 </script>
 </body>

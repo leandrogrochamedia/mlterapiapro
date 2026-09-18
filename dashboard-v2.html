@@ -222,6 +222,10 @@ body::-webkit-scrollbar,
 
 
 /* ===== fin-minicards-v1 ===== */
+/* ═════ cliente-edit-e-duplicata-v1 ═════ */
+.btn-round-edit{background:#8b5cf6;color:#fff;box-shadow:0 4px 12px rgba(139,92,246,.3)}
+.btn-round-edit:hover{background:#7c3aed;box-shadow:0 10px 22px rgba(124,58,237,.5)}
+.badge-dup{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#f87171,#dc2626);color:#fff;font-size:11px;flex-shrink:0;box-shadow:0 2px 6px rgba(220,38,38,.4);cursor:help}
 .fin-mini-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .fin-mini-card{background:#fff;border:1.5px solid #f5e6cc;border-radius:14px;padding:11px 13px;transition:.2s;position:relative}
 .fin-mini-card:hover{border-color:#1c3d38;box-shadow:0 4px 12px rgba(28,61,56,.06);transform:translateY(-1px)}
@@ -744,6 +748,7 @@ body::-webkit-scrollbar,
 <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
   <button id="fichaArchiveBtn" onclick="arquivarClienteAtual(event)" class="btn-round btn-round-archive" title="Arquivar cliente" style="width:40px;height:40px"></button>
   <button id="fichaDeleteBtn"  onclick="deletarClienteAtual(event)"  class="btn-round btn-round-delete"  title="Deletar cliente"  style="width:40px;height:40px"></button>
+  <button id="fichaEditarBtn" onclick="abrirEdicaoCliente(event)" class="btn-round btn-round-edit" title="Editar dados do cliente" style="width:40px;height:40px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
   <a id="fichaWhats" class="btn-round btn-round-wa" target="_blank" href="#" title="WhatsApp" style="width:40px;height:40px"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg></a>
 </div>
 
@@ -856,16 +861,31 @@ const ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const ICON_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
 
-function checkAuth(){
-  const sessao = localStorage.getItem('terapeuta_sessao');
-  if(!sessao){ window.location.href='login.html'; return false; }
+let _authChecked = false;
+
+async function checkAuth(){
+  if(_authChecked && TERAPEUTA_DATA) return true;
+
   try{
-    const d=JSON.parse(sessao);
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user){ window.location.href='login.html'; return false; }
+
+    const { data: terapeutaArr, error: terErr } = await supabaseClient.rpc('get_minha_terapeuta');
+    if(terErr) throw terErr;
+
+    const d = Array.isArray(terapeutaArr) ? terapeutaArr[0] : terapeutaArr;
+    if(!d || !d.slug){
+      await supabaseClient.auth.signOut();
+      window.location.href='login.html';
+      return false;
+    }
+
     TERAPEUTA_DATA = d;
-    THERAPIST_SLUG = d.slug || d.terapeuta_slug || localStorage.getItem('therapist_slug') || '';
+    THERAPIST_SLUG = d.slug;
     document.getElementById('nomeTerapeuta').innerText = d.nome||'Terapeuta';
     ajustarFonteNome();
-    const fotoUrl = d.foto || d.foto_url || d.avatar || d.avatar_url || d.imagem || d.photo_url || d.photo || '';
+
+    const fotoUrl = d.foto || d.foto_url || '';
     const imgEl = document.getElementById('avatarTopImg');
     const iniEl = document.getElementById('avatarTopInitial');
     if(fotoUrl && imgEl && iniEl){
@@ -875,8 +895,14 @@ function checkAuth(){
     } else if(iniEl){
       iniEl.innerText = (d.nome||'M').charAt(0).toUpperCase();
     }
+
+    _authChecked = true;
     return true;
-  }catch(e){ window.location.href='login.html'; return false; }
+  }catch(e){
+    console.error('[checkAuth]', e);
+    window.location.href='login.html';
+    return false;
+  }
 }
 
 function formatDataBonita(iso){
@@ -892,7 +918,7 @@ function escapeJs(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\
 function truncar(txt, max){ const s=String(txt||''); return s.length>max ? s.slice(0,max)+'...' : s; }
 
 async function carregarDados(){
-  if(!checkAuth()) return;
+  if(!await checkAuth()) return;
   // Guard multi-tenant: nunca buscar sem slug definido
   if(!THERAPIST_SLUG || typeof THERAPIST_SLUG !== 'string' || THERAPIST_SLUG.trim() === ''){
     console.error('❌ carregarDados abortado: THERAPIST_SLUG vazio. Faça login novamente.');
@@ -977,6 +1003,7 @@ function renderAtencao(){
 
 function renderClientesCards(){
   const div=document.getElementById('listaClientesCards'); if(!div) return;
+  _detectarDuplicatas(leads);
   const busca=(document.getElementById('buscaInput')?.value||'').toLowerCase();
   const mostrarArq = document.getElementById('mostrarArquivados')?.checked || false;
 
@@ -1014,10 +1041,11 @@ function renderClientesCards(){
 
     const ehNovo = ['novo','novo_questionario'].includes(String(l.status||'').toLowerCase());
     const badgeNovo = ehNovo ? `<span title="Cliente novo — ainda sem interação" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-size:11px;flex-shrink:0;box-shadow:0 2px 6px rgba(245,158,11,.4)">✨</span>` : '';
+    const badgeDup = _badgeDuplicata(id);
     return `<div class="ag-card ${arquivado?'arquivado':''}">
       <div class="ag-header-band" onclick="abrirFicha('${escapeJs(id)}')">
         <div class="band-info">
-          <div class="band-nome" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span>${escapeHtml(l.nome||'Sem nome')}</span>${badgeNovo}${typeof _semaforoDot==='function'?_semaforoDot(l):''}</div>
+          <div class="band-nome" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span>${escapeHtml(l.nome||'Sem nome')}</span>${badgeNovo}${badgeDup}${typeof _semaforoDot==='function'?_semaforoDot(l):''}</div>
           ${whats?`<div class="band-line">${ICON_PHONE}<span class="txt">${escapeHtml(l.whatsapp||'')}</span></div>`:''}
           ${l.email?`<div class="band-line">${ICON_MAIL}<span class="txt">${escapeHtml(l.email)}</span></div>`:''}
         </div>
@@ -1777,6 +1805,11 @@ async function desarquivarCliente(id, event){
 async function deletarCliente(id, event){
   if(event){ event.preventDefault(); event.stopPropagation(); }
   if(!id) return;
+  const _dupMsg = (window._duplicatas || {})[id];
+  if(_dupMsg){
+    const okDup = await window.modal.confirm('⚠️ ATENÇÃO — este cliente parece ter DUPLICATA:\n\n' + _dupMsg + '\n\nRecomendamos editar/arquivar em vez de deletar.\n\nContinuar mesmo assim?', 'Cliente duplicado', {danger: true});
+    if(!okDup) return;
+  }
   if(!await window.modal.confirm('⚠️ DELETAR DEFINITIVAMENTE este cliente?\n\nTodos os dados (anamnese, prontuário, histórico) serão apagados. Essa ação NÃO pode ser desfeita.')) return;
   if(!await window.modal.confirm('Tem CERTEZA absoluta? Esta é a última confirmação.')) return;
   try{
@@ -1818,12 +1851,8 @@ async function trocarFotoTerapeuta(input){
     const imgEl = document.getElementById('avatarTopImg');
     const iniEl = document.getElementById('avatarTopInitial');
     imgEl.src = dataUrl; imgEl.style.display='block'; iniEl.style.display='none';
-    // Persiste no cache da sessão
-    try{
-      const s = JSON.parse(localStorage.getItem('terapeuta_sessao')||'{}');
-      s.foto = dataUrl;
-      localStorage.setItem('terapeuta_sessao', JSON.stringify(s));
-    }catch(e){}
+    // Atualiza em memória
+    if(TERAPEUTA_DATA) TERAPEUTA_DATA.foto = dataUrl;
     window.modal.alert('✅ Foto atualizada!');
   }catch(e){ window.modal.alert('Erro: '+e.message); }
   input.value = '';
@@ -1871,12 +1900,8 @@ async function carregarFotoTerapeuta(){
       imgEl.src = data.foto;
       imgEl.style.display = 'block';
       if(iniEl) iniEl.style.display = 'none';
-      // Atualiza localStorage pra ficar em cache
-      try{
-        const s = JSON.parse(localStorage.getItem('terapeuta_sessao')||'{}');
-        s.foto = data.foto;
-        localStorage.setItem('terapeuta_sessao', JSON.stringify(s));
-      }catch(e){}
+      // Atualiza em memória
+      if(TERAPEUTA_DATA) TERAPEUTA_DATA.foto = data.foto;
     } else if(iniEl){
       const nome = (data && data.nome) || (TERAPEUTA_DATA && TERAPEUTA_DATA.nome) || 'M';
       iniEl.innerText = nome.charAt(0).toUpperCase();
@@ -2329,11 +2354,194 @@ setTimeout(() => {
   console.log('[IA] observer ativo no fichaModal');
 }, 300);
 
+// ═══════════════════════════════════════════════════════════
+// cliente-edit-e-duplicata-v1
+// ═══════════════════════════════════════════════════════════
+
+// ─── DETECÇÃO DE DUPLICATAS ───
+function _detectarDuplicatas(lista){
+  const mapa = {};
+  const porWhat = {};
+  const porEmail = {};
+
+  (lista || []).forEach(l => {
+    const id = l.origemid || l.id;
+    if(!id) return;
+    const w = String(l.whatsapp || '').replace(/\D/g,'');
+    const e = String(l.email || '').toLowerCase().trim();
+    const orig = String(l.origemid || '').toLowerCase();
+
+    // origemid com sufixo -fix
+    if (orig.endsWith('-fix')) {
+      mapa[id] = 'Cadastro com sufixo "-fix" (correção antiga de dados)';
+    }
+
+    // mesmo whatsapp
+    if (w && w.length >= 10) {
+      if (porWhat[w]) {
+        const outroId = porWhat[w].origemid || porWhat[w].id;
+        mapa[id] = (mapa[id] ? mapa[id] + ' · ' : '') + 'Mesmo WhatsApp de "' + (porWhat[w].nome || 'outro cadastro') + '"';
+        if (!mapa[outroId]) {
+          mapa[outroId] = 'Mesmo WhatsApp de "' + (l.nome || 'outro cadastro') + '"';
+        }
+      } else {
+        porWhat[w] = l;
+      }
+    }
+
+    // mesmo email
+    if (e && e.length > 3) {
+      if (porEmail[e]) {
+        const outroId = porEmail[e].origemid || porEmail[e].id;
+        mapa[id] = (mapa[id] ? mapa[id] + ' · ' : '') + 'Mesmo email de "' + (porEmail[e].nome || 'outro cadastro') + '"';
+        if (!mapa[outroId]) {
+          mapa[outroId] = 'Mesmo email de "' + (l.nome || 'outro cadastro') + '"';
+        }
+      } else {
+        porEmail[e] = l;
+      }
+    }
+  });
+
+  window._duplicatas = mapa;
+}
+
+function _badgeDuplicata(id){
+  const msg = (window._duplicatas || {})[id];
+  if(!msg) return '';
+  return `<span class="badge-dup" title="⚠️ ${escapeHtml(msg)}">⚠️</span>`;
+}
+
+// ─── EDITAR CLIENTE ───
+function abrirEdicaoCliente(event){
+  if(event){ event.preventDefault(); event.stopPropagation(); }
+  if(!pacienteAtual){ window.modal.alert('Nenhum cliente carregado'); return; }
+  const l = pacienteAtual;
+
+  const set = (elId, v) => { const el = document.getElementById(elId); if(el) el.value = (v==null?'':v); };
+
+  set('editNome',        l.nome);
+  set('editEmail',       l.email);
+  set('editWhats',       l.whatsapp);
+  set('editIdade',       l.idade);
+  set('editProfissao',   l.profissao);
+  set('editCpf',         l.cpf);
+  set('editDataNasc',    l.data_nascimento);
+  set('editInstagram',   l.instagram);
+  set('editTelefone',    l.telefone);
+  set('editEstadoCivil', l.estado_civil);
+  set('editCep',         l.cep);
+  set('editEndereco',    l.endereco);
+  set('editNumero',      l.numero);
+  set('editComplemento', l.complemento);
+  set('editBairro',      l.bairro);
+  set('editCidade',      l.cidade);
+  set('editEstado',      l.estado);
+
+  document.getElementById('editarClienteModal').classList.add('show');
+  setTimeout(() => { const n = document.getElementById('editNome'); if(n) n.focus(); }, 250);
+}
+
+function fecharEdicaoCliente(){
+  document.getElementById('editarClienteModal').classList.remove('show');
+}
+
+async function salvarEdicaoCliente(){
+  if(!pacienteAtual) return;
+  const btn = document.getElementById('editSalvarBtn');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  const get = (id) => (document.getElementById(id)?.value || '').trim();
+
+  // Obrigatórios (do quiz)
+  const nome = get('editNome');
+  const email = get('editEmail');
+  const whatsapp = get('editWhats');
+
+  if(!nome || !email || !whatsapp){
+    window.modal.alert('Preencha os 3 campos obrigatórios:\n• Nome\n• Email\n• WhatsApp');
+    btn.disabled = false;
+    btn.textContent = '💾 Salvar alterações';
+    return;
+  }
+
+  // Payload — todos os campos (vazios ficam null)
+  const payload = {
+    nome: nome,
+    email: email,
+    whatsapp: whatsapp.replace(/\D/g,''),
+    idade: get('editIdade') || null,
+    profissao: get('editProfissao') || null,
+    cpf: get('editCpf') || null,
+    data_nascimento: get('editDataNasc') || null,
+    instagram: get('editInstagram') || null,
+    telefone: get('editTelefone') || null,
+    estado_civil: get('editEstadoCivil') || null,
+    cep: get('editCep') || null,
+    endereco: get('editEndereco') || null,
+    numero: get('editNumero') || null,
+    complemento: get('editComplemento') || null,
+    bairro: get('editBairro') || null,
+    cidade: get('editCidade') || null,
+    estado: get('editEstado') ? get('editEstado').toUpperCase() : null
+  };
+
+  // Qual campo usar pra WHERE
+  const campo = pacienteAtual.origemid ? 'origemid' : 'id';
+  const valor = pacienteAtual.origemid || pacienteAtual.id;
+
+  try{
+    const { error } = await supabaseClient.from('leads').update(payload).eq(campo, valor);
+    if(error) throw error;
+
+    // Atualiza pacienteAtual em memória
+    Object.assign(pacienteAtual, payload);
+
+    // Atualiza a ficha sem fechar
+    document.getElementById('fichaNome').innerText = payload.nome;
+    document.getElementById('fichaSub').innerText = (payload.email||'') + ' • ' + (payload.whatsapp||'');
+
+    // Atualiza no array leads[] em memória
+    const idx = leads.findIndex(x => x.origemid === pacienteAtual.origemid || x.id === pacienteAtual.id);
+    if(idx >= 0) Object.assign(leads[idx], payload);
+
+    // Re-renderiza ficha inteira (dados básicos)
+    fecharEdicaoCliente();
+    window.modal.alert('✅ Cliente atualizado!');
+    if(typeof carregarDados === 'function') carregarDados();
+  }catch(e){
+    window.modal.alert('Erro ao salvar: ' + e.message);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = '💾 Salvar alterações';
+  }
+}
+
+// ─── VIA CEP ───
+async function editBuscarCEP(){
+  const cep = (document.getElementById('editCep')?.value || '').replace(/\D/g,'');
+  if(cep.length !== 8) return;
+  try{
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const d = await r.json();
+    if(d.erro) return;
+    const set = (id, v) => { const el = document.getElementById(id); if(el && v) el.value = v; };
+    set('editEndereco', d.logradouro);
+    set('editBairro',   d.bairro);
+    set('editCidade',   d.localidade);
+    set('editEstado',   d.uf);
+  }catch(e){ /* silencioso */ }
+}
+
 // ============================================================
 // LOGOUT — limpa sessão e volta pro login
 // ============================================================
 async function logout(){
   if(!await window.modal.confirm('Sair da conta? Você precisará logar novamente.')) return;
+  try{
+    await supabaseClient.auth.signOut();
+  }catch(e){ console.warn('[logout]', e); }
   try{
     localStorage.removeItem('terapeuta_sessao');
     localStorage.removeItem('therapist_slug');
@@ -3984,8 +4192,107 @@ async function lmbAtualizarContador(){
   }catch(e){}
 }
 
-window.addEventListener('load',()=>{ checkAuth() && carregarDados(); });
+window.addEventListener('load', async ()=>{ if(await checkAuth()) carregarDados(); });
 </script>
+
+<!-- ============ MODAL: EDITAR CLIENTE ============ -->
+<div id="editarClienteModal" class="modal-overlay" onclick="if(event.target===this) fecharEdicaoCliente()">
+  <div class="modal-card" style="max-width:680px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#1c3d38">✏️ Editar cliente</div>
+      <button onclick="fecharEdicaoCliente()" class="ficha-band-close" style="background:#f5e6cc;color:#1c3d38;border:none;width:36px;height:36px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px">✕</button>
+    </div>
+
+    <div style="font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#7c3aed;margin-bottom:8px">Dados do questionário</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:span 2">
+        <label style="display:block;font-size:10px;font-weight:800;color:#991b1b;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Nome *</label>
+        <input id="editNome" class="input" style="margin:0" placeholder="Nome completo">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#991b1b;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Email *</label>
+        <input id="editEmail" class="input" style="margin:0" type="email" placeholder="email@exemplo.com">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#991b1b;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">WhatsApp *</label>
+        <input id="editWhats" class="input" style="margin:0" placeholder="41999999999">
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#7c3aed;margin:20px 0 8px">Dados complementares <span style="color:#8b5cf6;font-weight:700;text-transform:none;letter-spacing:0">(opcional)</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Idade</label>
+        <input id="editIdade" class="input" style="margin:0" inputmode="numeric">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Profissão</label>
+        <input id="editProfissao" class="input" style="margin:0">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">CPF</label>
+        <input id="editCpf" class="input" style="margin:0">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Data de nascimento</label>
+        <input id="editDataNasc" class="input" style="margin:0" type="date">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Instagram</label>
+        <input id="editInstagram" class="input" style="margin:0" placeholder="@usuario">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Telefone fixo</label>
+        <input id="editTelefone" class="input" style="margin:0">
+      </div>
+      <div style="grid-column:span 2">
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Estado civil</label>
+        <input id="editEstadoCivil" class="input" style="margin:0" placeholder="Solteira, casada...">
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#7c3aed;margin:20px 0 8px">Endereço <span style="color:#8b5cf6;font-weight:700;text-transform:none;letter-spacing:0">(opcional)</span></div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px">
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">CEP</label>
+        <input id="editCep" class="input" style="margin:0" oninput="if(this.value.replace(/\D/g,'').length===8) editBuscarCEP()">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Logradouro</label>
+        <input id="editEndereco" class="input" style="margin:0">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px;margin-top:12px">
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Número</label>
+        <input id="editNumero" class="input" style="margin:0">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Complemento</label>
+        <input id="editComplemento" class="input" style="margin:0">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 0.6fr;gap:12px;margin-top:12px">
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Bairro</label>
+        <input id="editBairro" class="input" style="margin:0">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Cidade</label>
+        <input id="editCidade" class="input" style="margin:0">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;color:#7c5a3c;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">UF</label>
+        <input id="editEstado" class="input" style="margin:0" maxlength="2">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:22px">
+      <button onclick="fecharEdicaoCliente()" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button id="editSalvarBtn" onclick="salvarEdicaoCliente()" style="flex:2;padding:13px;border-radius:14px;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;box-shadow:0 6px 16px rgba(124,58,237,.3)">💾 Salvar alterações</button>
+    </div>
+  </div>
+</div>
 
 <!-- ============ MODAL: LINKS DE TESTES ============ -->
 <div id="testModalOverlay" class="test-overlay" onclick="if(event.target===this) fecharModalTestes()">

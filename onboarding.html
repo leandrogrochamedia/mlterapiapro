@@ -540,24 +540,25 @@ async function salvar(){
   // Remove nulos pra não sobrescrever
   Object.keys(dados).forEach(k => { if (dados[k] === null) delete dados[k]; });
 
-  // Em edicao sem trocar senha: remove password_hash (trigger nao roda)
-  if (editando && (!dados.password_hash || dados.password_hash === '')) {
-    delete dados.password_hash;
-  }
-
   btn.disabled = true;
   btnLabel.textContent = 'Salvando...';
 
   try {
     if (editando) {
-      const { error } = await sb.from('terapeutas').update(dados).eq('slug', slugOriginal);
+      // Trocar senha no Auth (se a terapeuta digitou uma nova)
+      if (trocandoSenha && dados.password_hash) {
+        const { error: pwdErr } = await sb.auth.updateUser({ password: dados.password_hash });
+        if (pwdErr) throw new Error('Erro ao trocar senha: ' + pwdErr.message);
+      }
+
+      // Remove password_hash do payload (não existe mais na tabela)
+      const payloadUpdate = { ...dados };
+      delete payloadUpdate.password_hash;
+
+      const { error } = await sb.from('terapeutas').update(payloadUpdate).eq('slug', slugOriginal);
       if (error) throw error;
-      const sess = JSON.parse(localStorage.getItem('terapeuta_sessao') || '{}');
-      const safe = { ...dados };
-      if (safe.password_hash) delete safe.password_hash;
-      Object.assign(sess, safe);
-      localStorage.setItem('terapeuta_sessao', JSON.stringify(sess));
-      localStorage.setItem('therapist_slug', dados.slug);
+
+      localStorage.setItem('therapist_slug', payloadUpdate.slug);
       showSuccess('Perfil atualizado!', 'Tudo certo ✨');
     } else {
       const { data: dupEmail } = await sb.from('terapeutas').select('id').eq('email', dados.email).maybeSingle();
@@ -566,13 +567,34 @@ async function salvar(){
       const { data: dupSlug } = await sb.from('terapeutas').select('id').eq('slug', dados.slug).maybeSingle();
       if (dupSlug) throw new Error('Este slug já está em uso. Escolha outro.');
 
-      const { data, error } = await sb.from('terapeutas').insert(dados).select().single();
-      if (error) throw error;
+      // Garante que não tem sessão interferindo
+      try { await sb.auth.signOut(); } catch(e){}
 
-      // 🔒 nao guarda o hash da senha no localStorage
-      if (data && data.password_hash) delete data.password_hash;
+      // 1) Cria user no Auth
+      const { data: authData, error: authErr } = await sb.auth.signUp({
+        email: dados.email,
+        password: dados.password_hash
+      });
+      if (authErr) {
+        const msg = (authErr.message || '').toLowerCase();
+        if (msg.includes('already registered') || msg.includes('already exists')) {
+          throw new Error('Este e-mail já tem conta no sistema.');
+        }
+        throw new Error('Erro ao criar conta: ' + authErr.message);
+      }
+      if (!authData || !authData.user) throw new Error('Erro ao criar conta.');
 
-      localStorage.setItem('terapeuta_sessao', JSON.stringify(data));
+      // 2) Insere na tabela terapeutas com o auth_user_id
+      const payloadInsert = { ...dados };
+      delete payloadInsert.password_hash;
+      payloadInsert.auth_user_id = authData.user.id;
+
+      const { data, error } = await sb.from('terapeutas').insert(payloadInsert).select().single();
+      if (error) {
+        try { await sb.auth.signOut(); } catch(e){}
+        throw new Error('Erro ao salvar dados: ' + error.message);
+      }
+
       localStorage.setItem('therapist_slug', data.slug);
       localStorage.setItem('mlterapiapro_last_email', data.email);
       localStorage.setItem('mlterapiapro_last_login_at', new Date().toISOString());
