@@ -486,7 +486,7 @@ body::-webkit-scrollbar,
 <span id="avatarTopInitial">M</span>
 </div>
 <div style="min-width:0;flex:1">
-<div id="nomeTerapeuta" style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1.05;word-break:break-word;margin:0">Mariland</div>
+<div id="nomeTerapeuta" style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1.05;word-break:break-word;margin:0">Terapeuta</div>
 <div id="dataHoje" style="font-size:12px;color:#8a6a68;font-weight:600;margin-top:6px">carregando...</div>
 </div>
 </div>
@@ -832,7 +832,7 @@ body::-webkit-scrollbar,
 const SUPABASE_URL='https://aaqyhcpuwkifaeplxdep.supabase.co';
 const SUPABASE_KEY='sb_publishable_1gVxSsEOUPcEswKTFqQY2w_D2Lwxl5b';
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let THERAPIST_SLUG = localStorage.getItem('therapist_slug') || 'mariland-rodrigues';
+let THERAPIST_SLUG = localStorage.getItem('therapist_slug') || '';
 let TERAPEUTA_DATA = null;
 let leads=[], agendamentosCache=[], agendamentosCacheCompleto=[];
 let paginaClientes=1, paginaAgenda=1, paginaAgendaHoje=1;
@@ -862,8 +862,8 @@ function checkAuth(){
   try{
     const d=JSON.parse(sessao);
     TERAPEUTA_DATA = d;
-    THERAPIST_SLUG = d.slug || d.terapeuta_slug || localStorage.getItem('therapist_slug') || 'mariland-rodrigues';
-    document.getElementById('nomeTerapeuta').innerText = d.nome||'Mariland';
+    THERAPIST_SLUG = d.slug || d.terapeuta_slug || localStorage.getItem('therapist_slug') || '';
+    document.getElementById('nomeTerapeuta').innerText = d.nome||'Terapeuta';
     ajustarFonteNome();
     const fotoUrl = d.foto || d.foto_url || d.avatar || d.avatar_url || d.imagem || d.photo_url || d.photo || '';
     const imgEl = document.getElementById('avatarTopImg');
@@ -1003,7 +1003,7 @@ function renderClientesCards(){
     const dataCurta=formatDataCurta(l.data);
     const id = l.origemid||l.id;
     const whats = (l.whatsapp||'').replace(/\D/g,'');
-    const waLink = whats ? `https://wa.me/${whats}?text=${encodeURIComponent('Oi '+(l.nome||'')+'! Aqui é da clínica Mariland 💜')}` : '#';
+    const waLink = whats ? `https://wa.me/${whats}?text=${encodeURIComponent('Oi '+(l.nome||'')+'! Aqui é da clínica '+((typeof TERAPEUTA_DATA!=='undefined'&&TERAPEUTA_DATA&&TERAPEUTA_DATA.nome)?TERAPEUTA_DATA.nome.split(' ')[0]:'Terapeuta')+' 💜')}` : '#';
     const arquivado = !!l.arquivado;
 
     const acaoArchive = arquivado
@@ -1118,7 +1118,7 @@ function renderAgendamentoCard(a, mostrarTodasAcoes){
   const statusClass=getStatusClass(a.status);
   const obs=a.observacoes||a.observacao||'';
   const cancelado = (a.status||'').toLowerCase()==='cancelado';
-  const waLink=whats?`https://wa.me/${whats.replace(/\D/g,'')}?text=${encodeURIComponent('Oi '+nomeReal+'! Aqui é da clínica Mariland 💜')}`:'#';
+  const waLink=whats?`https://wa.me/${whats.replace(/\D/g,'')}?text=${encodeURIComponent('Oi '+nomeReal+'! Aqui é da clínica '+((typeof TERAPEUTA_DATA!=='undefined'&&TERAPEUTA_DATA&&TERAPEUTA_DATA.nome)?TERAPEUTA_DATA.nome.split(' ')[0]:'Terapeuta')+' 💜')}`:'#';
   const pacienteId = lead ? (lead.origemid||lead.id) : (a.paciente_origemid||a.paciente_id||'');
   const agId = a.id;
   const acoesCancel = cancelado ? '' : `<button onclick="cancelarAgendamento('${escapeJs(agId)}', event)" class="btn-round btn-round-cancel" title="Cancelar">${ICON_CANCEL}</button>`;
@@ -1296,7 +1296,7 @@ async function abrirFicha(ident){
   document.getElementById('fichaSub').innerText=(lead.email||'')+' • '+(lead.whatsapp||'');
   const whatsDigits=(lead.whatsapp||'').replace(/\D/g,'');
   document.getElementById('fichaWhats').href = whatsDigits
-    ? 'https://wa.me/'+whatsDigits+'?text='+encodeURIComponent('Oi '+(lead.nome||'')+'! Aqui é a Mariland 💜')
+    ? 'https://wa.me/'+whatsDigits+'?text='+encodeURIComponent('Oi '+(lead.nome||'')+'! Aqui é a '+((typeof TERAPEUTA_DATA!=='undefined'&&TERAPEUTA_DATA&&TERAPEUTA_DATA.nome)?TERAPEUTA_DATA.nome.split(' ')[0]:'terapeuta')+' 💜')
     : '#';
 
   // ====== DADOS BÁSICOS ======
@@ -4038,7 +4038,7 @@ window.addEventListener('load',()=>{ checkAuth() && carregarDados(); });
   <div class="welcome-card">
     <div class="welcome-avatar" id="welcomeAvatar">M</div>
     <div class="welcome-saudacao" id="welcomeSaudacao">✨</div>
-    <div class="welcome-nome" id="welcomeNome">Mariland</div>
+    <div class="welcome-nome" id="welcomeNome">✨</div>
     <div class="welcome-sub">Pronta pra transformar vidas hoje?</div>
   </div>
 </div>

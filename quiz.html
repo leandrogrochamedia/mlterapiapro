@@ -256,10 +256,7 @@ function capturarSlug(){
 let TERAPEUTA_SLUG = capturarSlug();
 let TERAPEUTA_DATA = null;
 
-const FALLBACK = {
-  'mariland-rodrigues': { nome:'MARILAND RODRIGUES', nicho:'Terapeuta Integrativa & Especialista em Neuroplasticidade', whatsapp:'5541996289968', id:'26e02e29-871b-4fe7-8120-081067219d70' },
-  'leandro-rocha': { nome:'LEANDRO ROCHA', nicho:'Terapeuta & Designer', whatsapp:'5541996824622', id:'35c9d50f-4e70-4b69-b304-e86f7880091d' }
-};
+// FALLBACK removido — o terapeuta é sempre carregado via RPC get_terapeuta_publico(slug)
 
 async function carregarTerapeuta(){
   // 1) Sem slug → 404
@@ -303,10 +300,15 @@ async function carregarTerapeuta(){
   }
 
   // 4) Preenche campos hidden/texto que já existiam
-  const lgpdSlug = document.getElementById('lgpdSlug');   if(lgpdSlug)   lgpdSlug.innerText = TERAPEUTA_SLUG;
-  const slugFinal = document.getElementById('slugFinal'); if(slugFinal)  slugFinal.innerText = TERAPEUTA_SLUG;
+  const lgpdSlug = document.getElementById('lgpdSlug');   if(lgpdSlug)   lgpdSlug.innerText = _nomeTerapeuta();
+  const slugFinal = document.getElementById('slugFinal'); if(slugFinal)  slugFinal.innerText = _nomeTerapeuta();
   const idFinal = document.getElementById('idFinal');     if(idFinal)    idFinal.innerText = (TERAPEUTA_DATA.id||'').slice(0,8);
   const slugDisplay = document.getElementById('slugDisplay'); if(slugDisplay) slugDisplay.innerText = TERAPEUTA_SLUG;
+}
+
+function _nomeTerapeuta(){
+  if(!TERAPEUTA_DATA) return TERAPEUTA_SLUG || '';
+  return TERAPEUTA_DATA.nome || TERAPEUTA_DATA.slug || TERAPEUTA_SLUG || '';
 }
 
 function formatarFone(fone){
@@ -580,7 +582,7 @@ async function finalizarQuiz(){
   const sorted=[...travas].sort((a,b)=>b.score-a.score);
   document.getElementById('topTravas').innerHTML=`<p style="font-size:14px;font-weight:900;color:#6d28d9;margin-bottom:10px">TOP 3:</p>`+sorted.slice(0,3).map((t,i)=>`<div style="display:flex;justify-content:space-between;padding:14px 18px;background:linear-gradient(90deg, rgba(196,181,253,0.15), rgba(249,168,212,0.1));border:2px solid rgba(196,181,253,0.25);border-radius:14px;margin-bottom:8px"><span>${i+1}. ${t.nome}</span><span style="font-weight:900">${t.score.toFixed(1)}</span></div>`).join('');
   const foneLink = TERAPEUTA_DATA?.whatsapp || '5541996289968';
-  document.getElementById('waLink').href=`https://wa.me/${foneLink}?text=${encodeURIComponent(`Oi, sou ${nome}, acabei de responder o questionário vinculado a ${TERAPEUTA_SLUG}`)}`; 
+  document.getElementById('waLink').href=`https://wa.me/${foneLink}?text=${encodeURIComponent(`Oi, sou ${nome}, acabei de responder o questionário vinculado a ${_nomeTerapeuta()}`)}`; 
   window.scrollTo({top:0, behavior:'smooth'});
 }
 </script>
