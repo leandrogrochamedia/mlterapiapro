@@ -928,7 +928,7 @@ async function carregarDados(){
   }
   mostrarBoasVindas();
   document.getElementById('dataHoje').innerText=formatarDataHoje();
-  carregarFotoTerapeuta();
+  // Foto já veio no checkAuth via RPC get_minha_terapeuta — não precisa query extra
   try{
     // Segurança multi-tenant: SEMPRE filtrar. NUNCA buscar sem escopo.
     let res1 = await supabaseClient.from('leads').select('*').eq('terapeuta_slug', THERAPIST_SLUG).order('data',{ascending:false}).limit(500);
@@ -2547,7 +2547,7 @@ async function logout(){
     localStorage.removeItem('therapist_slug');
     sessionStorage.removeItem('ml_welcome_shown');
   }catch(e){}
-  window.location.href = 'login.html';
+  window.location.href = 'login.html?logout=1';
 }
 
 
@@ -2563,7 +2563,7 @@ async function carregarKPIs(){
       supabaseClient.from('pacotes_financeiro').select('*').eq('therapist_slug', THERAPIST_SLUG).limit(500),
       supabaseClient.from('receitas').select('*').eq('terapeuta_slug', THERAPIST_SLUG).limit(1000),
       supabaseClient.from('contas_receber').select('*').eq('terapeuta_slug', THERAPIST_SLUG).limit(1000),
-      supabaseClient.from('despesas').select('*').or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`).limit(1000),
+      supabaseClient.from('despesas').select('*').eq('terapeuta_slug', THERAPIST_SLUG).limit(1000),
     ]);
 
     let ag = rAg.data || [];
@@ -3946,7 +3946,7 @@ async function carregarDespesas(){
   try{
     const {data, error} = await supabaseClient.from('despesas')
       .select('*')
-      .or(`terapeuta_slug.eq.${THERAPIST_SLUG},therapist_slug.eq.${THERAPIST_SLUG}`)
+      .eq('terapeuta_slug', THERAPIST_SLUG)
       .gte('data_despesa', ini)
       .lte('data_despesa', fim)
       .order('data_despesa', {ascending: false});

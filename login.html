@@ -146,7 +146,10 @@ async function fazerLogin(){
   btn.textContent = 'Entrando...';
 
   try {
-    // 🔐 Supabase Auth — o Supabase guarda token, renova sozinho
+    // Limpa sessão anterior (permite trocar de terapeuta sem logout manual)
+    try { await sb.auth.signOut(); } catch(e){}
+
+    // 🔐 Supabase Auth
     const { data: authData, error: authErr } = await sb.auth.signInWithPassword({
       email: email,
       password: senha
@@ -204,20 +207,25 @@ async function debugLogin(email, senha, btn){
 }
 // ═════ /DEBUG-LOGIN-REMOVER ═════
 
-// Auto-login: se já tem sessão ativa, vai direto pro dashboard
+// Auto-login se já tem sessão ativa (pula se ?logout=1)
 (async function(){
-  try{
-    const { data: { session } } = await sb.auth.getSession();
-    if (session && session.user) {
-      const { data: terapeutaArr } = await sb.rpc('get_minha_terapeuta');
-      const terapeuta = Array.isArray(terapeutaArr) ? terapeutaArr[0] : terapeutaArr;
-      if (terapeuta && terapeuta.slug) {
-        localStorage.setItem('therapist_slug', terapeuta.slug);
-        window.location.href = 'dashboard-v2.html';
-        return;
+  if (new URLSearchParams(window.location.search).get('logout') === '1') {
+    try { await sb.auth.signOut(); } catch(e){}
+    window.history.replaceState({}, '', 'login.html');
+  } else {
+    try{
+      const { data: { session } } = await sb.auth.getSession();
+      if (session && session.user) {
+        const { data: terapeutaArr } = await sb.rpc('get_minha_terapeuta');
+        const terapeuta = Array.isArray(terapeutaArr) ? terapeutaArr[0] : terapeutaArr;
+        if (terapeuta && terapeuta.slug) {
+          localStorage.setItem('therapist_slug', terapeuta.slug);
+          window.location.href = 'dashboard-v2.html';
+          return;
+        }
       }
-    }
-  }catch(e){ /* sem sessão, tudo bem */ }
+    }catch(e){ /* sem sessão, tudo bem */ }
+  }
 
   const email = localStorage.getItem('mlterapiapro_last_email');
   if (email) document.getElementById('email').value = email;
